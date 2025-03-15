@@ -9,6 +9,7 @@ import ValuationSection from '@/components/invest/ValuationSection';
 import FundingSection from '@/components/invest/FundingSection';
 import BenefitsSection from '@/components/invest/BenefitsSection';
 import NextStepsSection from '@/components/invest/NextStepsSection';
+import { Toaster } from '@/components/ui/toaster';
 
 const Invest = () => {
   return (
@@ -23,7 +24,7 @@ const Invest = () => {
 
           {/* Audio Player */}
           <AudioPlayer 
-            audioUrl="https://suno.com/song/f24fb581-f86a-4dc9-b4ff-38cf411680e6?sh=2CkWxs4v0ghlgwrq" 
+            audioUrl="https://suno.com/embed/song/f24fb581-f86a-4dc9-b4ff-38cf411680e6" 
             title="Play while reading our pitch"
           />
 
@@ -36,6 +37,7 @@ const Invest = () => {
         </div>
       </main>
       <Footer />
+      <Toaster />
     </div>
   );
 };
