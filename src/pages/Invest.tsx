@@ -23,7 +23,7 @@ const Invest = () => {
 
           {/* Audio Player */}
           <AudioPlayer 
-            audioUrl="https://assets.suno.ai/f24fb581-f86a-4dc9-b4ff-38cf411680e6/song.mp3" 
+            audioUrl="https://suno.com/song/f24fb581-f86a-4dc9-b4ff-38cf411680e6?sh=2CkWxs4v0ghlgwrq" 
             title="Play while reading our pitch"
           />
 
