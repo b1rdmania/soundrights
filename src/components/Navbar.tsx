@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils";
-import { Menu, X, FileText } from 'lucide-react';
+import { Menu, X, FileText, TrendingUp } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const Navbar = () => {
@@ -33,6 +32,7 @@ const Navbar = () => {
     { path: '/', label: 'Home' },
     { path: '/upload', label: 'Try It' },
     { path: '/whitepaper', label: 'White Paper', icon: <FileText size={16} className="mr-1" /> },
+    { path: '/invest', label: 'Invest', icon: <TrendingUp size={16} className="mr-1" /> },
     { path: '/about', label: 'About' },
   ];
 
