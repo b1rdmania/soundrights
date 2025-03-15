@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils";
-import { Menu, X } from 'lucide-react';
+import { Menu, X, FileText } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const Navbar = () => {
@@ -32,6 +32,7 @@ const Navbar = () => {
   const navLinks = [
     { path: '/', label: 'Home' },
     { path: '/upload', label: 'Try It' },
+    { path: '/whitepaper', label: 'White Paper', icon: <FileText size={16} className="mr-1" /> },
     { path: '/about', label: 'About' },
   ];
 
@@ -60,10 +61,11 @@ const Navbar = () => {
                 key={link.path}
                 to={link.path}
                 className={cn(
-                  "text-sm font-medium transition-colors hover:text-primary link-hover",
+                  "text-sm font-medium transition-colors hover:text-primary link-hover flex items-center",
                   isActive(link.path) ? "text-primary" : "text-muted-foreground"
                 )}
               >
+                {link.icon && link.icon}
                 {link.label}
               </Link>
             ))}
@@ -93,10 +95,11 @@ const Navbar = () => {
                 key={link.path}
                 to={link.path}
                 className={cn(
-                  "text-base font-medium py-2 transition-colors",
+                  "text-base font-medium py-2 transition-colors flex items-center",
                   isActive(link.path) ? "text-primary" : "text-muted-foreground"
                 )}
               >
+                {link.icon && link.icon}
                 {link.label}
               </Link>
             ))}
