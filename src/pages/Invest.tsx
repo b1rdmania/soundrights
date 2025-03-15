@@ -1,5 +1,4 @@
-
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Separator } from '@/components/ui/separator';
@@ -15,22 +14,70 @@ import { Play, Pause } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Slider } from '@/components/ui/slider';
+import { useToast } from '@/components/ui/use-toast';
 
 const Invest = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [volume, setVolume] = useState(80);
+  const [isAudioLoaded, setIsAudioLoaded] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    // Create audio element when component mounts
+    const audio = new Audio();
+    audio.src = "https://assets.suno.ai/f24fb581-f86a-4dc9-b4ff-38cf411680e6/song.mp3";
+    audio.volume = volume / 100;
+    audio.addEventListener('loadeddata', () => setIsAudioLoaded(true));
+    audio.addEventListener('timeupdate', handleTimeUpdate);
+    audio.addEventListener('ended', handleAudioEnded);
+    audio.addEventListener('error', handleAudioError);
+    
+    audioRef.current = audio;
+    
+    // Clean up when component unmounts
+    return () => {
+      audio.pause();
+      audio.removeEventListener('timeupdate', handleTimeUpdate);
+      audio.removeEventListener('ended', handleAudioEnded);
+      audio.removeEventListener('error', handleAudioError);
+    };
+  }, []);
 
   const togglePlayPause = () => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
-      } else {
-        audioRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
+    if (!audioRef.current || !isAudioLoaded) {
+      toast({
+        title: "Audio not loaded yet",
+        description: "Please wait while the audio is loading...",
+        variant: "destructive"
+      });
+      return;
     }
+    
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      const playPromise = audioRef.current.play();
+      
+      // Handle play promise to avoid uncaught promise errors
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            // Playback started successfully
+          })
+          .catch(error => {
+            // Auto-play prevented by browser
+            toast({
+              title: "Playback error",
+              description: "Couldn't play the audio. Please try again.",
+              variant: "destructive"
+            });
+            setIsPlaying(false);
+          });
+      }
+    }
+    setIsPlaying(!isPlaying);
   };
 
   const handleTimeUpdate = () => {
@@ -51,6 +98,16 @@ const Invest = () => {
   const handleAudioEnded = () => {
     setIsPlaying(false);
     setProgress(0);
+  };
+  
+  const handleAudioError = (e: Event) => {
+    console.error("Audio error:", e);
+    toast({
+      title: "Audio error",
+      description: "There was a problem playing this track. Please try again later.",
+      variant: "destructive"
+    });
+    setIsPlaying(false);
   };
 
   return (
@@ -73,6 +130,7 @@ const Invest = () => {
                   size="icon" 
                   className="h-10 w-10 rounded-full"
                   onClick={togglePlayPause}
+                  disabled={!isAudioLoaded}
                 >
                   {isPlaying ? <Pause size={18} /> : <Play size={18} />}
                 </Button>
@@ -91,16 +149,11 @@ const Invest = () => {
                 </div>
               </div>
               <div className="text-sm text-muted-foreground">
-                AI-generated Music Example - Courtesy of Suno
+                {isAudioLoaded ? 
+                  "AI-generated Music Example - Courtesy of Suno" : 
+                  "Loading audio..."}
               </div>
             </div>
-            <audio 
-              ref={audioRef} 
-              src="https://cdn.suno.com/f24fb581-f86a-4dc9-b4ff-38cf411680e6.mp3" 
-              onTimeUpdate={handleTimeUpdate}
-              onEnded={handleAudioEnded}
-              className="hidden"
-            />
           </div>
 
           <section className="mb-10 space-y-4">
