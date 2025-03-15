@@ -24,7 +24,7 @@ const Invest = () => {
 
           {/* Audio Player */}
           <AudioPlayer 
-            audioUrl="https://suno.com/embed/song/f24fb581-f86a-4dc9-b4ff-38cf411680e6" 
+            audioUrl="https://suno.com/song/f24fb581-f86a-4dc9-b4ff-38cf411680e6" 
             title="Play while reading our pitch"
           />
 
