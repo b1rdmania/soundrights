@@ -22,7 +22,7 @@ const AudioPlayer = ({ audioUrl, title }: AudioPlayerProps) => {
 
   return (
     <div className="bg-card border rounded-lg p-4 mb-10 shadow-sm">
-      <h2 className="text-lg font-medium mb-3">{title || "Play while reading"}</h2>
+      <h2 className="text-lg font-medium mb-3">{title || "Play Audio"}</h2>
       
       <div className="flex flex-col space-y-4">
         <Button 

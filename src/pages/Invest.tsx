@@ -22,15 +22,18 @@ const Invest = () => {
             <Separator className="my-4" />
           </div>
 
-          {/* Audio Player */}
-          <AudioPlayer 
-            audioUrl="https://suno.com/song/f24fb581-f86a-4dc9-b4ff-38cf411680e6" 
-            title="Play while reading our pitch"
-          />
-
           {/* Investment Sections */}
           <OverviewSection />
           <ValuationSection />
+          
+          {/* Audio Player - Moved to the middle of the page */}
+          <div className="my-10">
+            <AudioPlayer 
+              audioUrl="https://suno.com/song/f24fb581-f86a-4dc9-b4ff-38cf411680e6" 
+              title="Listen to our AI-Generated Theme"
+            />
+          </div>
+          
           <FundingSection />
           <BenefitsSection />
           <NextStepsSection />
