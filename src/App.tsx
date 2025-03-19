@@ -1,9 +1,7 @@
-
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Toaster as Sonner } from "@/components/ui/sonner";
 import Index from "./pages/Index";
 import Upload from "./pages/Upload";
 import Results from "./pages/Results";
@@ -12,27 +10,28 @@ import WhitePaper from "./pages/WhitePaper";
 import Invest from "./pages/Invest";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/upload" element={<Upload />} />
-          <Route path="/results" element={<Results />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/whitepaper" element={<WhitePaper />} />
-          <Route path="/invest" element={<Invest />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  return (
+    <Router>
+      <div className="min-h-screen bg-gray-50">
+        <TooltipProvider>
+          <Toaster position="top-right" />
+          <Sonner />
+          <main className="container mx-auto px-4 py-8">
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/upload" element={<Upload />} />
+              <Route path="/results" element={<Results />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/whitepaper" element={<WhitePaper />} />
+              <Route path="/invest" element={<Invest />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </main>
+        </TooltipProvider>
+      </div>
+    </Router>
+  );
+};
 
 export default App;
