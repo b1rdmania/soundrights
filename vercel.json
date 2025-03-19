@@ -16,6 +16,6 @@
     }
   ],
   "env": {
-    "VITE_API_URL": "https://api.soundmatch.app"
+    "VITE_API_URL": "https://soundmatch-audio-finder-production.up.railway.app/api/v1"
   }
 } 
