@@ -6,8 +6,73 @@ from ...core.logging import logger
 from .client import spotify_client
 import secrets
 from urllib.parse import urlencode
+import httpx
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+class SpotifyAuthService:
+    def __init__(self):
+        self.client_id = settings.SPOTIFY_CLIENT_ID
+        self.client_secret = settings.SPOTIFY_CLIENT_SECRET
+        self.redirect_uri = settings.SPOTIFY_REDIRECT_URI
+        self.scope = "user-read-private user-read-email playlist-read-private playlist-read-collaborative"
+        
+    def get_auth_url(self) -> str:
+        """Generate Spotify authorization URL."""
+        auth_url = (
+            "https://accounts.spotify.com/authorize"
+            f"?client_id={self.client_id}"
+            f"&response_type=code"
+            f"&redirect_uri={self.redirect_uri}"
+            f"&scope={self.scope}"
+            "&show_dialog=true"
+        )
+        return auth_url
+        
+    async def get_access_token(self, code: str) -> dict:
+        """Exchange authorization code for access token."""
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    "https://accounts.spotify.com/api/token",
+                    data={
+                        "grant_type": "authorization_code",
+                        "code": code,
+                        "redirect_uri": self.redirect_uri,
+                    },
+                    auth=(self.client_id, self.client_secret),
+                )
+                response.raise_for_status()
+                return response.json()
+        except Exception as e:
+            logger.error(f"Error getting Spotify access token: {str(e)}")
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to get Spotify access token"
+            )
+            
+    async def refresh_token(self, refresh_token: str) -> dict:
+        """Refresh Spotify access token."""
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    "https://accounts.spotify.com/api/token",
+                    data={
+                        "grant_type": "refresh_token",
+                        "refresh_token": refresh_token,
+                    },
+                    auth=(self.client_id, self.client_secret),
+                )
+                response.raise_for_status()
+                return response.json()
+        except Exception as e:
+            logger.error(f"Error refreshing Spotify token: {str(e)}")
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to refresh Spotify token"
+            )
+
+spotify_auth_service = SpotifyAuthService()
 
 @router.get("/spotify")
 async def get_spotify_auth_url(request: Request) -> Dict[str, Any]:
