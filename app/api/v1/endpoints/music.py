@@ -13,8 +13,7 @@ router = APIRouter()
 @router.post("/search")
 async def search_music(query: str = Form(...)) -> Dict[str, Any]:
     """
-    Search for music using Spotify, then enrich with MusicBrainz data,
-    and find similar tracks on Jamendo.
+    Search for music using MusicBrainz and find similar tracks on Jamendo.
     
     Args:
         query: Search query (song name, artist, etc.)
@@ -23,46 +22,31 @@ async def search_music(query: str = Form(...)) -> Dict[str, Any]:
         Dictionary containing track information and similar tracks
     """
     try:
-        # 1. Search Spotify for basic track info
-        spotify_response = requests.get(
-            "https://api.spotify.com/v1/search",
-            params={
-                "q": query,
-                "type": "track",
-                "limit": 1
-            }
-        )
-        spotify_response.raise_for_status()
-        spotify_data = spotify_response.json()
+        # Search MusicBrainz directly
+        track_info = await musicbrainz_client.search_track(query)
         
-        if not spotify_data["tracks"]["items"]:
+        if not track_info:
             raise HTTPException(
                 status_code=404,
                 detail="No tracks found"
             )
-            
-        spotify_track = spotify_data["tracks"]["items"][0]
         
-        # 2. Use Spotify data to search MusicBrainz
-        musicbrainz_query = f"{spotify_track['name']} AND artist:{spotify_track['artists'][0]['name']}"
-        track_info = await musicbrainz_client.search_track(musicbrainz_query)
-        
-        # 3. Use MusicBrainz data to find similar tracks on Jamendo
+        # Use MusicBrainz data to find similar tracks on Jamendo
         similar_tracks = await jamendo_service.find_similar_tracks(
             title=track_info["title"],
             artist=track_info["artist"],
-            tags=track_info["tags"],
-            mood=track_info["mood"]
+            tags=track_info.get("tags", []),
+            mood=track_info.get("mood", "")
         )
         
         return {
             "track": {
                 "title": track_info["title"],
                 "artist": track_info["artist"],
-                "duration": track_info["duration"],
-                "tags": track_info["tags"],
-                "mood": track_info["mood"],
-                "spotify_url": spotify_track["external_urls"]["spotify"]
+                "duration": track_info.get("duration", 0),
+                "tags": track_info.get("tags", []),
+                "mood": track_info.get("mood", ""),
+                "musicbrainz_url": track_info.get("url", "")
             },
             "similar_tracks": similar_tracks
         }
@@ -71,7 +55,7 @@ async def search_music(query: str = Form(...)) -> Dict[str, Any]:
         logger.error(f"Error processing search: {str(e)}")
         raise HTTPException(
             status_code=500,
-            detail="Failed to process the search"
+            detail=f"Failed to process the search: {str(e)}"
         )
 
 @router.post("/process-file")
@@ -99,8 +83,8 @@ async def process_file(file: UploadFile = File(...)) -> Dict[str, Any]:
         similar_tracks = await jamendo_service.find_similar_tracks(
             title=track_info["title"],
             artist=track_info["artist"],
-            tags=track_info["tags"],
-            mood=track_info["mood"]
+            tags=track_info.get("tags", []),
+            mood=track_info.get("mood", "")
         )
         
         # Clean up the temporary file
@@ -115,7 +99,7 @@ async def process_file(file: UploadFile = File(...)) -> Dict[str, Any]:
         logger.error(f"Error processing file: {str(e)}")
         raise HTTPException(
             status_code=500,
-            detail="Failed to process the audio file"
+            detail=f"Failed to process the audio file: {str(e)}"
         )
 
 @router.post("/process-link")
@@ -133,8 +117,13 @@ async def process_link(url: str = Form(...)) -> Dict[str, Any]:
         # Process the URL through MusicBrainz
         track_info = await musicbrainz_client.analyze_url(url)
         
-        # Get similar tracks
-        similar_tracks = await musicbrainz_client.find_similar_tracks(track_info)
+        # Get similar tracks from Jamendo
+        similar_tracks = await jamendo_service.find_similar_tracks(
+            title=track_info["title"],
+            artist=track_info["artist"],
+            tags=track_info.get("tags", []),
+            mood=track_info.get("mood", "")
+        )
         
         return {
             "track": track_info,
@@ -145,5 +134,5 @@ async def process_link(url: str = Form(...)) -> Dict[str, Any]:
         logger.error(f"Error processing link: {str(e)}")
         raise HTTPException(
             status_code=500,
-            detail="Failed to process the music link"
+            detail=f"Failed to process the music link: {str(e)}"
         ) 
