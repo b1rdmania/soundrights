@@ -13,7 +13,8 @@ router = APIRouter()
 @router.post("/search")
 async def search_music(query: str = Form(...)) -> Dict[str, Any]:
     """
-    Search for music using MusicBrainz and find similar tracks on Jamendo.
+    Search for music using Spotify's basic search, then enrich with MusicBrainz data,
+    and find similar tracks on Jamendo.
     
     Args:
         query: Search query (song name, artist, etc.)
@@ -22,16 +23,37 @@ async def search_music(query: str = Form(...)) -> Dict[str, Any]:
         Dictionary containing track information and similar tracks
     """
     try:
-        # Search MusicBrainz directly
-        track_info = await musicbrainz_client.search_track(query)
+        # 1. Search Spotify for basic track info (no auth required)
+        spotify_response = requests.get(
+            "https://api.spotify.com/v1/search",
+            params={
+                "q": query,
+                "type": "track",
+                "limit": 1
+            }
+        )
+        spotify_response.raise_for_status()
+        spotify_data = spotify_response.json()
         
-        if not track_info:
+        if not spotify_data["tracks"]["items"]:
             raise HTTPException(
                 status_code=404,
                 detail="No tracks found"
             )
+            
+        spotify_track = spotify_data["tracks"]["items"][0]
         
-        # Use MusicBrainz data to find similar tracks on Jamendo
+        # 2. Use Spotify data to search MusicBrainz
+        musicbrainz_query = f"{spotify_track['name']} AND artist:{spotify_track['artists'][0]['name']}"
+        track_info = await musicbrainz_client.search_track(musicbrainz_query)
+        
+        if not track_info:
+            raise HTTPException(
+                status_code=404,
+                detail="Track not found in MusicBrainz"
+            )
+        
+        # 3. Use MusicBrainz data to find similar tracks on Jamendo
         similar_tracks = await jamendo_service.find_similar_tracks(
             title=track_info["title"],
             artist=track_info["artist"],
@@ -46,11 +68,18 @@ async def search_music(query: str = Form(...)) -> Dict[str, Any]:
                 "duration": track_info.get("duration", 0),
                 "tags": track_info.get("tags", []),
                 "mood": track_info.get("mood", ""),
-                "musicbrainz_url": track_info.get("url", "")
+                "musicbrainz_url": track_info.get("url", ""),
+                "spotify_url": spotify_track["external_urls"]["spotify"]
             },
             "similar_tracks": similar_tracks
         }
         
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Spotify API error: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to search Spotify"
+        )
     except Exception as e:
         logger.error(f"Error processing search: {str(e)}")
         raise HTTPException(
