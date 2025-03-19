@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Upload, Link as LinkIcon, Search, AlertCircle, Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import api from '@/lib/api';
 
 type InputMethod = 'file' | 'link' | 'search';
 
@@ -85,55 +86,55 @@ const UploadForm: React.FC<UploadFormProps> = ({ onUpload }) => {
         const formData = new FormData();
         formData.append('query', searchQuery);
         
-        const response = await fetch('/api/v1/music/search', {
-          method: 'POST',
-          body: formData,
+        const response = await api.post('/music/search', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
         });
         
-        if (!response.ok) {
+        if (!response.data) {
           throw new Error('Failed to process search');
         }
         
-        const data = await response.json();
-        onUpload(data);
+        onUpload(response.data);
       } else if (link) {
         // Process link
         const formData = new FormData();
         formData.append('url', link);
         
-        const response = await fetch('/api/v1/music/process-link', {
-          method: 'POST',
-          body: formData,
+        const response = await api.post('/music/process-link', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
         });
         
-        if (!response.ok) {
+        if (!response.data) {
           throw new Error('Failed to process link');
         }
         
-        const data = await response.json();
-        onUpload(data);
+        onUpload(response.data);
       } else if (file) {
         // Process file
         const formData = new FormData();
         formData.append('file', file);
         
-        const response = await fetch('/api/v1/music/process-file', {
-          method: 'POST',
-          body: formData,
+        const response = await api.post('/music/process-file', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
         });
         
-        if (!response.ok) {
+        if (!response.data) {
           throw new Error('Failed to process file');
         }
         
-        const data = await response.json();
-        onUpload(data);
+        onUpload(response.data);
       } else {
         toast.error('Please provide a search query, file, or link');
       }
     } catch (err) {
-      toast.error('Failed to process request');
       console.error('Upload error:', err);
+      toast.error(err instanceof Error ? err.message : 'Failed to process request');
     } finally {
       setIsLoading(false);
     }
