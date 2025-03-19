@@ -7,6 +7,7 @@ from app.services.metadata.musicbrainz import musicbrainz_client
 from app.services.metadata.jamendo import jamendo_service
 import tempfile
 import os
+import time
 
 router = APIRouter()
 
@@ -24,16 +25,36 @@ async def search_music(query: str = Form(...)) -> Dict[str, Any]:
     """
     try:
         # 1. Search Spotify for basic track info (no auth required)
-        spotify_response = requests.get(
-            "https://api.spotify.com/v1/search",
-            params={
-                "q": query,
-                "type": "track",
-                "limit": 1
-            }
-        )
-        spotify_response.raise_for_status()
-        spotify_data = spotify_response.json()
+        max_retries = 3
+        retry_delay = 1  # seconds
+        
+        for attempt in range(max_retries):
+            try:
+                spotify_response = requests.get(
+                    "https://api.spotify.com/v1/search",
+                    params={
+                        "q": query,
+                        "type": "track",
+                        "limit": 1
+                    }
+                )
+                spotify_response.raise_for_status()
+                spotify_data = spotify_response.json()
+                break
+            except requests.exceptions.RequestException as e:
+                if attempt == max_retries - 1:
+                    logger.error(f"Spotify API error after {max_retries} attempts: {str(e)}")
+                    # If Spotify fails, try searching MusicBrainz directly
+                    track_info = await musicbrainz_client.search_track(query)
+                    if not track_info:
+                        raise HTTPException(
+                            status_code=404,
+                            detail="No tracks found"
+                        )
+                    spotify_data = {"tracks": {"items": [{"name": track_info["title"], "artists": [{"name": track_info["artist"]}]}]}}
+                else:
+                    time.sleep(retry_delay)
+                    retry_delay *= 2  # Exponential backoff
         
         if not spotify_data["tracks"]["items"]:
             raise HTTPException(
@@ -48,10 +69,13 @@ async def search_music(query: str = Form(...)) -> Dict[str, Any]:
         track_info = await musicbrainz_client.search_track(musicbrainz_query)
         
         if not track_info:
-            raise HTTPException(
-                status_code=404,
-                detail="Track not found in MusicBrainz"
-            )
+            # If MusicBrainz search fails, try a broader search
+            track_info = await musicbrainz_client.search_track(spotify_track['name'])
+            if not track_info:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Track not found in MusicBrainz"
+                )
         
         # 3. Use MusicBrainz data to find similar tracks on Jamendo
         similar_tracks = await jamendo_service.find_similar_tracks(
@@ -69,16 +93,17 @@ async def search_music(query: str = Form(...)) -> Dict[str, Any]:
                 "tags": track_info.get("tags", []),
                 "mood": track_info.get("mood", ""),
                 "musicbrainz_url": track_info.get("url", ""),
-                "spotify_url": spotify_track["external_urls"]["spotify"]
+                "spotify_url": spotify_track.get("external_urls", {}).get("spotify", ""),
+                "features": track_info.get("features", {})
             },
             "similar_tracks": similar_tracks
         }
         
     except requests.exceptions.RequestException as e:
-        logger.error(f"Spotify API error: {str(e)}")
+        logger.error(f"API error: {str(e)}")
         raise HTTPException(
             status_code=500,
-            detail="Failed to search Spotify"
+            detail="Failed to search for tracks"
         )
     except Exception as e:
         logger.error(f"Error processing search: {str(e)}")

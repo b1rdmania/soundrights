@@ -15,6 +15,84 @@ class MusicBrainzClient:
             "Accept": "application/json"
         }
     
+    async def search_track(self, query: str) -> Optional[Dict[str, Any]]:
+        """Search for a track in MusicBrainz."""
+        try:
+            search_url = f"{self.BASE_URL}/recording"
+            params = {
+                "query": query,
+                "fmt": "json",
+                "limit": 1
+            }
+            
+            response = requests.get(search_url, headers=self.headers, params=params)
+            response.raise_for_status()
+            data = response.json()
+            
+            if not data.get("recordings"):
+                return None
+            
+            recording = data["recordings"][0]
+            
+            # Get additional metadata
+            recording_id = recording["id"]
+            recording_url = f"{self.BASE_URL}/recording/{recording_id}"
+            params = {
+                "inc": "releases+artists+tags+ratings+genres",
+                "fmt": "json"
+            }
+            
+            response = requests.get(recording_url, headers=self.headers, params=params)
+            response.raise_for_status()
+            recording_data = response.json()
+            
+            # Extract features
+            features = self._extract_features(
+                recording_data.get("tags", []),
+                recording_data.get("ratings", []),
+                recording_data.get("genres", [])
+            )
+            
+            return {
+                "title": recording["title"],
+                "artist": recording["artist-credit"][0]["name"] if recording.get("artist-credit") else "Unknown Artist",
+                "duration": recording.get("length", 0),
+                "tags": [tag["name"] for tag in recording_data.get("tags", [])],
+                "mood": self._extract_mood(recording_data.get("tags", [])),
+                "url": f"https://musicbrainz.org/recording/{recording_id}",
+                "features": features
+            }
+            
+        except requests.exceptions.RequestException as e:
+            logger.error(f"MusicBrainz API request failed: {str(e)}")
+            raise MetadataAPIError(f"MusicBrainz API request failed: {str(e)}")
+        except Exception as e:
+            logger.error(f"Error searching track: {str(e)}")
+            raise
+    
+    def _extract_mood(self, tags: list) -> str:
+        """Extract mood from tags."""
+        mood_tags = {
+            "happy": "Happy",
+            "sad": "Sad",
+            "energetic": "Energetic",
+            "calm": "Calm",
+            "romantic": "Romantic",
+            "melancholic": "Melancholic",
+            "upbeat": "Upbeat",
+            "dark": "Dark",
+            "peaceful": "Peaceful",
+            "angry": "Angry"
+        }
+        
+        for tag in tags:
+            tag_name = tag["name"].lower()
+            for mood, display in mood_tags.items():
+                if mood in tag_name:
+                    return display
+        
+        return "Neutral"
+    
     def get_track_features(self, track_name: str, artist_name: str) -> Dict[str, Any]:
         """Get track audio features from MusicBrainz."""
         try:
