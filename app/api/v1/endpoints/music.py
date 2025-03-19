@@ -45,7 +45,7 @@ async def search_music(query: str = Form(...)) -> Dict[str, Any]:
                 if attempt == max_retries - 1:
                     logger.error(f"Spotify API error after {max_retries} attempts: {str(e)}")
                     # If Spotify fails, try searching MusicBrainz directly
-                    track_info = await musicbrainz_client.search_track(query)
+                    track_info = musicbrainz_client.search_track(query)
                     if not track_info:
                         raise HTTPException(
                             status_code=404,
@@ -66,11 +66,11 @@ async def search_music(query: str = Form(...)) -> Dict[str, Any]:
         
         # 2. Use Spotify data to search MusicBrainz
         musicbrainz_query = f"{spotify_track['name']} AND artist:{spotify_track['artists'][0]['name']}"
-        track_info = await musicbrainz_client.search_track(musicbrainz_query)
+        track_info = musicbrainz_client.search_track(musicbrainz_query)
         
         if not track_info:
             # If MusicBrainz search fails, try a broader search
-            track_info = await musicbrainz_client.search_track(spotify_track['name'])
+            track_info = musicbrainz_client.search_track(spotify_track['name'])
             if not track_info:
                 raise HTTPException(
                     status_code=404,
@@ -131,7 +131,7 @@ async def process_file(file: UploadFile = File(...)) -> Dict[str, Any]:
             temp_path = temp_file.name
         
         # Process the file through MusicBrainz
-        track_info = await musicbrainz_client.analyze_file(temp_path)
+        track_info = musicbrainz_client.analyze_file(temp_path)
         
         # Get similar tracks from Jamendo
         similar_tracks = await jamendo_service.find_similar_tracks(
@@ -169,7 +169,7 @@ async def process_link(url: str = Form(...)) -> Dict[str, Any]:
     """
     try:
         # Process the URL through MusicBrainz
-        track_info = await musicbrainz_client.analyze_url(url)
+        track_info = musicbrainz_client.analyze_url(url)
         
         # Get similar tracks from Jamendo
         similar_tracks = await jamendo_service.find_similar_tracks(
