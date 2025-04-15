@@ -11,6 +11,7 @@ class ZylaShazamClient:
     BASE_URL = "https://zylalabs.com/api/2219/shazam+api"
     RECOGNIZE_ENDPOINT = "/2068/recognize+song"
     REQUEST_TIMEOUT = 30.0
+    CHUNK_SIZE = 500 * 1024  # Optimal chunk size in bytes (500 KB)
     
     def __init__(self):
         if not settings.ZYLA_SHAZAM_API_KEY:
@@ -25,12 +26,16 @@ class ZylaShazamClient:
         """Recognize a song from audio data using httpx."""
         try:
             url = f"{self.BASE_URL}{self.RECOGNIZE_ENDPOINT}"
+            
+            # Send only the first chunk of audio data
+            audio_chunk = audio_data[:self.CHUNK_SIZE]
+            
             files = {
-                'image': (filename, audio_data, 'audio/mpeg')
+                'image': (filename, audio_chunk, 'audio/mpeg') # Use 'image' key as per docs
             }
             
             logger.info(f"Sending request to Zyla Shazam API at {url} with file {filename}")
-            logger.info(f"Audio data size: {len(audio_data)} bytes")
+            logger.info(f"Original audio data size: {len(audio_data)} bytes, Sending chunk size: {len(audio_chunk)} bytes") # Log original and chunk size
             response = await self.async_client.post(url, headers=self.headers, files=files)
             
             logger.info(f"Received response from Zyla Shazam API. Status: {response.status_code}")
