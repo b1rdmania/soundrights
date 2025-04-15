@@ -32,3 +32,4 @@ typing_extensions==4.13.2
 uritemplate==4.1.1
 urllib3==2.4.0
 uvicorn[standard]==0.30.3
+python-multipart
