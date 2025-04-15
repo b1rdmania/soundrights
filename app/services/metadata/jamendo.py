@@ -63,9 +63,8 @@ class JamendoService:
                     "client_id": self.CLIENT_ID, # Use the public CLIENT_ID
                     "format": "json",
                     "limit": limit,
-                    "tags": search_tags_str,
+                    "fuzzytags": search_tags_str,
                     "include": "musicinfo stats",
-                    "fuzzytags": 1,
                     "boost": "popularity_total",
                     "orderby": "popularity_total",
                     "audioformat": "mp32",
