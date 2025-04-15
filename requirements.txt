@@ -3,7 +3,7 @@ cachetools==5.5.2
 certifi==2025.1.31
 charset-normalizer==3.4.1
 fastapi==0.113.0
-dotenv==1.0.1
+python-dotenv
 google-ai-generativelanguage==0.6.15
 google-api-core==2.24.2
 google-api-python-client==2.167.0
