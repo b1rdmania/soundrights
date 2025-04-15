@@ -1,69 +1,97 @@
-# Welcome to your Lovable project
+# SoundMatch AI - Find Similar Copyright-Free Music
 
-## Project info
+**Hackathon Project - Seeking Partners!**
 
-**URL**: https://lovable.dev/projects/f63711bc-d2ee-4889-a862-eebdc98160f7
+This project is being developed for a hackathon and we are actively looking for enthusiastic partners to join the team! If you're interested in AI, music technology, web development (React/FastAPI), or data services like MusicBrainz and Jamendo, please reach out!
 
-## How can I edit this code?
+## Project Goal
 
-There are several ways of editing your application.
+SoundMatch AI aims to be an intelligent platform that helps content creators, developers, and music enthusiasts discover copyright-free music similar to a provided track or audio file.
 
-**Use Lovable**
+Users can:
+- **Search by song/artist:** Enter a known song, and the app will find similar royalty-free alternatives.
+- **Upload an MP3:** Analyze an existing audio file to find similar royalty-free tracks.
+- **Paste a link:** Analyze a music link (e.g., Spotify, YouTube - *future feature*) to find similar royalty-free tracks.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/f63711bc-d2ee-4889-a862-eebdc98160f7) and start prompting.
+The core idea is to leverage metadata analysis (using MusicBrainz) and similarity searching (using Jamendo) to provide relevant and usable music recommendations.
 
-Changes made via Lovable will be committed automatically to this repo.
+## Technology Stack
 
-**Use your preferred IDE**
+- **Frontend:** React, Vite, TypeScript, Tailwind CSS, shadcn-ui
+- **Backend:** Python, FastAPI
+- **Metadata:** MusicBrainz API
+- **Royalty-Free Music Search:** Jamendo API
+- **Deployment:** Vercel (Frontend), Railway (Backend)
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Development Progress So Far
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+We have made significant progress in building the core infrastructure and functionality:
 
-Follow these steps:
+- **Backend API (FastAPI on Railway):**
+    - Set up FastAPI application structure.
+    - Implemented API endpoints for:
+        - `/search`: Takes a query, uses Spotify's basic search for initial info, queries MusicBrainz for detailed metadata, and then finds similar tracks on Jamendo.
+        - `/process-file`: Accepts an MP3 upload, analyzes it using MusicBrainz, and finds similar tracks on Jamendo.
+        - `/process-link`: Accepts a music URL, analyzes it using MusicBrainz, and finds similar tracks on Jamendo.
+    - Integrated MusicBrainz client for metadata fetching and analysis.
+    - Integrated Jamendo client for searching copyright-free music.
+    - Configured CORS to allow requests from the frontend.
+    - Set up environment variables for API keys and configuration.
+    - Added basic logging and error handling.
+    - Created Docker configurations (`docker-compose.yml`, `Dockerfile`) for local development and production (though primarily deploying via Railway).
+- **Frontend (React on Vercel):**
+    - Set up React application using Vite and TypeScript.
+    - Created main pages: Index, Upload, Results, About, etc.
+    - Implemented routing using `react-router-dom`.
+    - Developed the `UploadForm` component allowing users to search, upload files, or paste links.
+    - Created the `Results` page to display track information and similar results.
+    - Integrated API client (`axios`) to communicate with the backend.
+    - Configured UI components using `shadcn-ui` and styled with Tailwind CSS.
+    - Set up deployment pipeline to Vercel.
+    - Added error boundaries and loading states for better UX.
+- **Deployment:**
+    - Frontend successfully deployed to Vercel.
+    - Backend successfully deployed to Railway.
+    - Configured Vercel and Railway environment variables.
+- **Troubleshooting:**
+    - Resolved CORS issues between frontend and backend.
+    - Debugged MIME type issues with Vercel static asset serving.
+    - Iteratively fixed backend API errors (500 errors) related to API integrations (Spotify, MusicBrainz) and error handling logic.
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## Next Steps / Areas for Collaboration
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+- **Refine Search Accuracy:** Improve the logic for matching and finding *truly* similar tracks.
+- **Enhance UI/UX:** Make the results page more interactive and visually appealing. Add audio playback for Jamendo previews.
+- **Improve Error Handling:** Make error messages more user-friendly on the frontend. Add more robust backend logging.
+- **Link Processing:** Fully implement and test the `/process-link` functionality (needs robust URL parsing and service detection).
+- **Testing:** Add unit and integration tests for both frontend and backend.
+- **Scalability & Performance:** Optimize backend API calls and database interactions (if a DB is added later).
+- **Feature Expansion:** Consider adding features like user accounts, saved searches, or filtering options for Jamendo results.
 
-# Step 3: Install the necessary dependencies.
-npm i
+## Getting Started Locally
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+To run this project locally:
 
-**Edit a file directly in GitHub**
+1.  **Clone the repository:**
+    ```bash
+    git clone <YOUR_GIT_URL>
+    cd soundmatch-audio-finder
+    ```
+2.  **Set up Backend:**
+    - Navigate to the backend directory (if structure dictates, otherwise root).
+    - Create a Python virtual environment: `python -m venv .venv`
+    - Activate the virtual environment: `source .venv/bin/activate` (or `.\venv\Scripts\activate` on Windows)
+    - Install backend dependencies: `pip install -r requirements.txt`
+    - Create a `.env` file based on `.env.example` and add your API keys (Jamendo, potentially others).
+    - Run the backend server: `uvicorn app.main:app --reload --port 8000`
+3.  **Set up Frontend:**
+    - Navigate to the frontend directory (if structure dictates, otherwise root).
+    - Install frontend dependencies: `npm install`
+    - Create a `.env.local` file and add `VITE_API_URL=http://localhost:8000/api/v1` (or your backend URL).
+    - Run the frontend development server: `npm run dev`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+The frontend should be accessible at `http://localhost:5173` (or another port specified by Vite).
 
-**Use GitHub Codespaces**
+**Join Us!**
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with .
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/f63711bc-d2ee-4889-a862-eebdc98160f7) and click on Share -> Publish.
-
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+If you're excited about this project and want to contribute during the hackathon, please reach out!
