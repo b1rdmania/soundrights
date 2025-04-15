@@ -26,10 +26,11 @@ class ZylaShazamClient:
         try:
             url = f"{self.BASE_URL}{self.RECOGNIZE_ENDPOINT}"
             files = {
-                'file': (filename, audio_data, 'audio/mpeg')
+                'image': (filename, audio_data, 'audio/mpeg')
             }
             
             logger.info(f"Sending request to Zyla Shazam API at {url} with file {filename}")
+            logger.info(f"Audio data size: {len(audio_data)} bytes")
             response = await self.async_client.post(url, headers=self.headers, files=files)
             
             logger.info(f"Received response from Zyla Shazam API. Status: {response.status_code}")
