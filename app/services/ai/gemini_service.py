@@ -47,9 +47,15 @@ class GeminiService:
         prompt = f"""
         Analyze the song "{title}" by "{artist}" {genre_info} {explicit_info} {instrumental_info} {rating_info}.
 
-        Based *only* on this information:
-        1. Concisely describe the likely mood, tempo, energy level, instrumentation, and overall musical style (2-3 sentences). Focus on characteristics useful for finding similar *royalty-free* music (e.g., on Jamendo). Avoid subjective opinions or external knowledge.
-        2. Generate a list of 7-10 relevant keywords (tags) suitable for searching a royalty-free music library like Jamendo. Keywords should be specific, reflect the description and input data (especially genres), and ideally include terms related to mood, instrumentation, and sub-genres if inferable. Examples: 'upbeat pop', 'cinematic orchestral', 'sad acoustic guitar', 'driving rock drums', 'calm piano background'. Output *only* the keywords as a JSON list of strings.
+        Based *only* on the provided metadata:
+        1.  Provide a detailed technical description (3-4 sentences) focusing on objective musical characteristics useful for finding similar *royalty-free* music (e.g., on Jamendo). Include:
+            *   Likely **tempo range** (e.g., slow < 80 BPM, medium 80-120 BPM, fast > 120 BPM). Estimate BPM if possible based on genre/era.
+            *   Likely **instrumentation** based on genre/era (e.g., 'distorted electric guitar, bass, acoustic drums', 'synthesizers, drum machine, piano', 'orchestral strings, brass').
+            *   Likely **vocal presence and style** (e.g., 'prominent male lead vocal', 'female backing vocals', 'instrumental', 'choir'). Avoid guessing gender if not obvious from artist name structure (e.g., ft. [Female Name]).
+            *   Overall **mood and energy level** (e.g., 'calm and melancholic', 'upbeat and energetic', 'dramatic and intense').
+            *   Estimate the **approximate musical era** (e.g., '1960s', '80s synth-pop', 'modern folk', '2010s electronic').
+            *   Avoid subjective opinions, musical key analysis, or external knowledge not present in the metadata.
+        2.  Generate a list of 10-15 highly relevant and specific keywords (tags) suitable for searching a royalty-free music library like Jamendo. Keywords MUST reflect the detailed description (era, tempo, instruments, vocals, mood, genre, sub-genre). Examples: 'fast 60s rockabilly', 'electric guitar solo', 'male lead vocal', 'medium tempo 80s synth-pop ballad', 'orchestral strings', 'cinematic trailer music', 'calm background piano', 'instrumental 90s hip hop beat', 'energetic funk bassline'. Output *only* the keywords as a JSON list of strings.
 
         Example Input Data: {{ 'title': 'Uptown Funk', 'artist': 'Mark Ronson ft. Bruno Mars', 'genres': ['Funk', 'Pop'], 'explicit': False, 'instrumental': False, 'rating': 90 }}
         Example Output (JSON):
