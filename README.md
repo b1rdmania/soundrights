@@ -63,7 +63,12 @@ We have made significant progress in building the core infrastructure and functi
 - **Refine Search Accuracy:** Improve the logic for matching and finding *truly* similar tracks.
 - **Enhance UI/UX:** Make the results page more interactive and visually appealing. Add audio playback for Jamendo previews.
 - **Improve Error Handling:** Make error messages more user-friendly on the frontend. Add more robust backend logging.
-- **Link Processing:** Fully implement and test the `/process-link` functionality (needs robust URL parsing and service detection).
+- **Link Processing:** Fully implement and test the `/process-link` functionality (needs robust URL parsing and service detection for various platforms like Spotify, YouTube, etc.).
+- **Audio Fingerprinting:** Integrate **Shazam API** or similar services for identifying tracks directly from audio snippets.
+- **Advanced Similarity Search:** Implement **FAISS** or other vector databases for more sophisticated similarity searches based on extracted audio features or embeddings.
+- **Expand Music Sources:** Integrate with additional **open music royalty-free libraries** beyond Jamendo (e.g., Free Music Archive, Pixabay Music).
+- **Full Spotify Integration:** Explore deeper integration with the **Spotify API** (requiring authentication) for richer data or user-specific features.
+- **Other API Integrations:** Open to exploring other relevant music data or analysis APIs.
 - **Testing:** Add unit and integration tests for both frontend and backend.
 - **Scalability & Performance:** Optimize backend API calls and database interactions (if a DB is added later).
 - **Feature Expansion:** Consider adding features like user accounts, saved searches, or filtering options for Jamendo results.
