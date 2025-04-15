@@ -66,6 +66,7 @@ We have made significant progress in building the core infrastructure and functi
 - **Link Processing:** Fully implement and test the `/process-link` functionality (needs robust URL parsing and service detection for various platforms like Spotify, YouTube, etc.).
 - **Audio Fingerprinting:** Integrate **Shazam API** or similar services for identifying tracks directly from audio snippets.
 - **Advanced Similarity Search:** Implement **FAISS** or other vector databases for more sophisticated similarity searches based on extracted audio features or embeddings.
+- **LLM-Powered Search Term Generation:** Explore an alternative model: Identify songs (via Shazam/Spotify names), feed info into an LLM (**Gemini/OpenAI**) to generate descriptive keywords/tags, and use those terms to search royalty-free libraries.
 - **Expand Music Sources:** Integrate with additional **open music royalty-free libraries** beyond Jamendo (e.g., Free Music Archive, Pixabay Music).
 - **Full Spotify Integration:** Explore deeper integration with the **Spotify API** (requiring authentication) for richer data or user-specific features.
 - **Other API Integrations:** Open to exploring other relevant music data or analysis APIs.
