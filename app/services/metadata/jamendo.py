@@ -53,7 +53,7 @@ class JamendoService:
             return []
 
         try:
-            search_tags_str = ",".join(keywords)
+            search_tags_str = " ".join(keywords)
             logger.info(f"Searching Jamendo with keywords: {search_tags_str}")
             
             response = await asyncio.to_thread( # Use async request

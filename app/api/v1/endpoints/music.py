@@ -49,6 +49,7 @@ async def search_and_analyze(query: str = Form(...)) -> Dict[str, Any]:
         # Use the data found by Musixmatch for analysis
         logger.info(f"Starting Gemini analysis for Musixmatch result: {musixmatch_metadata.get('title')}...")
         gemini_analysis = await gemini_service.analyze_song_and_generate_keywords(musixmatch_metadata)
+        logger.info(f"Gemini analysis successful for {musixmatch_metadata.get('title', 'Unknown Title')} by {musixmatch_metadata.get('artist', 'Unknown Artist')}. Keywords: {gemini_analysis['keywords']}")
         keywords = gemini_analysis.get("keywords")
 
         if not keywords:
@@ -154,6 +155,7 @@ async def process_file(file: UploadFile = File(...)) -> Dict[str, Any]:
         logger.info(f"Starting Gemini analysis with combined data: {analysis_input['title']}...")
         # Modify Gemini prompt if needed to utilize the new fields (genres, etc.)
         gemini_analysis = await gemini_service.analyze_song_and_generate_keywords(analysis_input)
+        logger.info(f"Gemini analysis successful for {musixmatch_metadata.get('title', 'Unknown Title')} by {musixmatch_metadata.get('artist', 'Unknown Artist')}. Keywords: {gemini_analysis['keywords']}")
         keywords = gemini_analysis.get("keywords")
 
         if not keywords:
