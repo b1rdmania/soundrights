@@ -31,7 +31,7 @@ class ZylaShazamClient:
             audio_chunk = audio_data[:self.CHUNK_SIZE]
             
             files = {
-                'image': (filename, audio_chunk, 'audio/mpeg') # Use 'image' key as per docs
+                'image': (filename, audio_chunk, 'audio/mp3') # Try specific 'audio/mp3' MIME type
             }
             
             logger.info(f"Sending request to Zyla Shazam API at {url} with file {filename}")
