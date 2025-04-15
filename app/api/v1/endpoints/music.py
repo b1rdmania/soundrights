@@ -70,42 +70,68 @@ async def search_music(query: str = Form(...)) -> Dict[str, Any]:
 @router.post("/process-file")
 async def process_file(file: UploadFile = File(...)) -> Dict[str, Any]:
     """
-    Process an uploaded audio file through MusicBrainz and find similar tracks.
-    
+    Process an uploaded audio file by searching MusicBrainz using the filename
+    and finding similar tracks on Jamendo.
+
     Args:
         file: The uploaded audio file
-        
+
     Returns:
         Dictionary containing track information and similar tracks
     """
+    temp_path = None # Ensure temp_path is defined for cleanup
     try:
-        # Save the uploaded file temporarily
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as temp_file:
-            content = await file.read()
-            temp_file.write(content)
-            temp_path = temp_file.name
-        
-        # Process the file through MusicBrainz
-        track_info = musicbrainz_client.analyze_file(temp_path)
-        
-        # Get similar tracks from Jamendo
+        # Use the original filename for the search query
+        original_filename = file.filename
+        if not original_filename:
+            raise HTTPException(status_code=400, detail="Filename missing")
+        # Basic cleanup: remove common extensions
+        query = os.path.splitext(original_filename)[0]
+
+        # 1. Search MusicBrainz using the cleaned filename
+        logger.info(f"Searching MusicBrainz for query: {query}")
+        track_info = await musicbrainz_client.search_track(query) # Use await for async method
+
+        if not track_info:
+            # Optionally save the file if needed for other purposes,
+            # but for now, just raise the error if no track found
+            # with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as temp_file:
+            #     content = await file.read()
+            #     temp_file.write(content)
+            #     temp_path = temp_file.name
+            raise HTTPException(
+                status_code=404,
+                detail=f"No tracks found in MusicBrainz for query: {query}"
+            )
+
+        # 2. Use MusicBrainz data to find similar tracks on Jamendo
+        logger.info(f"Finding similar tracks on Jamendo for: {track_info['title']}")
         similar_tracks = await jamendo_service.find_similar_tracks(
             title=track_info["title"],
             artist=track_info["artist"],
             tags=track_info.get("tags", []),
             mood=track_info.get("mood", "")
         )
-        
-        # Clean up the temporary file
-        os.unlink(temp_path)
-        
+
+        # No need to save the file just for the search, so no cleanup needed unless saved above
+        # if temp_path and os.path.exists(temp_path):
+        #     os.unlink(temp_path)
+
         return {
-            "track": track_info,
+            "track": track_info, # Return the full track_info dict from search_track
             "similar_tracks": similar_tracks
         }
-        
+
+    except HTTPException as http_exc: # Re-raise HTTPExceptions
+        raise http_exc
     except Exception as e:
-        logger.error(f"Error processing file: {str(e)}")
+        logger.error(f"Error processing file upload: {str(e)}")
+        # Clean up temp file if it was created before an error
+        # if temp_path and os.path.exists(temp_path):
+        #     try:
+        #         os.unlink(temp_path)
+        #     except Exception as unlink_e:
+        #         logger.error(f"Error cleaning up temp file {temp_path}: {unlink_e}")
         raise HTTPException(
             status_code=500,
             detail=f"Failed to process the audio file: {str(e)}"
