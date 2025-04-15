@@ -1,5 +1,5 @@
 import google.generativeai as genai
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 import json
 from app.core.config import settings
 from app.core.logging import logger
