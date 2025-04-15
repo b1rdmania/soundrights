@@ -131,10 +131,20 @@ const UploadForm: React.FC<UploadFormProps> = ({ onUpload }) => {
         onUpload(response.data);
       } else {
         toast.error('Please provide a search query, file, or link');
+        setIsLoading(false);
+        return;
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Upload error:', err);
-      toast.error(err instanceof Error ? err.message : 'Failed to process request');
+      
+      let errorMessage = 'Failed to process request. Please try again.';
+      if (err.response && err.response.data && err.response.data.detail) {
+        errorMessage = `Error: ${err.response.data.detail}`;
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
