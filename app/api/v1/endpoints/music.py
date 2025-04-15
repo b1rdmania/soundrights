@@ -1,13 +1,17 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 import requests
 from app.core.config import settings
 from app.core.logging import logger
 from app.services.metadata.musicbrainz import musicbrainz_client
 from app.services.metadata.jamendo import jamendo_service
+from app.services.recognition.shazam import zyla_shazam_client
+from app.services.ai.gemini_service import gemini_service
+from app.core.exceptions import RecognitionAPIError, AIServiceError
 import tempfile
 import os
 import time
+import asyncio
 
 router = APIRouter()
 
@@ -70,104 +74,84 @@ async def search_music(query: str = Form(...)) -> Dict[str, Any]:
 @router.post("/process-file")
 async def process_file(file: UploadFile = File(...)) -> Dict[str, Any]:
     """
-    Process an uploaded audio file by searching MusicBrainz using the filename
-    and finding similar tracks on Jamendo.
+    Recognize uploaded audio with Shazam, analyze with Gemini for keywords,
+    find similar tracks on Jamendo using keywords.
 
     Args:
         file: The uploaded audio file
 
     Returns:
-        Dictionary containing track information and similar tracks
+        Dictionary containing recognition result and similar tracks
     """
-    temp_path = None # Ensure temp_path is defined for cleanup
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="Filename missing from upload")
+
+    logger.info(f"Processing uploaded file: {file.filename}")
+    audio_data = await file.read() # Read file content into memory
+
+    shazam_result: Optional[Dict] = None
+    gemini_analysis: Optional[Dict] = None
+    jamendo_tracks: List[Dict] = []
+
     try:
-        # Use the original filename for the search query
-        original_filename = file.filename
-        if not original_filename:
-            raise HTTPException(status_code=400, detail="Filename missing")
-        # Basic cleanup: remove common extensions
-        query = os.path.splitext(original_filename)[0]
+        # 1. Recognize with Shazam
+        logger.info("Starting Shazam recognition...")
+        shazam_result = await zyla_shazam_client.recognize_audio(audio_data, file.filename)
 
-        # 1. Search MusicBrainz using the cleaned filename
-        logger.info(f"Searching MusicBrainz for query: {query}")
-        track_info = await musicbrainz_client.search_track(query) # Use await for async method
+        if not shazam_result or not shazam_result.get('title'):
+            logger.warning("Shazam did not recognize the track.")
+            raise HTTPException(status_code=404, detail="Could not recognize track using Shazam")
+        
+        logger.info(f"Shazam recognized: {shazam_result.get('title')} by {shazam_result.get('subtitle')}")
 
-        if not track_info:
-            # Optionally save the file if needed for other purposes,
-            # but for now, just raise the error if no track found
-            # with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as temp_file:
-            #     content = await file.read()
-            #     temp_file.write(content)
-            #     temp_path = temp_file.name
-            raise HTTPException(
-                status_code=404,
-                detail=f"No tracks found in MusicBrainz for query: {query}"
-            )
+        # 2. Analyze with Gemini and generate keywords
+        logger.info("Starting Gemini analysis...")
+        gemini_analysis = await gemini_service.analyze_song_and_generate_keywords(shazam_result)
+        keywords = gemini_analysis.get("keywords")
 
-        # 2. Use MusicBrainz data to find similar tracks on Jamendo
-        logger.info(f"Finding similar tracks on Jamendo for: {track_info['title']}")
-        similar_tracks = await jamendo_service.find_similar_tracks(
-            title=track_info["title"],
-            artist=track_info["artist"],
-            tags=track_info.get("tags", []),
-            mood=track_info.get("mood", "")
-        )
+        if not keywords:
+             logger.error("Gemini failed to generate keywords.")
+             # Proceed without Jamendo search, or raise error?
+             # For now, return Shazam result only
+             return {
+                 "recognized_track": shazam_result,
+                 "analysis": gemini_analysis, # Include Gemini description
+                 "similar_tracks": []
+             }
 
-        # No need to save the file just for the search, so no cleanup needed unless saved above
-        # if temp_path and os.path.exists(temp_path):
-        #     os.unlink(temp_path)
+        # 3. Find similar tracks on Jamendo using keywords
+        logger.info(f"Searching Jamendo with keywords: {keywords}")
+        jamendo_tracks = await jamendo_service.find_similar_tracks_by_keywords(keywords=keywords, limit=10)
+        
+        logger.info("File processing complete.")
+        # --- Optional: Enrich with MusicBrainz --- 
+        # Could add a step here to search MusicBrainz using shazam_result title/artist
+        # and merge the data if desired.
+        # ----------------------------------------
 
         return {
-            "track": track_info, # Return the full track_info dict from search_track
-            "similar_tracks": similar_tracks
+            "recognized_track": shazam_result,
+            "analysis": gemini_analysis, # Include description + keywords
+            "similar_tracks": jamendo_tracks
         }
 
-    except HTTPException as http_exc: # Re-raise HTTPExceptions
+    except RecognitionAPIError as e:
+        logger.error(f"Shazam recognition failed: {str(e)}")
+        raise HTTPException(status_code=502, detail=f"Audio recognition service failed: {str(e)}")
+    except AIServiceError as e:
+        logger.error(f"Gemini analysis failed: {str(e)}")
+        # If AI fails, maybe return just Shazam + Jamendo (if keywords were generated before failure?)
+        # Or just return the Shazam result if AI is critical path
+        # Current: Fail the request if AI fails after successful Shazam
+        raise HTTPException(status_code=502, detail=f"AI analysis service failed: {str(e)}")
+    except HTTPException as http_exc: # Re-raise specific HTTP exceptions
         raise http_exc
     except Exception as e:
-        logger.error(f"Error processing file upload: {str(e)}")
-        # Clean up temp file if it was created before an error
-        # if temp_path and os.path.exists(temp_path):
-        #     try:
-        #         os.unlink(temp_path)
-        #     except Exception as unlink_e:
-        #         logger.error(f"Error cleaning up temp file {temp_path}: {unlink_e}")
+        logger.exception(f"Unexpected error processing file upload: {str(e)}") # Use exception for full trace
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to process the audio file: {str(e)}"
+            detail=f"Failed to process the audio file due to an unexpected error."
         )
 
-@router.post("/process-link")
-async def process_link(url: str = Form(...)) -> Dict[str, Any]:
-    """
-    Process a music link through MusicBrainz.
-    
-    Args:
-        url: The URL of the music to process
-        
-    Returns:
-        Dictionary containing track information and similar tracks
-    """
-    try:
-        # Process the URL through MusicBrainz
-        track_info = musicbrainz_client.analyze_url(url)
-        
-        # Get similar tracks from Jamendo
-        similar_tracks = await jamendo_service.find_similar_tracks(
-            title=track_info["title"],
-            artist=track_info["artist"],
-            tags=track_info.get("tags", []),
-            mood=track_info.get("mood", "")
-        )
-        
-        return {
-            "track": track_info,
-            "similar_tracks": similar_tracks
-        }
-        
-    except Exception as e:
-        logger.error(f"Error processing link: {str(e)}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to process the music link: {str(e)}"
-        ) 
+# Remove the old /process-link implementation if not needed, or update it similarly
+# @router.post("/process-link") ... 

@@ -58,3 +58,7 @@ class MetadataAPIError(Exception):
 class RecognitionAPIError(Exception):
     """Custom exception for recognition service errors."""
     pass
+
+class AIServiceError(Exception):
+    """Custom exception for AI service errors."""
+    pass
