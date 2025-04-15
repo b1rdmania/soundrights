@@ -7,6 +7,49 @@ import { filterOptions, applyFilters } from '@/lib/music-utils';
 import { ArrowUp, Filter, Music, Download, Play, Pause } from 'lucide-react';
 import { SearchResultProps } from '@/components/SearchResult';
 
+// New component for the "Analyzing" display
+const AnalyzingDisplay: React.FC = () => {
+  const lines = [
+    '> Accessing Musixmatch Data... ✓',
+    '> Initiating Gemini Analysis Protocol...',
+    '> Generating Sonic Fingerprint...',
+    '> Cross-referencing Jamendo Database...',
+    '> Compiling Results...',
+  ];
+  const [displayedLines, setDisplayedLines] = useState<string[]>([]);
+  const [showCursor, setShowCursor] = useState(true);
+
+  useEffect(() => {
+    let index = 0;
+    const intervalId = setInterval(() => {
+      if (index < lines.length) {
+        setDisplayedLines((prev) => [...prev, lines[index]]);
+        index++;
+      } else {
+        clearInterval(intervalId);
+      }
+    }, 350); // Adjust timing as needed
+
+    const cursorInterval = setInterval(() => {
+        setShowCursor((prev) => !prev);
+    }, 500); // Blinking cursor speed
+
+    return () => {
+        clearInterval(intervalId);
+        clearInterval(cursorInterval);
+    };
+  }, []);
+
+  return (
+    <div className="font-mono text-sm text-green-400 bg-black p-4 rounded-md shadow-lg min-h-[150px]">
+      {displayedLines.map((line, i) => (
+        <p key={i}>{line}</p>
+      ))}
+      {showCursor && <span className="animate-pulse">_</span>}
+    </div>
+  );
+};
+
 interface Track {
   id: string;
   title: string;
@@ -44,7 +87,7 @@ interface ResultsData {
 
 const Results: React.FC = () => {
   const [showBackToTop, setShowBackToTop] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
   const [playingTrack, setPlayingTrack] = React.useState<string | null>(null);
@@ -56,7 +99,16 @@ const Results: React.FC = () => {
     };
     
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    
+    // Simulate analysis delay
+    const analysisTimeout = setTimeout(() => {
+        setIsAnalyzing(false);
+    }, 2500); // Adjust delay (in milliseconds) as desired
+
+    return () => {
+        window.removeEventListener('scroll', handleScroll);
+        clearTimeout(analysisTimeout); // Clear timeout on unmount
+    };
   }, []);
   
   const scrollToTop = () => {
@@ -81,10 +133,24 @@ const Results: React.FC = () => {
   const similarTracks = resultsData?.similar_tracks || [];
   const analysis = resultsData?.analysis;
 
-  const displayTitle = sourceTrack?.title || 'Unknown Title';
-  const displayArtist = resultsData?.source_track?.artist || resultsData?.recognized_track?.subtitle || 'Unknown Artist';
-  const displayTags = resultsData?.source_track?.genres || analysis?.keywords || [];
+  // --- Conditional Rendering Logic ---
 
+  // 1. If analyzing, show the hacker display
+  if (isAnalyzing) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-grow pt-28 pb-16 flex items-center justify-center">
+          <div className="container px-4 md:px-6 max-w-2xl">
+             <AnalyzingDisplay />
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // 2. If analysis done, but no results/source track, show "Not Found"
   if (!resultsData || !sourceTrack) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -106,6 +172,11 @@ const Results: React.FC = () => {
       </div>
     );
   }
+
+  // 3. If analysis done and results exist, show the results
+  const displayTitle = sourceTrack?.title || 'Unknown Title';
+  const displayArtist = resultsData?.source_track?.artist || resultsData?.recognized_track?.subtitle || 'Unknown Artist';
+  const displayTags = resultsData?.source_track?.genres || analysis?.keywords || [];
   
   return (
     <div className="min-h-screen flex flex-col">
