@@ -49,7 +49,8 @@ async def root():
     return {
         "message": "Welcome to SoundMatch AI API",
         "docs_url": "/docs",
-        "redoc_url": "/redoc"
+        "redoc_url": "/redoc",
+        # Root endpoint provides basic info
     }
 
 if __name__ == "__main__":
