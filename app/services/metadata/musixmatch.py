@@ -64,7 +64,7 @@ class MusixmatchService:
                 raise MusixmatchAPIError(f"Musixmatch API error: {error_info}")
                 
             track_data = data.get('message', {}).get('body', {}).get('track')
-            parsed_metadata = self._parse_track_data(track_data)
+            parsed_metadata = await self._parse_track_data(track_data)
 
             if not parsed_metadata:
                 logger.warning(f"No track match found or failed to parse on Musixmatch for: {title} by {artist}")
@@ -118,7 +118,7 @@ class MusixmatchService:
             
             # Parse the first track from the search results
             track_data = track_list[0]['track']
-            parsed_metadata = self._parse_track_data(track_data)
+            parsed_metadata = await self._parse_track_data(track_data)
             
             if not parsed_metadata:
                 logger.warning(f"Failed to parse track data from Musixmatch search for query: {query}")
