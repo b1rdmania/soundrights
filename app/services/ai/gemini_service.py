@@ -22,28 +22,36 @@ class GeminiService:
 
         title = shazam_data.get('title', 'Unknown Title')
         artist = shazam_data.get('subtitle', 'Unknown Artist') # Shazam often puts artist in subtitle
+        genre_info = f"with genres: {', '.join(shazam_data.get('genres', []))}" if shazam_data.get('genres') else ""
+        explicit_info = f"and is {'explicit' if shazam_data.get('explicit', False) else 'not explicit'}" if shazam_data.get('explicit') else ""
+        instrumental_info = f"and is {'instrumental' if shazam_data.get('instrumental', False) else 'not instrumental'}" if shazam_data.get('instrumental') else ""
+        rating_info = f"with a rating of {shazam_data.get('rating', 0)}" if shazam_data.get('rating') else ""
 
-        logger.info(f"Analyzing song with Gemini: {title} by {artist}")
+        logger.info(f"Analyzing song with Gemini: {title} by {artist} {genre_info} {explicit_info} {instrumental_info} {rating_info}")
+
+        # Use json.dumps to safely format the input data for the prompt example
+        analysis_input_json = json.dumps(shazam_data)
 
         prompt = f"""
-        Analyze the song "{title}" by "{artist}". 
+        Analyze the song \"{{title}}\" by \"{{artist}}\" {{genre_info}} {{explicit_info}} {{instrumental_info}} {{rating_info}}.
 
-        Based on the title and artist:
-        1. Describe the likely mood, tempo, energy level, instrumentation, and overall vibe of the song. Focus on characteristics useful for finding similar *royalty-free* music (e.g., on Jamendo). Keep the description concise (2-3 sentences).
-        2. Generate a list of 5-7 relevant keywords (tags) suitable for searching a royalty-free music library like Jamendo for similar tracks. These keywords should reflect the description. Output only the keywords as a JSON list of strings.
+        Based on this information:
+        1. Describe the likely mood, tempo, energy level, instrumentation, and overall vibe of the song. Focus on characteristics useful for finding similar *royalty-free* music (e.g., on Jamendo). Consider the provided genre(s) and other flags. Keep the description concise (2-3 sentences).
+        2. Generate a list of 5-7 relevant keywords (tags) suitable for searching a royalty-free music library like Jamendo for similar tracks. These keywords should reflect the description and incorporate the genre/flags. Output *only* the keywords as a JSON list of strings.
 
-        Example Input (Shazam Data): {{ 'title': 'Uptown Funk', 'subtitle': 'Mark Ronson ft. Bruno Mars' }}
+        Example Input Data: {{ 'title': 'Uptown Funk', 'artist': 'Mark Ronson ft. Bruno Mars', 'genres': ['Funk', 'Pop'], 'explicit': False, 'instrumental': False, 'rating': 90 }}
         Example Output (JSON):
         {{
           "description": "An upbeat, high-energy funk-pop track with a driving bassline, horns, and strong vocals. Likely has a fast tempo suitable for dancing or energetic scenes.",
           "keywords": ["funk", "pop", "upbeat", "energetic", "dance", "retro", "horns"]
         }}
 
-        Input (Shazam Data): {{ 'title': '{title}', 'subtitle': '{artist}' }}
+        Input Data: {analysis_input_json} 
         Output (JSON):
         """
 
         try:
+            logger.debug(f"Sending prompt to Gemini: {prompt}") # Log the actual prompt being sent
             response = await self.model.generate_content_async(prompt)
             
             if not response.candidates or not response.candidates[0].content.parts:

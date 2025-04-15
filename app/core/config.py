@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     JAMENDO_API_KEY: Optional[str] = os.getenv("JAMENDO_API_KEY")
     ZYLA_SHAZAM_API_KEY: Optional[str] = os.getenv("ZYLA_SHAZAM_API_KEY")
     GOOGLE_GEMINI_API_KEY: Optional[str] = os.getenv("GOOGLE_GEMINI_API_KEY")
+    MUSIXMATCH_API_KEY: Optional[str] = os.getenv("MUSIXMATCH_API_KEY")
     
     # Storage
     UPLOAD_DIR: str = os.getenv("UPLOAD_DIR", "/tmp/soundmatch/uploads")

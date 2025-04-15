@@ -190,23 +190,20 @@ const UploadForm: React.FC<UploadFormProps> = ({ onUpload }) => {
       
       <form onSubmit={handleSubmit} className="space-y-6">
         {selectedMethod === 'search' && (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="search" className="block text-sm font-medium">
-                Search for a song
-              </label>
-              <div className="flex items-center space-x-2">
-                <input
-                  id="search"
-                  name="search"
-                  type="text"
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                  placeholder="Enter song name, artist, or both"
-                  className="w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                />
-              </div>
-            </div>
+          <div className="space-y-2">
+            <label htmlFor="search" className="block text-sm font-medium">
+              Search by Song Name / Artist
+            </label>
+            <input
+              id="search"
+              name="search"
+              type="text"
+              value={searchQuery}
+              onChange={handleSearchChange}
+              placeholder="Enter song name, artist, or both"
+              className="w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              required={selectedMethod === 'search'}
+            />
           </div>
         )}
         
@@ -251,23 +248,20 @@ const UploadForm: React.FC<UploadFormProps> = ({ onUpload }) => {
         )}
         
         {selectedMethod === 'link' && (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="link" className="block text-sm font-medium">
-                Paste your music link
-              </label>
-              <div className="flex items-center space-x-2">
-                <input
-                  id="link"
-                  name="link"
-                  type="text"
-                  value={link}
-                  onChange={handleLinkChange}
-                  placeholder="https://example.com/music"
-                  className="w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                />
-              </div>
-            </div>
+          <div className="space-y-2">
+            <label htmlFor="link" className="block text-sm font-medium">
+              Paste your music link
+            </label>
+            <input
+              id="link"
+              name="link"
+              type="text"
+              value={link}
+              onChange={handleLinkChange}
+              placeholder="https://example.com/music"
+              className="w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              required={selectedMethod === 'link'}
+            />
           </div>
         )}
         

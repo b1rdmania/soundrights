@@ -62,3 +62,7 @@ class RecognitionAPIError(Exception):
 class AIServiceError(Exception):
     """Custom exception for AI service errors."""
     pass
+
+class MusixmatchAPIError(Exception):
+    """Custom exception for Musixmatch API errors."""
+    pass
