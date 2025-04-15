@@ -17,31 +17,32 @@ import asyncio
 router = APIRouter()
 
 @router.post("/search")
-async def search_and_analyze(query: str = Form(...)) -> Dict[str, Any]:
+async def search_and_analyze(title: str = Form(...), artist: str = Form(...)) -> Dict[str, Any]:
     """
-    Search Musixmatch for a track using the query, analyze with Gemini,
+    Search Musixmatch for a track using title and artist, analyze with Gemini,
     find similar tracks on Jamendo.
     
     Args:
-        query: Search query (song name, artist, etc.)
+        title: Song title
+        artist: Artist name
         
     Returns:
         Dictionary containing search result, analysis, and similar tracks
     """
-    logger.info(f"Processing search query: {query}")
+    logger.info(f"Processing search for title: '{title}', artist: '{artist}'")
     
     musixmatch_metadata: Optional[Dict] = None
     gemini_analysis: Optional[Dict] = None
     jamendo_tracks: List[Dict] = []
 
     try:
-        # 1. Search Musixmatch using the query
+        # 1. Search Musixmatch using title and artist
         logger.info("Searching Musixmatch...")
-        musixmatch_metadata = await musixmatch_service.search_track_by_query(query)
+        musixmatch_metadata = await musixmatch_service.get_track_metadata(title=title, artist=artist)
 
         if not musixmatch_metadata:
-            logger.warning(f"Musixmatch did not find a track for query: {query}")
-            raise HTTPException(status_code=404, detail=f"Could not find track on Musixmatch for query: {query}")
+            logger.warning(f"Musixmatch did not find a track for title: '{title}', artist: '{artist}'")
+            raise HTTPException(status_code=404, detail=f"Could not find track on Musixmatch for title: '{title}', artist: '{artist}'")
         
         logger.info(f"Musixmatch found: {musixmatch_metadata.get('title')} by {musixmatch_metadata.get('artist')}")
 

@@ -14,7 +14,8 @@ const UploadForm: React.FC<UploadFormProps> = ({ onUpload }) => {
   const [selectedMethod, setSelectedMethod] = useState<InputMethod>('search');
   const [file, setFile] = useState<File | null>(null);
   const [link, setLink] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [songTitle, setSongTitle] = useState('');
+  const [artistName, setArtistName] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,8 +24,10 @@ const UploadForm: React.FC<UploadFormProps> = ({ onUpload }) => {
   
   const handleMethodChange = (method: InputMethod) => {
     setSelectedMethod(method);
+    setFile(null);
     setLink('');
-    setSearchQuery('');
+    setSongTitle('');
+    setArtistName('');
   };
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -42,8 +45,12 @@ const UploadForm: React.FC<UploadFormProps> = ({ onUpload }) => {
     setLink(e.target.value);
   };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
+  const handleSongTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSongTitle(e.target.value);
+  };
+
+  const handleArtistNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setArtistName(e.target.value);
   };
   
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -81,10 +88,11 @@ const UploadForm: React.FC<UploadFormProps> = ({ onUpload }) => {
     setError(null);
 
     try {
-      if (selectedMethod === 'search' && searchQuery) {
+      if (selectedMethod === 'search' && songTitle && artistName) {
         // Process search query
         const formData = new FormData();
-        formData.append('query', searchQuery);
+        formData.append('title', songTitle);
+        formData.append('artist', artistName);
         
         const response = await api.post('/music/search', formData, {
           headers: {
@@ -130,7 +138,7 @@ const UploadForm: React.FC<UploadFormProps> = ({ onUpload }) => {
         
         onUpload(response.data);
       } else {
-        toast.error('Please provide a search query, file, or link');
+        toast.error('Please provide Song Title & Artist, upload a file, or paste a link');
         setIsLoading(false);
         return;
       }
@@ -194,16 +202,38 @@ const UploadForm: React.FC<UploadFormProps> = ({ onUpload }) => {
             <label htmlFor="search" className="block text-sm font-medium">
               Search by Song Name / Artist
             </label>
-            <input
-              id="search"
-              name="search"
-              type="text"
-              value={searchQuery}
-              onChange={handleSearchChange}
-              placeholder="Enter song name, artist, or both"
-              className="w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-              required={selectedMethod === 'search'}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label htmlFor="songTitle" className="block text-sm font-medium">
+                  Song Title
+                </label>
+                <input
+                  id="songTitle"
+                  name="songTitle"
+                  type="text"
+                  value={songTitle}
+                  onChange={handleSongTitleChange}
+                  placeholder="Enter song title"
+                  className="w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                  required={selectedMethod === 'search'}
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="artistName" className="block text-sm font-medium">
+                  Artist Name
+                </label>
+                <input
+                  id="artistName"
+                  name="artistName"
+                  type="text"
+                  value={artistName}
+                  onChange={handleArtistNameChange}
+                  placeholder="Enter artist name"
+                  className="w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                  required={selectedMethod === 'search'}
+                />
+              </div>
+            </div>
           </div>
         )}
         
@@ -267,9 +297,9 @@ const UploadForm: React.FC<UploadFormProps> = ({ onUpload }) => {
         
         <button
           type="submit"
-          disabled={isLoading || (!file && !link && !searchQuery)}
+          disabled={isLoading || (!file && !link && !songTitle && !artistName)}
           className={`w-full py-3 px-4 rounded-lg text-white font-medium transition-colors ${
-            isLoading || (!file && !link && !searchQuery)
+            isLoading || (!file && !link && !songTitle && !artistName)
               ? 'bg-gray-400 cursor-not-allowed'
               : 'bg-primary hover:bg-primary-dark'
           }`}
