@@ -138,9 +138,14 @@ const UploadForm: React.FC<UploadFormProps> = ({ onUpload }) => {
       console.error('Upload error:', err);
       
       let errorMessage = 'Failed to process request. Please try again.';
-      if (err.response && err.response.data && err.response.data.detail) {
+      // Check for specific Shazam 404 error first
+      if (err.response?.status === 404 && err.response?.data?.detail?.includes('Shazam')) {
+        errorMessage = 'Error: Shazam could not recognize this track. (Recognition service currently unreliable)';
+      } else if (err.response?.data?.detail) {
+        // Handle other backend errors with detail
         errorMessage = `Error: ${err.response.data.detail}`;
       } else if (err instanceof Error) {
+        // Handle generic network or client-side errors
         errorMessage = err.message;
       }
       
