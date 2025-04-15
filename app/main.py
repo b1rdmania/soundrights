@@ -45,6 +45,7 @@ async def health_check():
 # Root endpoint
 @app.get("/")
 async def root():
+    # Simple root endpoint
     return {
         "message": "Welcome to SoundMatch AI API",
         "docs_url": "/docs",
