@@ -51,10 +51,10 @@ class YouTubeAPIError(HTTPException):
             detail=detail
         )
 
-class MetadataAPIError(HTTPException):
-    """Raised when there's an error with metadata APIs (MusicBrainz, etc)."""
-    def __init__(self, detail: str = "Error with metadata APIs"):
-        super().__init__(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=detail
-        ) 
+class MetadataAPIError(Exception):
+    """Custom exception for metadata service errors."""
+    pass
+
+class RecognitionAPIError(Exception):
+    """Custom exception for recognition service errors."""
+    pass
