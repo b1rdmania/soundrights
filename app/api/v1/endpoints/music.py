@@ -24,67 +24,22 @@ async def search_music(query: str = Form(...)) -> Dict[str, Any]:
         Dictionary containing track information and similar tracks
     """
     try:
-        # 1. Search Spotify for basic track info (no auth required)
-        max_retries = 3
-        retry_delay = 1  # seconds
-        
-        for attempt in range(max_retries):
-            try:
-                spotify_response = requests.get(
-                    "https://api.spotify.com/v1/search",
-                    params={
-                        "q": query,
-                        "type": "track",
-                        "limit": 1
-                    }
-                )
-                spotify_response.raise_for_status()
-                spotify_data = spotify_response.json()
-                break
-            except requests.exceptions.RequestException as e:
-                if attempt == max_retries - 1:
-                    logger.error(f"Spotify API error after {max_retries} attempts: {str(e)}")
-                    # If Spotify fails, try searching MusicBrainz directly
-                    track_info = musicbrainz_client.search_track(query)
-                    if not track_info:
-                        raise HTTPException(
-                            status_code=404,
-                            detail="No tracks found"
-                        )
-                    spotify_data = {"tracks": {"items": [{"name": track_info["title"], "artists": [{"name": track_info["artist"]}]}]}}
-                else:
-                    time.sleep(retry_delay)
-                    retry_delay *= 2  # Exponential backoff
-        
-        if not spotify_data["tracks"]["items"]:
+        # 1. Search MusicBrainz directly
+        track_info = musicbrainz_client.search_track(query)
+        if not track_info:
             raise HTTPException(
                 status_code=404,
-                detail="No tracks found"
+                detail="No tracks found in MusicBrainz"
             )
-            
-        spotify_track = spotify_data["tracks"]["items"][0]
-        
-        # 2. Use Spotify data to search MusicBrainz
-        musicbrainz_query = f"{spotify_track['name']} AND artist:{spotify_track['artists'][0]['name']}"
-        track_info = musicbrainz_client.search_track(musicbrainz_query)
-        
-        if not track_info:
-            # If MusicBrainz search fails, try a broader search
-            track_info = musicbrainz_client.search_track(spotify_track['name'])
-            if not track_info:
-                raise HTTPException(
-                    status_code=404,
-                    detail="Track not found in MusicBrainz"
-                )
-        
-        # 3. Use MusicBrainz data to find similar tracks on Jamendo
+
+        # 2. Use MusicBrainz data to find similar tracks on Jamendo
         similar_tracks = await jamendo_service.find_similar_tracks(
             title=track_info["title"],
             artist=track_info["artist"],
             tags=track_info.get("tags", []),
             mood=track_info.get("mood", "")
         )
-        
+
         return {
             "track": {
                 "title": track_info["title"],
@@ -93,17 +48,17 @@ async def search_music(query: str = Form(...)) -> Dict[str, Any]:
                 "tags": track_info.get("tags", []),
                 "mood": track_info.get("mood", ""),
                 "musicbrainz_url": track_info.get("url", ""),
-                "spotify_url": spotify_track.get("external_urls", {}).get("spotify", ""),
+                # Remove spotify_url if it's no longer relevant or fetch differently
                 "features": track_info.get("features", {})
             },
             "similar_tracks": similar_tracks
         }
-        
+
     except requests.exceptions.RequestException as e:
-        logger.error(f"API error: {str(e)}")
+        logger.error(f"API error during external calls: {str(e)}") # Adjusted error log
         raise HTTPException(
             status_code=500,
-            detail="Failed to search for tracks"
+            detail="Failed to search for tracks due to external service error"
         )
     except Exception as e:
         logger.error(f"Error processing search: {str(e)}")
