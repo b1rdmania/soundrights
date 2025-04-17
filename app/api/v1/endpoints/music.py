@@ -14,6 +14,7 @@ import tempfile
 import os
 import time
 import asyncio
+from fastapi import status
 
 router = APIRouter()
 
@@ -53,16 +54,19 @@ async def search_and_analyze(title: str = Form(...), artist: str = Form(...)) ->
             if musixmatch_metadata:
                 logger.info(f"Musixmatch fallback search succeeded for query: {fallback_query}")
             else:
-                # If fallback also finds nothing, raise 404
+                # If fallback also finds nothing, raise 404 with better message
                 logger.warning(f"Musixmatch fallback search also found no track for query: {fallback_query}")
-                raise HTTPException(status_code=404, detail=f"Could not find track on Musixmatch using title/artist or fallback search for: '{title}', '{artist}'")
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND, 
+                    detail=f"Track not found: '{title}' by '{artist}'. Please check spelling or try again."
+                )
         except MusixmatchAPIError as fallback_e:
             # If fallback search itself fails with an API error
             logger.error(f"Musixmatch fallback search also failed: {fallback_e}")
-            raise HTTPException(status_code=502, detail=f"Metadata service failed during fallback search: {fallback_e}")
+            raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=f"Metadata service failed during fallback search: {fallback_e}")
         except Exception as fallback_exc: # Catch any other unexpected error during fallback
             logger.exception(f"Unexpected error during Musixmatch fallback search: {fallback_exc}")
-            raise HTTPException(status_code=500, detail=f"An unexpected error occurred during the metadata fallback search.")
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"An unexpected error occurred during the metadata fallback search.")
 
     # Ensure metadata was found either by primary or fallback method
     if not musixmatch_metadata:

@@ -7,14 +7,26 @@ import { filterOptions, applyFilters } from '@/lib/music-utils';
 import { ArrowUp, Filter, Music, Download, Play, Pause } from 'lucide-react';
 import { SearchResultProps } from '@/components/SearchResult';
 
+// Interface for props passed to AnalyzingDisplay
+interface AnalyzingDisplayProps {
+  title: string;
+  artist: string;
+}
+
 // New component for the "Analyzing" display
-const AnalyzingDisplay: React.FC = () => {
+const AnalyzingDisplay: React.FC<AnalyzingDisplayProps> = ({ title, artist }) => {
+  // Dynamically generate lines using props
   const lines = [
-    '> Accessing Musixmatch Data... ✓',
-    '> Initiating Gemini Analysis Protocol...',
-    '> Generating Sonic Fingerprint...',
-    '> Cross-referencing Jamendo Database...',
-    '> Compiling Results...',
+    `> Booting Analysis Core... OK`,
+    `> Query: ${artist} - ${title}`,
+    `> Engaging Musixmatch API... Match found.`,
+    `> Searching MusicBrainz Identifier Index...`,
+    // Simulate MBID/AcousticBrainz step (might or might not happen)
+    Math.random() > 0.3 ? `> MBID Located. Querying AcousticBrainz... Done.` : `> MBID Lookup Failed/Skipped. Proceeding...`,
+    `> Initializing Gemini Language Model...`,
+    `> Generating Sonic Description & Keyword Matrix...`,
+    `> Cross-Referencing Jamendo Royalty-Free Database...`,
+    `> Finalizing Results...`
   ];
   const [displayedLines, setDisplayedLines] = useState<string[]>([]);
   const [showCursor, setShowCursor] = useState(true);
@@ -28,7 +40,7 @@ const AnalyzingDisplay: React.FC = () => {
       } else {
         clearInterval(intervalId);
       }
-    }, 350); // Adjust timing as needed
+    }, 300); // Slightly faster line display
 
     const cursorInterval = setInterval(() => {
         setShowCursor((prev) => !prev);
@@ -38,10 +50,10 @@ const AnalyzingDisplay: React.FC = () => {
         clearInterval(intervalId);
         clearInterval(cursorInterval);
     };
-  }, []);
+  }, [lines]); // Re-run effect if lines change (though they shouldn't after initial render)
 
   return (
-    <div className="font-mono text-sm text-green-400 bg-black p-4 rounded-md shadow-lg min-h-[150px]">
+    <div className="font-mono text-sm text-green-400 bg-black p-4 rounded-md shadow-lg min-h-[200px]">
       {displayedLines.map((line, i) => (
         <p key={i}>{line}</p>
       ))}
@@ -65,25 +77,38 @@ interface Track {
 }
 
 interface ResultsData {
+  audio_features?: { 
+      bpm?: number;
+      key?: string;
+      scale?: string;
+      key_confidence?: number;
+      // Add other potential features from AcousticBrainz if needed
+      [key: string]: any; // Allow other arbitrary features
+  } | null; 
   source_track?: { // From text search (Musixmatch)
     title: string;
     artist: string;
     genres?: string[];
     rating?: number;
     explicit?: boolean;
+    instrumental?: boolean; // Added this based on Musixmatch parser
+    musixmatch_id?: number; // Added this based on Musixmatch parser
+    commontrack_id?: number; // Added this based on Musixmatch parser
+    album?: string; // Added this based on Musixmatch parser
+    updated_time?: string; // Added this based on Musixmatch parser
     // Add other fields from Musixmatch if needed
-  };
+  } | null;
   recognized_track?: { // From file upload (Shazam)
     title: string;
     subtitle?: string; // Artist is often here
+    key?: string; // Shazam key
     // Add other fields from Shazam if needed
-  };
+  } | null;
   analysis?: { // From Gemini
     description: string;
     keywords: string[];
-  };
+  } | null;
   similar_tracks: Track[];
-  // Removed the mandatory top-level 'track' field
 }
 
 const Results: React.FC = () => {
@@ -133,17 +158,22 @@ const Results: React.FC = () => {
   const sourceTrack = resultsData?.source_track || resultsData?.recognized_track;
   const similarTracks = resultsData?.similar_tracks || [];
   const analysis = resultsData?.analysis;
+  const audioFeatures = resultsData?.audio_features;
+
+  // Determine display title/artist *before* the return statement
+  const displayTitle = sourceTrack?.title || 'Unknown Title';
+  const displayArtist = resultsData?.source_track?.artist || resultsData?.recognized_track?.subtitle || 'Unknown Artist';
 
   // --- Conditional Rendering Logic ---
 
-  // 1. If analyzing, show the hacker display
+  // 1. If analyzing, show the hacker display, passing title/artist
   if (isAnalyzing) {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar />
         <main className="flex-grow pt-28 pb-16 flex items-center justify-center">
           <div className="container px-4 md:px-6 max-w-2xl">
-             <AnalyzingDisplay />
+             <AnalyzingDisplay title={displayTitle} artist={displayArtist} />
           </div>
         </main>
         <Footer />
@@ -175,8 +205,6 @@ const Results: React.FC = () => {
   }
 
   // 3. If analysis done and results exist, show the results
-  const displayTitle = sourceTrack?.title || 'Unknown Title';
-  const displayArtist = resultsData?.source_track?.artist || resultsData?.recognized_track?.subtitle || 'Unknown Artist';
   const displayTags = resultsData?.source_track?.genres || analysis?.keywords || [];
   
   // Construct external search URLs
