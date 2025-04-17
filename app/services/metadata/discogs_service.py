@@ -82,48 +82,53 @@ class DiscogsService:
         # The result object might be Master or Release, properties differ slightly
         best_match = results[0] 
         
-        try:
-            # Attempt to refresh data to get full details (requires another API call)
-            # Master object has .main_release, Release object is the release itself
-            release_to_fetch = getattr(best_match, 'main_release', best_match)
-            if release_to_fetch:
-                logger.debug(f"Refreshing Discogs release ID: {release_to_fetch.id}")
-                await asyncio.to_thread(release_to_fetch.refresh)
-                await asyncio.sleep(0.5) # Small delay after refresh
-            else:
-                 logger.warning("Could not determine release object to refresh.")
-                 return None # Cannot get details without a release object
-
-            discogs_data = {"discogs_id": best_match.id}
-
-            # Get styles (more specific genres)
-            styles = getattr(release_to_fetch, 'styles', [])
-            if styles:
-                discogs_data["styles"] = styles
-                logger.info(f"Extracted Discogs styles: {styles}")
-
-            # Get year
-            year = getattr(release_to_fetch, 'year', None)
-            if year and year > 0: # Year can sometimes be 0
-                discogs_data["year"] = year
-                logger.info(f"Extracted Discogs year: {year}")
-                
-            # Get primary genre(s)
-            genres = getattr(release_to_fetch, 'genres', [])
-            if genres:
-                 discogs_data["genres"] = genres # Might overlap/differ from Musixmatch
-
-            return discogs_data
-            
-        except AttributeError as e:
-             logger.error(f"Attribute error accessing Discogs data for ID {best_match.id}: {e}")
-             return None
-        except discogs_client.exceptions.HTTPError as e:
-             logger.error(f"Discogs API HTTP error during refresh: {e.status_code} - {e}")
-             return None
-        except Exception as e:
-             logger.exception(f"Unexpected error processing Discogs result ID {best_match.id}: {e}")
-             return None
+        # --- TEMPORARY DEBUG: Skip refresh to isolate 401 source --- 
+        logger.info(f"Found Discogs basic match: ID {best_match.id}, Title: {getattr(best_match, 'title', 'N/A')}")
+        # Just return the ID for now to see if search worked
+        return {"discogs_id": best_match.id, "title_debug": getattr(best_match, 'title', 'N/A')}
+        # --- END TEMPORARY DEBUG --- 
+        
+        # try: # Original code block
+        #     # Attempt to refresh data to get full details (requires another API call)
+        #     release_to_fetch = getattr(best_match, 'main_release', best_match)
+        #     if release_to_fetch:
+        #         logger.debug(f"Refreshing Discogs release ID: {release_to_fetch.id}")
+        #         await asyncio.to_thread(release_to_fetch.refresh)
+        #         await asyncio.sleep(0.5) # Small delay after refresh
+        #     else:
+        #          logger.warning("Could not determine release object to refresh.")
+        #          return None 
+        # 
+        #     discogs_data = {"discogs_id": best_match.id}
+        # 
+        #     # Get styles (more specific genres)
+        #     styles = getattr(release_to_fetch, 'styles', [])
+        #     if styles:
+        #         discogs_data["styles"] = styles
+        #         logger.info(f"Extracted Discogs styles: {styles}")
+        # 
+        #     # Get year
+        #     year = getattr(release_to_fetch, 'year', None)
+        #     if year and year > 0: 
+        #         discogs_data["year"] = year
+        #         logger.info(f"Extracted Discogs year: {year}")
+        #         
+        #     # Get primary genre(s)
+        #     genres = getattr(release_to_fetch, 'genres', [])
+        #     if genres:
+        #          discogs_data["genres"] = genres 
+        # 
+        #     return discogs_data
+        #     
+        # except AttributeError as e:
+        #      logger.error(f"Attribute error accessing Discogs data for ID {best_match.id}: {e}")
+        #      return None
+        # except discogs_client.exceptions.HTTPError as e:
+        #      logger.error(f"Discogs API HTTP error during refresh: {e.status_code} - {e}")
+        #      return None
+        # except Exception as e:
+        #      logger.exception(f"Unexpected error processing Discogs result ID {best_match.id}: {e}")
+        #      return None
 
 # Create a global instance
 discogs_service = DiscogsService() 
