@@ -16,8 +16,46 @@ import os
 import time
 import asyncio
 from fastapi import status
+import subprocess
 
 router = APIRouter()
+
+@router.get("/test-fpcalc", tags=["Testing"], summary="Test if fpcalc command is available")
+async def test_fpcalc_availability():
+    """Attempts to run 'fpcalc --version' to check its availability."""
+    command = ["fpcalc", "--version"]
+    result_data = {
+        "command_checked": " ".join(command),
+        "found": False,
+        "output": None,
+        "error": None,
+        "exception": None
+    }
+    try:
+        process = subprocess.run(command, capture_output=True, text=True, check=False, timeout=5)
+        result_data["output"] = process.stdout.strip() if process.stdout else None
+        result_data["error"] = process.stderr.strip() if process.stderr else None
+        
+        if process.returncode == 0:
+            result_data["found"] = True
+            logger.info(f"fpcalc check successful: {result_data['output']}")
+        else:
+            logger.warning(f"fpcalc check failed. Return code: {process.returncode}. Error: {result_data['error']}")
+            
+    except FileNotFoundError:
+        error_msg = "'fpcalc' command not found. Is libchromaprint-tools installed?"
+        result_data["exception"] = error_msg
+        logger.error(error_msg)
+    except subprocess.TimeoutExpired:
+        error_msg = "'fpcalc' command timed out."
+        result_data["exception"] = error_msg
+        logger.error(error_msg)
+    except Exception as e:
+        error_msg = f"Unexpected error running fpcalc: {str(e)}"
+        result_data["exception"] = error_msg
+        logger.exception(error_msg)
+        
+    return result_data
 
 @router.post("/search")
 async def search_and_analyze(title: str = Form(...), artist: str = Form(...)) -> Dict[str, Any]:
