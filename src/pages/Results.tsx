@@ -122,7 +122,6 @@ interface ResultsData {
     key?: string; // Shazam key
     explicit?: boolean; // Added to satisfy type checker
     instrumental?: boolean; // Added to satisfy type checker
-    genres?: string[]; // Add optional genres to satisfy type checker
     // Add other fields from Shazam if needed
   } | null;
   analysis?: { // From Gemini
@@ -131,6 +130,58 @@ interface ResultsData {
   } | null;
   similar_tracks: Track[];
 }
+
+// --- New Detail Renderer Component ---
+interface DetailRendererProps {
+  title: string;
+  data: Record<string, any> | null | undefined;
+  logoPlaceholder?: string; // Placeholder text for logo
+}
+
+const DetailRenderer: React.FC<DetailRendererProps> = ({ title, data, logoPlaceholder }) => {
+  if (!data || Object.keys(data).length === 0) {
+    return null; // Don't render if no data
+  }
+
+  // Helper to format keys (e.g., musixmatch_id -> Musixmatch ID)
+  const formatKey = (key: string): string => {
+    return key
+      .replace(/_/g, ' ') // Replace underscores with spaces
+      .replace(/\b\w/g, l => l.toUpperCase()); // Capitalize first letter of each word
+  };
+
+  // Helper to format values (e.g., arrays)
+  const formatValue = (value: any): string => {
+    if (Array.isArray(value)) {
+      return value.join(', ');
+    }
+    if (typeof value === 'boolean') {
+        return value ? 'Yes' : 'No';
+    }
+    return String(value); // Convert other types to string
+  };
+
+  return (
+    <div className="mb-4">
+      <div className="flex items-center mb-2">
+        {/* Logo Placeholder */ 
+        {logoPlaceholder && <span className="mr-2 text-lg">{logoPlaceholder}</span>}
+        <h4 className="font-semibold text-sm text-foreground">{title}</h4>
+      </div>
+      <dl className="text-xs bg-gray-50 p-3 rounded border space-y-1">
+        {Object.entries(data).map(([key, value]) => (
+          // Only render if value is meaningful
+          value !== null && value !== undefined && value !== '' && (!Array.isArray(value) || value.length > 0) && (
+              <div key={key} className="grid grid-cols-3 gap-1">
+                <dt className="font-medium text-gray-600 truncate col-span-1">{formatKey(key)}:</dt>
+                <dd className="text-muted-foreground col-span-2 break-words">{formatValue(value)}</dd>
+              </div>
+           )
+        ))}
+      </dl>
+    </div>
+  );
+};
 
 const Results: React.FC = () => {
   const [showBackToTop, setShowBackToTop] = useState(false);
@@ -304,41 +355,42 @@ const Results: React.FC = () => {
                     <p className="text-muted-foreground italic text-sm">{analysis.description}</p>
                   </div>
                 )}
-                
-                {/* --- Enhanced Details Section --- */}
-                <div className="mt-4 pt-4 border-t border-muted text-sm">
-                    <h4 className="font-semibold mb-2">Summary Details:</h4>
-                    <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                        {/* Display Discogs Year if available */} 
-                        {discogs_data?.year && (
-                            <li><span className="font-medium text-foreground">Year:</span> {discogs_data.year}</li>
-                        )}
-                        {/* Display Musixmatch Genres */} 
-                        {sourceTrack?.genres && sourceTrack.genres.length > 0 && (
-                            <li><span className="font-medium text-foreground">Genres:</span> {sourceTrack.genres.join(', ')}</li>
-                        )}
-                        {/* Display Discogs Styles if available */} 
-                        {discogs_data?.styles && discogs_data.styles.length > 0 && (
-                             <li><span className="font-medium text-foreground">Styles:</span> {discogs_data.styles.join(', ')}</li>
-                        )}
-                        {/* Display Instrumental Flag */} 
-                         {sourceTrack?.instrumental !== undefined && (
-                             <li><span className="font-medium text-foreground">Instrumental:</span> {sourceTrack.instrumental ? 'Yes' : 'No'}</li>
+                {/* --- Display AcousticBrainz & Musixmatch Details --- */}
+                {(musicbrainz_data || sourceTrack?.explicit !== undefined || sourceTrack?.instrumental !== undefined) && (
+                    <div className="mt-4 pt-4 border-t border-muted text-xs text-muted-foreground space-y-1">
+                         <h4 className="font-semibold text-sm mb-1 text-foreground">Track Details:</h4>
+                         {musicbrainz_data?.mbid && (
+                             <p><span className="font-medium">MBID:</span> {musicbrainz_data.mbid}</p>
                          )}
-                        {/* Add other details if needed, e.g., Musixmatch rating */} 
-                         {/* {sourceTrack?.rating && (
-                              <li><span className="font-medium text-foreground">Musixmatch Rating:</span> {sourceTrack.rating}/100</li>
-                         )} */} 
-                    </ul>
-                </div>
+                         {musicbrainz_data?.match_score && (
+                             <p><span className="font-medium">Match Score:</span> {musicbrainz_data.match_score}</p>
+                         )}
+                         {sourceTrack?.explicit !== undefined && (
+                             <p><span className="font-medium">Explicit:</span> {sourceTrack.explicit ? 'Yes' : 'No'}</p>
+                         )}
+                         {sourceTrack?.instrumental !== undefined && (
+                              <p><span className="font-medium">Instrumental:</span> {sourceTrack.instrumental ? 'Yes' : 'No'}</p>
+                         )}
+                         {/* Add Musixmatch Rating if desired */}
+                         {/* {sourceTrack?.rating !== undefined && (
+                              <p><span className="font-medium">Musixmatch Rating:</span> {sourceTrack.rating}/100</p>
+                         )} */}
+                    </div>
+                )}
               </div>
             </div>
             
-            {/* --- Technical Details Section --- */}
+            {/* --- Technical Details Section (Reformatted) --- */}
             <div className="mb-8">
                 <h2 className="text-2xl font-semibold mb-4">Technical Details</h2>
-                <div className="bg-white rounded-lg p-4 shadow-sm border text-xs text-muted-foreground font-mono">
-                    <h4 className="font-semibold text-sm mb-2 text-foreground">Musixmatch Data:</h4>
+                <div className="bg-white rounded-lg p-4 shadow-sm border">
+                    {/* Use DetailRenderer for each data source */ 
+                    <DetailRenderer title="Musixmatch Data" data={sourceTrack} logoPlaceholder="🎵"/>
+                    <DetailRenderer title="MusicBrainz Data" data={musicbrainz_data} logoPlaceholder="🧠"/>
+                    <DetailRenderer title="Discogs Data" data={discogs_data} logoPlaceholder="💿"/>
+                    
+                    {/* Remove old <pre> blocks -- The code below was the target for removal 
+                    <h4 className="font-semibold text-sm mt-3 mb-2 text-foreground">Musixmatch Data:</h4>
                     {sourceTrack ? (
                         <pre className="overflow-x-auto bg-gray-50 p-2 rounded text-xs">{JSON.stringify(sourceTrack, null, 2)}</pre>
                     ) : <p>N/A</p>}
@@ -351,7 +403,8 @@ const Results: React.FC = () => {
                     <h4 className="font-semibold text-sm mt-3 mb-2 text-foreground">Discogs Data:</h4>
                     {discogs_data ? (
                          <pre className="overflow-x-auto bg-gray-50 p-2 rounded text-xs">{JSON.stringify(discogs_data, null, 2)}</pre>
-                    ) : <p>N/A</p>}
+                    ) : <p>N/A</p>} 
+                    */} 
                 </div>
             </div>
             
@@ -380,7 +433,7 @@ const Results: React.FC = () => {
             
             <div className="space-y-4">
               <h2 className="text-2xl font-semibold mb-2">Similar Royalty-Free Tracks (from Jamendo)</h2>
-              {/* Display Keywords Used */} 
+              {/* Display Keywords Used */ 
               {analysis?.keywords && analysis.keywords.length > 0 && (
                   <div className="mb-4 text-sm text-muted-foreground">
                       <span className="font-medium text-foreground">Keywords used:</span>
