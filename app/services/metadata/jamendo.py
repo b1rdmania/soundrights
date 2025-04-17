@@ -66,7 +66,7 @@ class JamendoService:
                     "fuzzytags": search_tags_str,
                     "include": "musicinfo stats",
                     "boost": "popularity_total",
-                    "orderby": "popularity_total",
+                    "orderby": "relevance",
                     "audioformat": "mp32",
                     "audio": 1 # Ensure tracks have audio
                 }
