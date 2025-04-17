@@ -2,7 +2,6 @@ from pydantic_settings import BaseSettings
 from typing import Optional
 import os
 from dotenv import load_dotenv
-from pydantic import SettingsConfigDict
 
 # Load environment variables
 load_dotenv()
@@ -38,13 +37,12 @@ class Settings(BaseSettings):
     DISCOGS_CONSUMER_KEY: str = ""
     DISCOGS_CONSUMER_SECRET: str = ""
     
+    # Use Pydantic V1 style Config class
     class Config:
+        env_file = ".env"
+        env_file_encoding = 'utf-8'
         case_sensitive = True
-        model_config = SettingsConfigDict(
-            env_file=".env",
-            env_file_encoding='utf-8',
-            extra='ignore'  # Ignore extra fields from environment/dotenv
-        )
+        extra = 'ignore' # Pydantic V1 uses 'allow' or 'ignore'/'forbid' for extra fields
 
 # Create global settings object
 settings = Settings() 
