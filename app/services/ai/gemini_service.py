@@ -35,12 +35,10 @@ class GeminiService:
         artist = track_metadata.get("artist", "Unknown Artist")
         genres = track_metadata.get("genres", [])
         rating = track_metadata.get("rating")
-        explicit = track_metadata.get("explicit")
         instrumental = track_metadata.get("instrumental")
 
         # Construct conditional parts of the prompt
         genre_info = f"with genre(s) {', '.join(genres)}" if genres else ""
-        explicit_info = "which is explicit" if explicit else ""
         instrumental_info = "which is instrumental" if instrumental else ""
         rating_info = f"and has a rating of {rating}" if rating is not None else ""
 
@@ -56,19 +54,22 @@ class GeminiService:
             
 
         prompt = f"""
-        Analyze the song "{title}" by "{artist}" {genre_info} {explicit_info} {instrumental_info} {rating_info}.{acousticbrainz_info}
+        Analyze the song "{title}" by "{artist}" {genre_info} {instrumental_info} {rating_info}.{acousticbrainz_info}
 
         Based *only* on the provided metadata (including BPM/Key if available):
-        1.  Provide a detailed technical description (3-4 sentences) focusing on objective musical characteristics useful for finding similar *royalty-free* music (e.g., on Jamendo). Incorporate the provided BPM and Key/Scale if available. Also include:
-            *   Likely **tempo range** (e.g., slow < 80 BPM, medium 80-120 BPM, fast > 120 BPM). REFINE this based on the provided BPM if available.
-            *   Likely **instrumentation** based on genre/era.
-            *   Likely **vocal presence and style** (e.g., 'prominent lead vocal', 'instrumental'). Do NOT guess gender unless explicitly suggested.
-            *   Overall **mood and energy level**.
-            *   Estimate the **approximate musical era** (e.g., '1960s', '80s synth-pop').
-            *   Avoid subjective opinions or external knowledge not present in the metadata.
-        2.  Generate a list of **6-8 keywords** (tags) suitable for searching a royalty-free music library like Jamendo. Keywords MUST primarily reflect the **Genre(s), Mood, and Tempo/Energy level (informed by BPM if available)**. Include 1-2 keywords for the most prominent **Instrumentation, Era, or Key/Scale** if highly characteristic and likely useful search terms. Use terms like 'vocal' or 'instrumental' based on the input flag. Ensure keywords are common terms (e.g., 'upbeat pop', 'sad acoustic guitar {key} {scale}', 'cinematic orchestral', 'fast 80s synthwave'). Output *only* the keywords as a JSON list of strings.
+        1.  Provide a detailed technical description (3-4 sentences) focusing on objective musical characteristics useful for finding similar *royalty-free* music (e.g., on Jamendo). 
+            *   **If BPM/Key/Scale data is provided:** Incorporate it into the description (e.g., "fast tempo, 140 BPM", "key of C Major").
+            *   **If BPM/Key/Scale data is NOT provided:** Make reasonable estimations based on Genre/Artist/Era.
+            *   Include: Tempo range, likely instrumentation, vocal presence/style (NOT specific gender), mood/energy, approximate musical era.
+            *   Avoid subjective opinions or external knowledge. Do NOT mention if the track is explicit.
+        2.  Generate a list of **6-8 keywords** (tags) suitable for searching a royalty-free music library like Jamendo. Keywords MUST primarily reflect the **Genre(s), Mood, and Tempo/Energy level**. 
+            *   **If BPM/Key/Scale data is provided:** Consider adding a keyword reflecting the specific BPM or Key (e.g., '140 bpm', 'C Major') if highly characteristic.
+            *   Include 1-2 keywords for the most prominent **Instrumentation or Era** if useful.
+            *   Use terms like 'vocal' or 'instrumental' based on the input flag.
+            *   Do NOT include keywords related to the track being explicit.
+            *   Ensure keywords are common terms (e.g., 'upbeat pop', 'sad acoustic guitar', 'cinematic orchestral', 'fast 80s synthwave'). Output *only* the keywords as a JSON list of strings.
 
-        Example Input Data: {{ 'title': 'Uptown Funk', 'artist': 'Mark Ronson ft. Bruno Mars', 'genres': ['Funk', 'Pop'], 'explicit': False, 'instrumental': False, 'rating': 90, 'bpm': 115, 'key': 'D', 'scale': 'Minor'}}
+        Example Input Data: {{ 'title': 'Uptown Funk', 'artist': 'Mark Ronson ft. Bruno Mars', 'genres': ['Funk', 'Pop'], 'instrumental': False, 'rating': 90, 'bpm': 115, 'key': 'D', 'scale': 'Minor'}}
         Example Output (JSON):
         {{
           "description": "A high-energy (fast tempo, 115 BPM) funk-pop track from the 2010s, likely in D Minor. Instrumentation features prominent bass guitar, horns, drums, and synthesizers, with a strong male lead vocal. The mood is upbeat, groovy, and suitable for dancing.",
