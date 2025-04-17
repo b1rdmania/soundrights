@@ -3,6 +3,8 @@ import { Link, useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 import { Menu, X, FileText, TrendingUp } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { NavLink } from "react-router-dom";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -89,21 +91,29 @@ const Navbar = () => {
             isMenuOpen ? "max-h-[300px] border-b" : "max-h-0"
           )}
         >
-          <nav className="flex flex-col space-y-4 px-4 py-6">
-            {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                className={cn(
-                  "text-base font-medium py-2 transition-colors flex items-center",
-                  isActive(link.path) ? "text-primary" : "text-muted-foreground"
-                )}
-              >
-                {link.icon && link.icon}
-                {link.label}
-              </Link>
-            ))}
-          </nav>
+          <SheetContent side="left">
+            <SheetHeader>
+              <SheetTitle>Menu</SheetTitle>
+            </SheetHeader>
+            <nav className="grid gap-4 py-4">
+              <NavLink to="/" className={({ isActive }) => cn("flex items-center gap-2 text-lg font-semibold", isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground")} onClick={() => setIsMenuOpen(false)}>Try SoundMatch</NavLink>
+              <NavLink to="/tech-overview" className={({ isActive }) => cn("flex items-center gap-2 text-lg font-semibold", isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground")} onClick={() => setIsMenuOpen(false)}>Technical Overview</NavLink>
+              {navLinks.map((link) => (
+                <NavLink
+                  key={link.path}
+                  to={link.path}
+                  className={({ isActive }) => cn(
+                    "flex items-center gap-2 text-lg font-semibold",
+                    isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                  )}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {link.icon && link.icon}
+                  {link.label}
+                </NavLink>
+              ))}
+            </nav>
+          </SheetContent>
         </div>
       )}
     </header>
