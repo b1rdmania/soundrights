@@ -13,18 +13,27 @@ class DiscogsService:
 
     def __init__(self):
         self.client = None
-        if settings.DISCOGS_CONSUMER_KEY and settings.DISCOGS_CONSUMER_SECRET:
+        key = settings.DISCOGS_CONSUMER_KEY
+        secret = settings.DISCOGS_CONSUMER_SECRET
+        
+        # --- DEBUG LOG --- 
+        logger.info(f"Attempting to initialize Discogs client.")
+        logger.info(f"Read DISCOGS_CONSUMER_KEY (starts with): {key[:5] if key else 'None'}")
+        logger.info(f"Read DISCOGS_CONSUMER_SECRET (starts with): {secret[:5] if secret else 'None'}")
+        # --- END DEBUG LOG ---
+        
+        if key and secret:
             try:
                 self.client = discogs_client.Client(
                     self.USER_AGENT,
-                    consumer_key=settings.DISCOGS_CONSUMER_KEY,
-                    consumer_secret=settings.DISCOGS_CONSUMER_SECRET
+                    consumer_key=key, # Use variable
+                    consumer_secret=secret # Use variable
                 )
                 logger.info("Discogs client initialized successfully.")
             except Exception as e:
                 logger.error(f"Failed to initialize Discogs client: {e}", exc_info=True)
         else:
-            logger.warning("Discogs API credentials not found. Discogs service will be disabled.")
+            logger.warning("Discogs API credentials not found in settings. Discogs service will be disabled.")
 
     async def _search_release_async(self, query: str, search_type: str = 'master', limit: int = 1):
         """Internal async wrapper for discogs_client search."""
