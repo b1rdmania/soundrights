@@ -63,6 +63,10 @@ class AIServiceError(Exception):
     """Custom exception for AI service errors."""
     pass
 
-class MusixmatchAPIError(Exception):
-    """Custom exception for Musixmatch API errors."""
+class MusixmatchAPIError(MetadataAPIError):
+    """Specific exception for Musixmatch API errors."""
+    pass
+
+class AudioAnalysisError(Exception):
+    """Custom exception for audio analysis service errors (e.g., AcousticBrainz)."""
     pass
