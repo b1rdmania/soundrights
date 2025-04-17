@@ -27,9 +27,6 @@ const AnalyzingDisplay: React.FC<AnalyzingDisplayProps> = ({ title, artist }) =>
     `> Searching MusicBrainz Identifier Index...`,
     // Simulate MB search outcome
     `> MusicBrainz Lookup: ${Math.random() > 0.4 ? 'MBID Located. Tags Extracted (if available).' : 'No Match Found/Low Confidence.'}`,
-    `> Querying Discogs Release Database...`,
-    // Simulate Discogs outcome
-    `> Discogs Lookup: ${Math.random() > 0.3 ? 'Release Data Acquired (Year/Styles).' : 'No Match/Auth Failure.'}`,
     `> Preparing Metadata Payload for AI Analysis...`,
     `> Initializing Gemini Language Model [gemini-1.5-flash]... Ready.`,
     `> Generating Sonic Description & Keyword Matrix...`,
