@@ -61,6 +61,7 @@ interface Track {
   tags: string[];
   mood: string;
   similarity: number;
+  image_url?: string;
 }
 
 interface ResultsData {
@@ -178,6 +179,11 @@ const Results: React.FC = () => {
   const displayArtist = resultsData?.source_track?.artist || resultsData?.recognized_track?.subtitle || 'Unknown Artist';
   const displayTags = resultsData?.source_track?.genres || analysis?.keywords || [];
   
+  // Construct external search URLs
+  const searchTerm = encodeURIComponent(`${displayArtist} ${displayTitle}`);
+  const wikipediaSearchUrl = `https://en.wikipedia.org/w/index.php?search=${searchTerm}`;
+  const discogsSearchUrl = `https://www.discogs.com/search/?q=${searchTerm}&type=all`;
+  
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -210,51 +216,86 @@ const Results: React.FC = () => {
               </div>
             </div>
             
+            {/* --- New External Links Section --- */}
+            <div className="mb-8">
+                <h2 className="text-2xl font-semibold mb-4">Find out more</h2>
+                <div className="bg-white rounded-lg p-4 shadow-sm border flex items-center space-x-4">
+                    <a 
+                        href={wikipediaSearchUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline text-sm"
+                    >
+                        Search on Wikipedia
+                    </a>
+                    <span className="text-gray-300">|</span>
+                    <a 
+                        href={discogsSearchUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline text-sm"
+                    >
+                        Search on Discogs
+                    </a>
+                </div>
+            </div>
+            
             <div className="space-y-4">
               <h2 className="text-2xl font-semibold mb-4">Similar Royalty-Free Tracks (from Jamendo)</h2>
               {similarTracks.length > 0 ? (
                 similarTracks.map((track) => (
                   <div
                     key={track.id}
-                    className="bg-white rounded-lg p-4 shadow-sm border hover:shadow-md transition-shadow"
+                    className="bg-gray-50 rounded-lg p-4 shadow-md border border-gray-200 hover:shadow-lg transition-all duration-200 flex space-x-4 items-center"
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 pr-4">
-                        <h3 className="font-semibold">{track.title}</h3>
-                        <p className="text-muted-foreground text-sm">{track.artist}</p>
-                        {track.tags && track.tags.length > 0 && (
-                           <div className="flex flex-wrap gap-1 mt-2">
-                             {track.tags.slice(0, 5).map((tag, index) => (
-                               <span
-                                 key={index}
-                                 className="px-2 py-0.5 bg-secondary/10 text-secondary rounded-full text-xs"
-                               >
-                                 {tag}
-                               </span>
-                             ))}
-                           </div>
-                        )}
-                        <p className="mt-2 text-xs text-muted-foreground">License: {track.license}</p>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={() => handlePlay(track.id, track.audio_url)}
-                          className="p-2 rounded-full hover:bg-gray-100"
-                        >
-                          {playingTrack === track.id ? (
-                            <Pause className="h-5 w-5" />
-                          ) : (
-                            <Play className="h-5 w-5" />
+                    {track.image_url && (
+                        <img 
+                            src={track.image_url} 
+                            alt={`${track.title} artwork`} 
+                            className="w-16 h-16 rounded-md object-cover flex-shrink-0 shadow-sm"
+                        />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 pr-4">
+                          <h3 className="font-semibold truncate">{track.title}</h3>
+                          <p className="text-muted-foreground text-sm truncate">{track.artist}</p>
+                          {track.tags && track.tags.length > 0 && (
+                             <div className="flex flex-wrap gap-1 mt-2">
+                               {track.tags.slice(0, 5).map((tag, index) => (
+                                 <span
+                                   key={index}
+                                   className="px-2 py-0.5 bg-secondary/10 text-secondary rounded-full text-xs"
+                                 >
+                                   {tag}
+                                 </span>
+                               ))}
+                             </div>
                           )}
-                        </button>
-                        <a
-                          href={track.download_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-2 rounded-full hover:bg-gray-100"
-                        >
-                          <Download className="h-5 w-5" />
-                        </a>
+                          <p className="mt-2 text-xs text-muted-foreground">License: {track.license}</p>
+                        </div>
+                        <div className="flex items-center space-x-1 md:space-x-2">
+                          <button
+                            onClick={() => handlePlay(track.id, track.audio_url)}
+                            className="p-2 rounded-full text-gray-600 hover:bg-gray-200 hover:text-gray-900 transition-colors"
+                            title={playingTrack === track.id ? "Pause" : "Play"}
+                          >
+                            {playingTrack === track.id ? (
+                              <Pause className="h-5 w-5" />
+                            ) : (
+                              <Play className="h-5 w-5" />
+                            )}
+                          </button>
+                          <a
+                            href={track.download_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-2 rounded-full text-gray-600 hover:bg-gray-200 hover:text-gray-900 transition-colors"
+                            title="Download"
+                          >
+                            <Download className="h-5 w-5" />
+                          </a>
+                        </div>
                       </div>
                     </div>
                   </div>
