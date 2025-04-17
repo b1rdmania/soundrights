@@ -53,6 +53,7 @@ async def search_and_analyze(title: str = Form(...), artist: str = Form(...)) ->
             musixmatch_metadata = await musixmatch_service.search_track_by_query(fallback_query)
             if musixmatch_metadata:
                 logger.info(f"Musixmatch fallback search succeeded for query: {fallback_query}")
+                logger.info(f"Musixmatch fallback metadata received: {musixmatch_metadata}")
             else:
                 # If fallback also finds nothing, raise 404 with better message
                 logger.warning(f"Musixmatch fallback search also found no track for query: {fallback_query}")
@@ -238,6 +239,7 @@ async def process_file(file: UploadFile = File(...)) -> Dict[str, Any]:
                 musixmatch_metadata = await musixmatch_service.get_track_metadata(title=shazam_title, artist=shazam_artist)
                 if musixmatch_metadata:
                     logger.info(f"Found Musixmatch metadata: {musixmatch_metadata}")
+                    logger.info(f"Musixmatch metadata received (process-file): {musixmatch_metadata}")
                 else:
                     logger.info("No additional metadata found on Musixmatch.")
             except MusixmatchAPIError as e:
