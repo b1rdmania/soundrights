@@ -135,6 +135,7 @@ interface ResultsData {
     description: string;
     keywords: string[];
   } | null;
+  wikipedia_summary?: string | null; // ADD Wikipedia summary
   similar_tracks: Track[];
 }
 
@@ -231,6 +232,7 @@ const Results: React.FC = () => {
   const musicbrainz_data = resultsData?.musicbrainz_data;
   const discogs_data = resultsData?.discogs_data;
   const analysis = resultsData?.analysis;
+  const wikipedia_summary = resultsData?.wikipedia_summary; // ADD extraction
   const similarTracks = resultsData?.similar_tracks || [];
 
   // Determine display title/artist *before* the return statement
@@ -354,12 +356,6 @@ const Results: React.FC = () => {
                               {sourceTrackForDisplay?.explicit !== undefined && (
                                   <li><span className="font-medium text-foreground">Explicit:</span> {sourceTrackForDisplay.explicit ? 'Yes' : 'No'}</li>
                               )}
-                              {discogs_data?.discogs_id && (
-                                  <li>
-                                     <span className="font-medium text-foreground">Discogs ID:</span> 
-                                     <a href={`https://www.discogs.com/release/${discogs_data.discogs_id}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline ml-1">{discogs_data.discogs_id}</a>
-                                  </li>
-                              )}
                               {musicbrainz_data?.mbid && (
                                  <li>
                                     <span className="font-medium text-foreground">MusicBrainz ID:</span> 
@@ -369,8 +365,42 @@ const Results: React.FC = () => {
                          </ul>
                      </div>
                  </div>
+                 {/* --- Add Discogs Link under Image (in Image Column) --- */}
+                 <div className="w-full sm:w-32 flex-shrink-0 mt-2">
+                     {discogs_data?.discogs_id && (
+                          <a 
+                              href={`https://www.discogs.com/release/${discogs_data.discogs_id}`} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="block text-center text-xs mt-2 text-primary hover:underline"
+                          >
+                              View on Discogs
+                          </a>
+                     )}
+                 </div>
               </div>
             </div>
+            
+            {/* --- Wikipedia Summary Section --- */}
+            {wikipedia_summary && (
+                <div className="mb-8">
+                    <h2 className="text-2xl font-semibold mb-4 flex items-center">
+                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}> <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /> </svg> 
+                         Wikipedia Summary
+                    </h2>
+                    <div className="bg-white rounded-lg p-6 shadow-sm border">
+                        <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{wikipedia_summary}</p>
+                         <a 
+                            href={wikipediaSearchUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-xs text-primary hover:underline mt-3 inline-block"
+                         >
+                            Read more on Wikipedia...
+                         </a>
+                    </div>
+                </div>
+            )}
             
             <div className="mb-8">
                 <h2 className="text-2xl font-semibold mb-4">Find out more</h2>

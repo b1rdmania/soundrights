@@ -9,6 +9,7 @@ from app.services.metadata.musixmatch import musixmatch_service
 from app.services.recognition.shazam import zyla_shazam_client
 from app.services.ai.gemini_service import gemini_service
 from app.services.metadata.discogs_service import discogs_service
+from app.services.metadata.wikipedia_service import wikipedia_service
 from app.core.exceptions import RecognitionAPIError, AIServiceError, MusixmatchAPIError, MetadataAPIError
 import tempfile
 import os
@@ -36,6 +37,7 @@ async def search_and_analyze(title: str = Form(...), artist: str = Form(...)) ->
     musixmatch_metadata: Optional[Dict] = None
     musicbrainz_data: Optional[Dict] = None
     discogs_data: Optional[Dict] = None
+    wikipedia_summary: Optional[str] = None
     gemini_analysis: Optional[Dict] = None
     jamendo_tracks: List[Dict] = []
 
@@ -75,16 +77,17 @@ async def search_and_analyze(title: str = Form(...), artist: str = Form(...)) ->
         logger.error(f"Logic error: No Musixmatch metadata found after primary and fallback attempts for '{title}' '{artist}'")
         raise HTTPException(status_code=500, detail="Failed to retrieve metadata after fallback attempts.")
 
+    # Determine best title/artist AFTER Musixmatch step
+    lookup_title = musixmatch_metadata.get('title', title)
+    lookup_artist = musixmatch_metadata.get('artist', artist)
+    
     # --- 2. Get MusicBrainz Data (Tags, MBID) --- 
     try:
-        # Use the title/artist confirmed by Musixmatch if possible
-        mb_title = musixmatch_metadata.get('title', title)
-        mb_artist = musixmatch_metadata.get('artist', artist)
-        musicbrainz_data = await musicbrainz_client.get_musicbrainz_data(title=mb_title, artist=mb_artist)
+        musicbrainz_data = await musicbrainz_client.get_musicbrainz_data(title=lookup_title, artist=lookup_artist)
         if musicbrainz_data:
             logger.info(f"Successfully retrieved MusicBrainz data: {musicbrainz_data}")
         else:
-            logger.info(f"No suitable MusicBrainz data found for {mb_title} by {mb_artist}.")
+            logger.info(f"No suitable MusicBrainz data found for {lookup_title} by {lookup_artist}.")
     except MetadataAPIError as e: 
         logger.error(f"Error searching MusicBrainz for data: {e}. Proceeding without it.")
         musicbrainz_data = None 
@@ -94,19 +97,31 @@ async def search_and_analyze(title: str = Form(...), artist: str = Form(...)) ->
 
     # --- 3. Get Discogs Data --- 
     try:
-        mb_title = musixmatch_metadata.get('title', title)
-        mb_artist = musixmatch_metadata.get('artist', artist)
-        discogs_data = await discogs_service.get_release_data(title=mb_title, artist=mb_artist)
+        discogs_data = await discogs_service.get_release_data(title=lookup_title, artist=lookup_artist)
         if discogs_data:
             logger.info(f"Successfully retrieved Discogs data: {discogs_data}")
         else:
-            logger.info(f"No suitable Discogs data found for {mb_title} by {mb_artist}.")
+            logger.info(f"No suitable Discogs data found for {lookup_title} by {lookup_artist}.")
     except MetadataAPIError as e: # Discogs client might raise this on error
         logger.error(f"Error searching Discogs for data: {e}. Proceeding without it.")
         discogs_data = None 
     except Exception as e: 
          logger.exception(f"Unexpected error searching Discogs: {e}. Proceeding without it.")
          discogs_data = None
+
+    # --- 4. Get Wikipedia Summary --- 
+    try:
+        # Construct a search term - maybe try song title first?
+        # Or combine title and artist
+        wiki_search_term = f"{lookup_artist} {lookup_title}" # Or f"{lookup_title} (song)" ? Test needed.
+        wikipedia_summary = await wikipedia_service.get_wikipedia_summary(wiki_search_term)
+        if wikipedia_summary:
+             logger.info(f"Successfully retrieved Wikipedia summary for: {wiki_search_term}")
+        else:
+             logger.info(f"No Wikipedia summary found for: {wiki_search_term}")
+    except Exception as e:
+         logger.exception(f"Unexpected error fetching Wikipedia summary: {e}. Proceeding without it.")
+         wikipedia_summary = None
 
     # --- Analyze with Gemini (using only Musixmatch data) --- 
     try:
@@ -138,11 +153,12 @@ async def search_and_analyze(title: str = Form(...), artist: str = Form(...)) ->
                  "source_track": musixmatch_metadata, 
                  "musicbrainz_data": musicbrainz_data,
                  "discogs_data": discogs_data,
+                 "wikipedia_summary": wikipedia_summary,
                  "analysis": gemini_analysis, 
                  "similar_tracks": []
              }
 
-        # --- 4. Find similar tracks on Jamendo --- 
+        # --- 5. Find similar tracks on Jamendo --- 
         logger.info(f"Original Gemini keywords: {keywords}")
         
         # Prepend Musixmatch genres to the keywords for Jamendo search priority
@@ -169,6 +185,7 @@ async def search_and_analyze(title: str = Form(...), artist: str = Form(...)) ->
             "source_track": musixmatch_metadata, 
             "musicbrainz_data": musicbrainz_data,
             "discogs_data": discogs_data,
+            "wikipedia_summary": wikipedia_summary,
             "analysis": gemini_analysis,
             "similar_tracks": jamendo_tracks
         }
@@ -180,6 +197,7 @@ async def search_and_analyze(title: str = Form(...), artist: str = Form(...)) ->
             "source_track": musixmatch_metadata, 
             "musicbrainz_data": musicbrainz_data,
             "discogs_data": discogs_data,
+            "wikipedia_summary": wikipedia_summary,
             "analysis": {"description": "AI analysis failed.", "keywords": []}, 
             "similar_tracks": []
         }
@@ -214,6 +232,7 @@ async def process_file(file: UploadFile = File(...)) -> Dict[str, Any]:
     musixmatch_metadata: Optional[Dict] = None
     musicbrainz_data: Optional[Dict] = None
     discogs_data: Optional[Dict] = None
+    wikipedia_summary: Optional[str] = None
     gemini_analysis: Optional[Dict] = None
     jamendo_tracks: List[Dict] = []
     shazam_title: Optional[str] = None
@@ -283,7 +302,21 @@ async def process_file(file: UploadFile = File(...)) -> Dict[str, Any]:
              logger.warning("Insufficient title/artist info to search Discogs.")
              discogs_data = None
 
-        # 5. Analyze with Gemini 
+        # 5. Get Wikipedia Summary
+        try:
+            # Construct a search term - maybe try song title first?
+            # Or combine title and artist
+            wiki_search_term = f"{lookup_artist} {lookup_title}" # Or f"{lookup_title} (song)" ? Test needed.
+            wikipedia_summary = await wikipedia_service.get_wikipedia_summary(wiki_search_term)
+            if wikipedia_summary:
+                 logger.info(f"Successfully retrieved Wikipedia summary for: {wiki_search_term}")
+            else:
+                 logger.info(f"No Wikipedia summary found for: {wiki_search_term}")
+        except Exception as e:
+             logger.exception(f"Unexpected error fetching Wikipedia summary: {e}. Proceeding without it.")
+             wikipedia_summary = None
+
+        # 6. Analyze with Gemini 
         analysis_input = None
         if musixmatch_metadata:
             analysis_input = {**musixmatch_metadata}
@@ -299,6 +332,7 @@ async def process_file(file: UploadFile = File(...)) -> Dict[str, Any]:
                  "metadata": None,
                  "musicbrainz_data": None,
                  "discogs_data": None,
+                 "wikipedia_summary": wikipedia_summary,
                  "analysis": {"description": "Analysis skipped: Insufficient info.", "keywords": []},
                  "similar_tracks": []
              }
@@ -326,6 +360,7 @@ async def process_file(file: UploadFile = File(...)) -> Dict[str, Any]:
                     "metadata": musixmatch_metadata,
                     "musicbrainz_data": musicbrainz_data,
                     "discogs_data": discogs_data,
+                    "wikipedia_summary": wikipedia_summary,
                     "analysis": gemini_analysis, 
                     "similar_tracks": []
                 }
@@ -336,11 +371,12 @@ async def process_file(file: UploadFile = File(...)) -> Dict[str, Any]:
                  "metadata": musixmatch_metadata,
                  "musicbrainz_data": musicbrainz_data,
                  "discogs_data": discogs_data,
+                 "wikipedia_summary": wikipedia_summary,
                  "analysis": {"description": "AI analysis failed.", "keywords": []}, 
                  "similar_tracks": []
              }
 
-        # 6. Find similar tracks on Jamendo
+        # 7. Find similar tracks on Jamendo
         logger.info(f"Original Gemini keywords: {keywords}")
         
         # Prepend Musixmatch genres (if available) for Jamendo search priority
@@ -363,6 +399,7 @@ async def process_file(file: UploadFile = File(...)) -> Dict[str, Any]:
             "metadata": musixmatch_metadata,
             "musicbrainz_data": musicbrainz_data,
             "discogs_data": discogs_data,
+            "wikipedia_summary": wikipedia_summary,
             "analysis": gemini_analysis,
             "similar_tracks": jamendo_tracks
         }
