@@ -131,58 +131,6 @@ interface ResultsData {
   similar_tracks: Track[];
 }
 
-// --- New Detail Renderer Component ---
-interface DetailRendererProps {
-  title: string;
-  data: Record<string, any> | null | undefined;
-  logoPlaceholder?: string; // Placeholder text for logo
-}
-
-const DetailRenderer: React.FC<DetailRendererProps> = ({ title, data, logoPlaceholder }) => {
-  if (!data || Object.keys(data).length === 0) {
-    return null; // Don't render if no data
-  }
-
-  // Helper to format keys (e.g., musixmatch_id -> Musixmatch ID)
-  const formatKey = (key: string): string => {
-    return key
-      .replace(/_/g, ' ') // Replace underscores with spaces
-      .replace(/\b\w/g, l => l.toUpperCase()); // Capitalize first letter of each word
-  };
-
-  // Helper to format values (e.g., arrays)
-  const formatValue = (value: any): string => {
-    if (Array.isArray(value)) {
-      return value.join(', ');
-    }
-    if (typeof value === 'boolean') {
-        return value ? 'Yes' : 'No';
-    }
-    return String(value); // Convert other types to string
-  };
-
-  return (
-    <div className="mb-4">
-      <div className="flex items-center mb-2">
-        {/* Logo Placeholder */ 
-        {logoPlaceholder && <span className="mr-2 text-lg">{logoPlaceholder}</span>}
-        <h4 className="font-semibold text-sm text-foreground">{title}</h4>
-      </div>
-      <dl className="text-xs bg-gray-50 p-3 rounded border space-y-1">
-        {Object.entries(data).map(([key, value]) => (
-          // Only render if value is meaningful
-          value !== null && value !== undefined && value !== '' && (!Array.isArray(value) || value.length > 0) && (
-              <div key={key} className="grid grid-cols-3 gap-1">
-                <dt className="font-medium text-gray-600 truncate col-span-1">{formatKey(key)}:</dt>
-                <dd className="text-muted-foreground col-span-2 break-words">{formatValue(value)}</dd>
-              </div>
-           )
-        ))}
-      </dl>
-    </div>
-  );
-};
-
 const Results: React.FC = () => {
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(true);
@@ -268,15 +216,19 @@ const Results: React.FC = () => {
   };
   
   const resultsData = location.state?.results as ResultsData | undefined;
-  const sourceTrack = resultsData?.source_track || resultsData?.recognized_track;
-  const similarTracks = resultsData?.similar_tracks || [];
-  const analysis = resultsData?.analysis;
+  // Ensure sourceTrack for Musixmatch uses the right object based on origin
+  const musixmatchDataSource = resultsData?.source_track; // Use source_track if search result
+  const recognizedDataSource = resultsData?.recognized_track; // Use recognized_track if upload result
+  const sourceTrackForDisplay = musixmatchDataSource || recognizedDataSource; // Fallback for display
+  
   const musicbrainz_data = resultsData?.musicbrainz_data;
   const discogs_data = resultsData?.discogs_data;
+  const analysis = resultsData?.analysis;
+  const similarTracks = resultsData?.similar_tracks || [];
 
   // Determine display title/artist *before* the return statement
-  const displayTitle = sourceTrack?.title || 'Unknown Title';
-  const displayArtist = resultsData?.source_track?.artist || resultsData?.recognized_track?.subtitle || 'Unknown Artist';
+  const displayTitle = sourceTrackForDisplay?.title || 'Unknown Title';
+  const displayArtist = musixmatchDataSource?.artist || recognizedDataSource?.subtitle || 'Unknown Artist';
 
   // --- Conditional Rendering Logic ---
 
@@ -296,7 +248,7 @@ const Results: React.FC = () => {
   }
 
   // 2. If analysis done, but no results/source track, show "Not Found"
-  if (!resultsData || !sourceTrack) {
+  if (!resultsData || !sourceTrackForDisplay) {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar />
@@ -356,7 +308,7 @@ const Results: React.FC = () => {
                   </div>
                 )}
                 {/* --- Display AcousticBrainz & Musixmatch Details --- */}
-                {(musicbrainz_data || sourceTrack?.explicit !== undefined || sourceTrack?.instrumental !== undefined) && (
+                {(musicbrainz_data || sourceTrackForDisplay?.explicit !== undefined || sourceTrackForDisplay?.instrumental !== undefined) && (
                     <div className="mt-4 pt-4 border-t border-muted text-xs text-muted-foreground space-y-1">
                          <h4 className="font-semibold text-sm mb-1 text-foreground">Track Details:</h4>
                          {musicbrainz_data?.mbid && (
@@ -365,11 +317,11 @@ const Results: React.FC = () => {
                          {musicbrainz_data?.match_score && (
                              <p><span className="font-medium">Match Score:</span> {musicbrainz_data.match_score}</p>
                          )}
-                         {sourceTrack?.explicit !== undefined && (
-                             <p><span className="font-medium">Explicit:</span> {sourceTrack.explicit ? 'Yes' : 'No'}</p>
+                         {sourceTrackForDisplay?.explicit !== undefined && (
+                             <p><span className="font-medium">Explicit:</span> {sourceTrackForDisplay.explicit ? 'Yes' : 'No'}</p>
                          )}
-                         {sourceTrack?.instrumental !== undefined && (
-                              <p><span className="font-medium">Instrumental:</span> {sourceTrack.instrumental ? 'Yes' : 'No'}</p>
+                         {sourceTrackForDisplay?.instrumental !== undefined && (
+                              <p><span className="font-medium">Instrumental:</span> {sourceTrackForDisplay.instrumental ? 'Yes' : 'No'}</p>
                          )}
                          {/* Add Musixmatch Rating if desired */}
                          {/* {sourceTrack?.rating !== undefined && (
@@ -380,31 +332,68 @@ const Results: React.FC = () => {
               </div>
             </div>
             
-            {/* --- Technical Details Section (Reformatted) --- */}
+            {/* --- Technical Details Section (Reformatted with specific blocks) --- */}
             <div className="mb-8">
                 <h2 className="text-2xl font-semibold mb-4">Technical Details</h2>
-                <div className="bg-white rounded-lg p-4 shadow-sm border">
-                    {/* Use DetailRenderer for each data source */ 
-                    <DetailRenderer title="Musixmatch Data" data={sourceTrack} logoPlaceholder="🎵"/>
-                    <DetailRenderer title="MusicBrainz Data" data={musicbrainz_data} logoPlaceholder="🧠"/>
-                    <DetailRenderer title="Discogs Data" data={discogs_data} logoPlaceholder="💿"/>
+                <div className="bg-white rounded-lg p-4 shadow-sm border space-y-6">
+                    {/* --- Musixmatch Block --- */}
+                    {musixmatchDataSource && ( // Only show if from search result
+                        <div className="border-b pb-4 border-gray-100">
+                            <h3 className="text-lg font-semibold mb-3 flex items-center"><span className="text-xl mr-2">🎵</span> Musixmatch Data</h3>
+                            <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                                <div className="col-span-1"><dt className="font-medium text-gray-500">Title:</dt><dd className="text-gray-800">{musixmatchDataSource.title}</dd></div>
+                                <div className="col-span-1"><dt className="font-medium text-gray-500">Artist:</dt><dd className="text-gray-800">{musixmatchDataSource.artist}</dd></div>
+                                {musixmatchDataSource.album && <div className="col-span-1"><dt className="font-medium text-gray-500">Album:</dt><dd className="text-gray-800">{musixmatchDataSource.album}</dd></div>}
+                                {musixmatchDataSource.genres && musixmatchDataSource.genres.length > 0 && (
+                                    <div className="col-span-1"><dt className="font-medium text-gray-500">Genres:</dt><dd className="text-gray-800 flex flex-wrap gap-1 mt-1">{musixmatchDataSource.genres.map(g => <span key={g} className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full text-xs">{g}</span>)}</dd></div>
+                                )}
+                                <div className="col-span-1"><dt className="font-medium text-gray-500">Instrumental:</dt><dd className="text-gray-800">{musixmatchDataSource.instrumental ? 'Yes' : 'No'}</dd></div>
+                                <div className="col-span-1"><dt className="font-medium text-gray-500">Explicit:</dt><dd className="text-gray-800">{musixmatchDataSource.explicit ? 'Yes' : 'No'}</dd></div>
+                                {musixmatchDataSource.rating && <div className="col-span-1"><dt className="font-medium text-gray-500">Rating:</dt><dd className="text-gray-800">{musixmatchDataSource.rating}/100</dd></div>}
+                                {musixmatchDataSource.musixmatch_id && <div className="col-span-1"><dt className="font-medium text-gray-500">Musixmatch ID:</dt><dd className="text-gray-800 font-mono text-xs">{musixmatchDataSource.musixmatch_id}</dd></div>}
+                            </dl>
+                        </div>
+                    )}
                     
-                    {/* Remove old <pre> blocks -- The code below was the target for removal 
-                    <h4 className="font-semibold text-sm mt-3 mb-2 text-foreground">Musixmatch Data:</h4>
-                    {sourceTrack ? (
-                        <pre className="overflow-x-auto bg-gray-50 p-2 rounded text-xs">{JSON.stringify(sourceTrack, null, 2)}</pre>
-                    ) : <p>N/A</p>}
+                    {/* --- MusicBrainz Block --- */}
+                    {musicbrainz_data && (
+                        <div className="border-b pb-4 border-gray-100">
+                            <h3 className="text-lg font-semibold mb-3 flex items-center"><span className="text-xl mr-2">🧠</span> MusicBrainz Data</h3>
+                             <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                                {musicbrainz_data.mbid && (
+                                    <div className="col-span-1"><dt className="font-medium text-gray-500">Recording ID:</dt><dd className="text-gray-800 font-mono text-xs"><a href={`https://musicbrainz.org/recording/${musicbrainz_data.mbid}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{musicbrainz_data.mbid}</a></dd></div>
+                                )}
+                                {musicbrainz_data.match_score && <div className="col-span-1"><dt className="font-medium text-gray-500">Match Score:</dt><dd className="text-gray-800">{musicbrainz_data.match_score}%</dd></div>}
+                                {musicbrainz_data.tags && musicbrainz_data.tags.length > 0 && (
+                                    <div className="md:col-span-2"><dt className="font-medium text-gray-500">Tags:</dt><dd className="text-gray-800 flex flex-wrap gap-1 mt-1">{musicbrainz_data.tags.map(t => <span key={t} className="px-2 py-0.5 bg-purple-100 text-purple-800 rounded-full text-xs">{t}</span>)}</dd></div>
+                                )}
+                             </dl>
+                        </div>
+                    )}
+
+                    {/* --- Discogs Block --- */}
+                    {discogs_data && (
+                        <div> {/* No border-b on last item */} 
+                            <h3 className="text-lg font-semibold mb-3 flex items-center"><span className="text-xl mr-2">💿</span> Discogs Data</h3>
+                             <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                                 {discogs_data.discogs_id && (
+                                    <div className="col-span-1"><dt className="font-medium text-gray-500">Release ID:</dt><dd className="text-gray-800 font-mono text-xs"><a href={`https://www.discogs.com/release/${discogs_data.discogs_id}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{discogs_data.discogs_id}</a></dd></div>
+                                )}
+                                {discogs_data.year && <div className="col-span-1"><dt className="font-medium text-gray-500">Year:</dt><dd className="text-gray-800">{discogs_data.year}</dd></div>}
+                                {discogs_data.genres && discogs_data.genres.length > 0 && (
+                                    <div className="col-span-1"><dt className="font-medium text-gray-500">Genres:</dt><dd className="text-gray-800 flex flex-wrap gap-1 mt-1">{discogs_data.genres.map(g => <span key={g} className="px-2 py-0.5 bg-green-100 text-green-800 rounded-full text-xs">{g}</span>)}</dd></div>
+                                )}
+                                {discogs_data.styles && discogs_data.styles.length > 0 && (
+                                     <div className="col-span-1"><dt className="font-medium text-gray-500">Styles:</dt><dd className="text-gray-800 flex flex-wrap gap-1 mt-1">{discogs_data.styles.map(s => <span key={s} className="px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded-full text-xs">{s}</span>)}</dd></div>
+                                )}
+                            </dl>
+                        </div>
+                    )}
                     
-                    <h4 className="font-semibold text-sm mt-3 mb-2 text-foreground">MusicBrainz Data:</h4>
-                    {musicbrainz_data ? (
-                         <pre className="overflow-x-auto bg-gray-50 p-2 rounded text-xs">{JSON.stringify(musicbrainz_data, null, 2)}</pre>
-                    ) : <p>N/A</p>}
-                    
-                    <h4 className="font-semibold text-sm mt-3 mb-2 text-foreground">Discogs Data:</h4>
-                    {discogs_data ? (
-                         <pre className="overflow-x-auto bg-gray-50 p-2 rounded text-xs">{JSON.stringify(discogs_data, null, 2)}</pre>
-                    ) : <p>N/A</p>} 
-                    */} 
+                    {/* Show message if no technical data found */} 
+                    {!musixmatchDataSource && !musicbrainz_data && !discogs_data && (
+                        <p className="text-sm text-muted-foreground italic">No detailed technical data available from external sources.</p>
+                    )}
                 </div>
             </div>
             
@@ -433,7 +422,7 @@ const Results: React.FC = () => {
             
             <div className="space-y-4">
               <h2 className="text-2xl font-semibold mb-2">Similar Royalty-Free Tracks (from Jamendo)</h2>
-              {/* Display Keywords Used */ 
+              {/* Display Keywords Used */}
               {analysis?.keywords && analysis.keywords.length > 0 && (
                   <div className="mb-4 text-sm text-muted-foreground">
                       <span className="font-medium text-foreground">Keywords used:</span>
