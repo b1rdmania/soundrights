@@ -33,22 +33,6 @@ async def search_and_analyze(title: str = Form(...), artist: str = Form(...)) ->
     Returns:
         Dictionary containing search result, analysis, and similar tracks
     """
-    # --- BEGIN FP CALC CHECK (Temporary) --- 
-    fpcalc_command = ["fpcalc", "--version"]
-    try:
-        fp_process = subprocess.run(fpcalc_command, capture_output=True, text=True, check=False, timeout=5)
-        fp_output = fp_process.stdout.strip() if fp_process.stdout else None
-        fp_error = fp_process.stderr.strip() if fp_process.stderr else None
-        if fp_process.returncode == 0:
-            logger.info(f"[FP Calc Check - OK] Command '{' '.join(fpcalc_command)}' succeeded. Output: {fp_output}")
-        else:
-            logger.warning(f"[FP Calc Check - FAILED] Command '{' '.join(fpcalc_command)}' failed. Code: {fp_process.returncode}. Error: {fp_error}")
-    except FileNotFoundError:
-        logger.error(f"[FP Calc Check - FAILED] Command '{' '.join(fpcalc_command)}' not found. Is libchromaprint-tools installed?")
-    except Exception as fp_e:
-        logger.exception(f"[FP Calc Check - FAILED] Unexpected error running command '{' '.join(fpcalc_command)}': {fp_e}")
-    # --- END FP CALC CHECK --- 
-    
     logger.info(f"Processing search for title: '{title}', artist: '{artist}'")
     
     musixmatch_metadata: Optional[Dict] = None
@@ -128,14 +112,22 @@ async def search_and_analyze(title: str = Form(...), artist: str = Form(...)) ->
 
     # --- 4. Get Wikipedia Summary --- 
     try:
-        # Construct a search term - maybe try song title first?
-        # Or combine title and artist
-        wiki_search_term = f"{lookup_artist} {lookup_title}" # Or f"{lookup_title} (song)" ? Test needed.
+        # Construct a search term - add " (song)" suffix
+        wiki_search_term = f"{lookup_title} ({lookup_artist} song)" # Try adding artist context too
+        # Alternative: wiki_search_term = f"{lookup_title} (song)" # Simpler, maybe better?
         wikipedia_summary = await wikipedia_service.get_wikipedia_summary(wiki_search_term)
         if wikipedia_summary:
              logger.info(f"Successfully retrieved Wikipedia summary for: {wiki_search_term}")
         else:
-             logger.info(f"No Wikipedia summary found for: {wiki_search_term}")
+             logger.info(f"No Wikipedia summary found for: {wiki_search_term}. Trying title only...")
+             # Fallback: Try searching just the title + (song)
+             wiki_search_term_fallback = f"{lookup_title} (song)"
+             wikipedia_summary = await wikipedia_service.get_wikipedia_summary(wiki_search_term_fallback)
+             if wikipedia_summary:
+                 logger.info(f"Successfully retrieved Wikipedia summary on fallback: {wiki_search_term_fallback}")
+             else:
+                 logger.info(f"No Wikipedia summary found on fallback either: {wiki_search_term_fallback}")
+
     except Exception as e:
          logger.exception(f"Unexpected error fetching Wikipedia summary: {e}. Proceeding without it.")
          wikipedia_summary = None
@@ -321,14 +313,21 @@ async def process_file(file: UploadFile = File(...)) -> Dict[str, Any]:
 
         # 5. Get Wikipedia Summary
         try:
-            # Construct a search term - maybe try song title first?
-            # Or combine title and artist
-            wiki_search_term = f"{lookup_artist} {lookup_title}" # Or f"{lookup_title} (song)" ? Test needed.
+            # Construct a search term - add " (song)" suffix
+            wiki_search_term = f"{lookup_title} ({lookup_artist} song)"
+            # Alternative: wiki_search_term = f"{lookup_title} (song)" 
             wikipedia_summary = await wikipedia_service.get_wikipedia_summary(wiki_search_term)
             if wikipedia_summary:
                  logger.info(f"Successfully retrieved Wikipedia summary for: {wiki_search_term}")
             else:
-                 logger.info(f"No Wikipedia summary found for: {wiki_search_term}")
+                 logger.info(f"No Wikipedia summary found for: {wiki_search_term}. Trying title only...")
+                 # Fallback: Try searching just the title + (song)
+                 wiki_search_term_fallback = f"{lookup_title} (song)"
+                 wikipedia_summary = await wikipedia_service.get_wikipedia_summary(wiki_search_term_fallback)
+                 if wikipedia_summary:
+                     logger.info(f"Successfully retrieved Wikipedia summary on fallback: {wiki_search_term_fallback}")
+                 else:
+                     logger.info(f"No Wikipedia summary found on fallback either: {wiki_search_term_fallback}")
         except Exception as e:
              logger.exception(f"Unexpected error fetching Wikipedia summary: {e}. Proceeding without it.")
              wikipedia_summary = None
