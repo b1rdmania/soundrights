@@ -18,19 +18,24 @@ interface AnalyzingDisplayProps {
 const AnalyzingDisplay: React.FC<AnalyzingDisplayProps> = ({ title, artist }) => {
   // Dynamically generate lines using props
   const lines = [
-    `> Initializing SoundMatch Analysis Core v3.1... OK`,
+    `> Initializing SoundMatch Analysis Core v3.2... OK`, // Version bump!
     `> Target Locked: ${artist} - ${title}`,
-    `> Engaging Musixmatch API [matcher.track.get]... Match verified.`,
-    `> Searching MusicBrainz Identifier Index...`,
-    // Simulate MBID/AcousticBrainz step (might or might not happen)
-    Math.random() > 0.3 
-      ? `> MBID Located. Querying AcousticBrainz [high-level]... Features acquired (BPM/Key).` 
-      : `> MBID Lookup Failed/Skipped. Proceeding with metadata only...`,
+    `> Engaging Musixmatch API [matcher.track.get]...`,
+    // Simulate success/fallback/failure - add slight randomness/variation
+    `> Musixmatch Query Status: ${Math.random() > 0.1 ? (Math.random() > 0.3 ? 'Exact Match Found.' : 'Fallback Search Initiated... Match Acquired.') : 'Metadata Retrieval Failed.'}`, 
+    `> Searching MusicBrainz Identifier Index...`, 
+    // Simulate MB search outcome
+    `> MusicBrainz Lookup: ${Math.random() > 0.4 ? 'MBID Located. Tags Extracted (if available).' : 'No Match Found/Low Confidence.'}`,
+    `> Querying Discogs Release Database...`, 
+    // Simulate Discogs outcome
+    `> Discogs Lookup: ${Math.random() > 0.3 ? 'Release Data Acquired (Year/Styles).' : 'No Match/Auth Failure.'}`, 
+    `> Preparing Metadata Payload for AI Analysis...`, 
     `> Initializing Gemini Language Model [gemini-1.5-flash]... Ready.`,
-    `> Generating Sonic Description & Keyword Matrix... AI analysis complete.`,
-    `> Cross-Referencing Jamendo Royalty-Free Database [fuzzytags]...`,
-    `> Compiling Results Vector... DONE`,
-    `> Displaying Output...`
+    `> Generating Sonic Description & Keyword Matrix...`,
+    `> Gemini Analysis: ${Math.random() > 0.1 ? 'Synthesis Complete.' : 'Analysis Timed Out/Failed.'}`, 
+    `> Cross-Referencing Jamendo Royalty-Free Database [fuzzytags]...`, 
+    `> Compiling Results Vector... DONE`, 
+    `> Rendering Output Interface...`
   ];
   const [displayedLines, setDisplayedLines] = useState<string[]>([]);
   const [showCursor, setShowCursor] = useState(true);
