@@ -63,6 +63,7 @@ const AnalyzingDisplay: React.FC<AnalyzingDisplayProps> = ({ title, artist }) =>
 
   return (
     <div className="font-mono text-sm text-muted-foreground bg-card p-4 rounded-md shadow-lg border min-h-[220px]">
+      {/* Displaying analysis steps */}
       {displayedLines.map((line, i) => (
         <p key={i}>{line}</p>
       ))}
