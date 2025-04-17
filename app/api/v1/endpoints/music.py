@@ -229,7 +229,6 @@ async def process_file(
     jamendo_service: JamendoService = Depends(get_jamendo_service),
     gemini_service: GeminiService = Depends(get_gemini_service),
     musicbrainz_client: MusicBrainzClient = Depends(get_musicbrainz_service),
-    acoustid_client: AcoustIDClient = Depends(AcoustIDClient),
     discogs_service: DiscogsService = Depends(get_discogs_service),
     wikipedia_service: WikipediaService = Depends(get_wikipedia_service)
 ) -> Dict[str, Any]:
