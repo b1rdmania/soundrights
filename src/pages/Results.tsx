@@ -6,6 +6,7 @@ import SearchResult from '@/components/SearchResult';
 import { filterOptions, applyFilters } from '@/lib/music-utils';
 import { ArrowUp, Filter, Music, Download, Play, Pause } from 'lucide-react';
 import { SearchResultProps } from '@/components/SearchResult';
+import { toast } from 'react-hot-toast';
 
 // Interface for props passed to AnalyzingDisplay
 interface AnalyzingDisplayProps {
@@ -40,26 +41,34 @@ const AnalyzingDisplay: React.FC<AnalyzingDisplayProps> = ({ title, artist }) =>
       } else {
         clearInterval(intervalId);
       }
-    }, 300); // Slightly faster line display
+    }, 300);
 
     const cursorInterval = setInterval(() => {
         setShowCursor((prev) => !prev);
-    }, 500); // Blinking cursor speed
+    }, 500);
 
     return () => {
         clearInterval(intervalId);
         clearInterval(cursorInterval);
     };
-  }, [lines]); // Re-run effect if lines change (though they shouldn't after initial render)
+  }, [lines]);
 
   return (
-    <div className="font-mono text-sm text-green-400 bg-black p-4 rounded-md shadow-lg min-h-[200px]">
+    <div className="font-mono text-sm text-muted-foreground bg-card p-4 rounded-md shadow-lg border min-h-[200px]">
       {displayedLines.map((line, i) => (
         <p key={i}>{line}</p>
       ))}
-      {showCursor && <span className="animate-pulse">_</span>}
+      {showCursor && <span className="animate-pulse text-primary">_</span>}
     </div>
   );
+};
+
+// Helper to format time (seconds) as MM:SS
+const formatTime = (seconds: number): string => {
+  if (isNaN(seconds) || seconds < 0) return "00:00";
+  const minutes = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${minutes < 10 ? '0' : ''}${minutes}:${secs < 10 ? '0' : ''}${secs}`;
 };
 
 interface Track {
@@ -102,6 +111,8 @@ interface ResultsData {
     title: string;
     subtitle?: string; // Artist is often here
     key?: string; // Shazam key
+    explicit?: boolean; // Added to satisfy type checker
+    instrumental?: boolean; // Added to satisfy type checker
     // Add other fields from Shazam if needed
   } | null;
   analysis?: { // From Gemini
@@ -118,6 +129,9 @@ const Results: React.FC = () => {
   const navigate = useNavigate();
   const [playingTrack, setPlayingTrack] = React.useState<string | null>(null);
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
+  // New state for seek bar
+  const [currentTime, setCurrentTime] = React.useState<number>(0);
+  const [duration, setDuration] = React.useState<number>(0);
   
   useEffect(() => {
     const handleScroll = () => {
@@ -129,7 +143,7 @@ const Results: React.FC = () => {
     // Simulate analysis delay
     const analysisTimeout = setTimeout(() => {
         setIsAnalyzing(false);
-    }, 2500); // Adjust delay (in milliseconds) as desired
+    }, 3500); // New increased delay (3.5 seconds)
 
     return () => {
         window.removeEventListener('scroll', handleScroll);
@@ -141,17 +155,55 @@ const Results: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   
+  // Effect to handle audio cleanup when track changes or component unmounts
+  useEffect(() => {
+    return () => {
+      audioRef.current?.pause();
+      audioRef.current = null;
+    };
+  }, []);
+
   const handlePlay = (trackId: string, audioUrl: string) => {
     if (playingTrack === trackId) {
       audioRef.current?.pause();
+      setPlayingTrack(null);
     } else {
+      // Stop currently playing track if any
       if (audioRef.current) {
         audioRef.current.pause();
       }
+      // Create new audio element
       audioRef.current = new Audio(audioUrl);
-      audioRef.current.play().catch(e => console.error("Error playing audio:", e));
+      setPlayingTrack(trackId);
+      setCurrentTime(0);
+      setDuration(0);
+
+      // Add listeners for seek bar
+      audioRef.current.addEventListener('loadedmetadata', () => {
+        setDuration(audioRef.current?.duration || 0);
+      });
+      audioRef.current.addEventListener('timeupdate', () => {
+        setCurrentTime(audioRef.current?.currentTime || 0);
+      });
+       audioRef.current.addEventListener('ended', () => {
+         setPlayingTrack(null); // Reset button when track ends
+         setCurrentTime(0);
+       });
+
+      audioRef.current.play().catch(e => {
+        console.error("Error playing audio:", e);
+        toast.error(`Error playing track: ${e.message}`)
+        setPlayingTrack(null); // Reset state on error
+      });
     }
-    setPlayingTrack(playingTrack === trackId ? null : trackId);
+  };
+
+  const handleSeek = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (audioRef.current) {
+      const newTime = Number(event.target.value);
+      audioRef.current.currentTime = newTime;
+      setCurrentTime(newTime);
+    }
   };
   
   const resultsData = location.state?.results as ResultsData | undefined;
@@ -238,8 +290,30 @@ const Results: React.FC = () => {
                 {analysis?.description && (
                   <div className="mt-4 pt-4 border-t border-muted">
                     <h3 className="text-lg font-semibold mb-2">AI Analysis:</h3>
-                    <p className="text-muted-foreground italic">{analysis.description}</p>
+                    <p className="text-muted-foreground italic text-sm">{analysis.description}</p>
                   </div>
+                )}
+                {/* --- Display AcousticBrainz & Musixmatch Details --- */}
+                {(audioFeatures || sourceTrack?.explicit !== undefined || sourceTrack?.instrumental !== undefined) && (
+                    <div className="mt-4 pt-4 border-t border-muted text-xs text-muted-foreground space-y-1">
+                         <h4 className="font-semibold text-sm mb-1 text-foreground">Track Details:</h4>
+                         {audioFeatures?.bpm && (
+                             <p><span className="font-medium">BPM:</span> {audioFeatures.bpm}</p>
+                         )}
+                         {audioFeatures?.key && audioFeatures?.scale && (
+                             <p><span className="font-medium">Key:</span> {audioFeatures.key} {audioFeatures.scale} {audioFeatures.key_confidence ? `(Confidence: ${Math.round(audioFeatures.key_confidence * 100)}%)` : ''}</p>
+                         )}
+                         {sourceTrack?.explicit !== undefined && (
+                             <p><span className="font-medium">Explicit:</span> {sourceTrack.explicit ? 'Yes' : 'No'}</p>
+                         )}
+                         {sourceTrack?.instrumental !== undefined && (
+                              <p><span className="font-medium">Instrumental:</span> {sourceTrack.instrumental ? 'Yes' : 'No'}</p>
+                         )}
+                         {/* Add Musixmatch Rating if desired */}
+                         {/* {sourceTrack?.rating !== undefined && (
+                              <p><span className="font-medium">Musixmatch Rating:</span> {sourceTrack.rating}/100</p>
+                         )} */}
+                    </div>
                 )}
               </div>
             </div>
@@ -302,7 +376,7 @@ const Results: React.FC = () => {
                           )}
                           <p className="mt-2 text-xs text-muted-foreground">License: {track.license}</p>
                         </div>
-                        <div className="flex items-center space-x-1 md:space-x-2">
+                        <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-2 mt-2 md:mt-0"> {/* Container for controls */} 
                           <button
                             onClick={() => handlePlay(track.id, track.audio_url)}
                             className="p-2 rounded-full text-gray-600 hover:bg-gray-200 hover:text-gray-900 transition-colors"
@@ -314,6 +388,22 @@ const Results: React.FC = () => {
                               <Play className="h-5 w-5" />
                             )}
                           </button>
+                          {/* --- Seek Bar --- */}
+                          {playingTrack === track.id && (
+                            <div className="flex items-center space-x-2 w-full md:w-auto">
+                                <span className="text-xs text-muted-foreground w-10 text-right">{formatTime(currentTime)}</span>
+                                <input 
+                                    type="range"
+                                    min="0"
+                                    max={duration}
+                                    value={currentTime}
+                                    onChange={handleSeek}
+                                    className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer range-sm dark:bg-gray-700 accent-primary"
+                                />
+                                <span className="text-xs text-muted-foreground w-10">{formatTime(duration)}</span>
+                            </div>
+                          )}
+                          {/* --- Download Button --- */}
                           <a
                             href={track.download_url}
                             target="_blank"
