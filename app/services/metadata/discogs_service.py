@@ -5,6 +5,7 @@ from ...core.logging import logger
 from ...core.exceptions import MetadataAPIError
 import asyncio
 import time
+import requests # Add requests import
 
 class DiscogsService:
     """Client for interacting with the Discogs API."""
@@ -74,6 +75,34 @@ class DiscogsService:
 
         logger.info(f"Searching Discogs for release data: '{title}' by '{artist}'")
         search_query = f"{artist} {title}"
+        
+        # --- Direct Request Test --- 
+        try:
+            logger.info("Attempting direct Discogs search request...")
+            direct_url = "https://api.discogs.com/database/search"
+            key = settings.DISCOGS_CONSUMER_KEY
+            secret = settings.DISCOGS_CONSUMER_SECRET
+            headers = {
+                'User-Agent': self.USER_AGENT,
+                'Authorization': f'Discogs key={key}, secret={secret}'
+            }
+            params = {'q': search_query, 'type': 'master', 'limit': 1}
+            
+            await asyncio.sleep(0.5) # Small delay before direct call
+            response = await asyncio.to_thread(
+                 requests.get, direct_url, headers=headers, params=params, timeout=10.0
+            )
+            logger.info(f"Direct Discogs request status code: {response.status_code}")
+            if response.status_code != 200:
+                 logger.error(f"Direct Discogs request failed! Response text: {response.text[:500]}") # Log part of the response
+            else:
+                 logger.info("Direct Discogs request succeeded!")
+                 # Optionally log response.json().get('results') if needed
+                 
+        except Exception as direct_e:
+             logger.error(f"Error during direct Discogs request test: {direct_e}", exc_info=True)
+        # --- End Direct Request Test ---
+
         
         # Prioritize searching for 'master' releases
         results = await self._search_release_async(search_query, search_type='master', limit=1)
