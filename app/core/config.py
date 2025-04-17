@@ -34,9 +34,10 @@ class Settings(BaseSettings):
     MAX_UPLOAD_SIZE: int = 10 * 1024 * 1024  # 10MB
     ALLOWED_AUDIO_TYPES: set = {"audio/mpeg", "audio/mp3", "audio/wav"}
     
-    # Discogs API Credentials
-    DISCOGS_CONSUMER_KEY: Optional[str] = None
-    DISCOGS_CONSUMER_SECRET: Optional[str] = None
+    # Discogs API Credentials - SWITCHING TO TOKEN AUTH
+    # DISCOGS_CONSUMER_KEY: Optional[str] = None
+    # DISCOGS_CONSUMER_SECRET: Optional[str] = None
+    DISCOGS_PERSONAL_ACCESS_TOKEN: Optional[str] = None
     
     # Use Pydantic V1 style Config class
     class Config:

@@ -14,21 +14,19 @@ class DiscogsService:
 
     def __init__(self):
         self.client = None
-        key = settings.DISCOGS_CONSUMER_KEY
-        secret = settings.DISCOGS_CONSUMER_SECRET
+        token = settings.DISCOGS_PERSONAL_ACCESS_TOKEN
         
-        if key and secret:
+        if token:
             try:
                 self.client = discogs_client.Client(
                     self.USER_AGENT,
-                    consumer_key=key, 
-                    consumer_secret=secret
+                    user_token=token
                 )
-                logger.info("Discogs client initialized successfully.")
+                logger.info("Discogs client initialized successfully using Personal Access Token.")
             except Exception as e:
-                logger.error(f"Failed to initialize Discogs client: {e}", exc_info=True)
+                logger.error(f"Failed to initialize Discogs client using token: {e}", exc_info=True)
         else:
-            logger.warning("Discogs API credentials not found in settings. Discogs service will be disabled.")
+            logger.warning("Discogs Personal Access Token not found in settings. Discogs service will be disabled.")
 
     async def _search_release_async(self, query: str, search_type: str = 'master', limit: int = 1):
         """Internal async wrapper for discogs_client search."""
