@@ -11,7 +11,6 @@ import About from "./pages/About";
 import WhitePaper from "./pages/WhitePaper";
 import Invest from "./pages/Invest";
 import NotFound from "./pages/NotFound";
-import TechOverview from '@/pages/TechOverview';
 
 // Error boundary component
 const ErrorFallback = ({ error }: { error: Error }) => {
@@ -62,7 +61,6 @@ const App = () => {
                   <Route path="/about" element={<About />} />
                   <Route path="/whitepaper" element={<WhitePaper />} />
                   <Route path="/invest" element={<Invest />} />
-                  <Route path="/tech-overview" element={<TechOverview />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </main>

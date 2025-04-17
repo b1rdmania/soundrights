@@ -97,7 +97,6 @@ const Navbar = () => {
             </SheetHeader>
             <nav className="grid gap-4 py-4">
               <NavLink to="/" className={({ isActive }) => cn("flex items-center gap-2 text-lg font-semibold", isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground")} onClick={() => setIsMenuOpen(false)}>Try SoundMatch</NavLink>
-              <NavLink to="/tech-overview" className={({ isActive }) => cn("flex items-center gap-2 text-lg font-semibold", isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground")} onClick={() => setIsMenuOpen(false)}>Technical Overview</NavLink>
               {navLinks.map((link) => (
                 <NavLink
                   key={link.path}
