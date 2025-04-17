@@ -414,15 +414,6 @@ const Results: React.FC = () => {
                     >
                         Search on Wikipedia
                     </a>
-                    <span className="text-gray-300">|</span>
-                    <a 
-                        href={discogsSearchUrl} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline text-sm"
-                    >
-                        Search on Discogs
-                    </a>
                 </div>
             </div>
             
