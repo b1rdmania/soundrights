@@ -8,11 +8,13 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Add a build argument to invalidate cache when needed
-ARG CACHEBUST=1
-
 # Copy requirements first to leverage Docker cache
 COPY requirements.txt .
+
+# Install older setuptools for compatibility with older packages like python-musixmatch
+RUN pip install --no-cache-dir "setuptools<58"
+
+# Now install the rest of the requirements
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application
