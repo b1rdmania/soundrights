@@ -20,43 +20,6 @@ import subprocess
 
 router = APIRouter()
 
-@router.get("/test-fpcalc", tags=["Testing"], summary="Test if fpcalc command is available")
-async def test_fpcalc_availability():
-    """Attempts to run 'fpcalc --version' to check its availability."""
-    command = ["fpcalc", "--version"]
-    result_data = {
-        "command_checked": " ".join(command),
-        "found": False,
-        "output": None,
-        "error": None,
-        "exception": None
-    }
-    try:
-        process = subprocess.run(command, capture_output=True, text=True, check=False, timeout=5)
-        result_data["output"] = process.stdout.strip() if process.stdout else None
-        result_data["error"] = process.stderr.strip() if process.stderr else None
-        
-        if process.returncode == 0:
-            result_data["found"] = True
-            logger.info(f"fpcalc check successful: {result_data['output']}")
-        else:
-            logger.warning(f"fpcalc check failed. Return code: {process.returncode}. Error: {result_data['error']}")
-            
-    except FileNotFoundError:
-        error_msg = "'fpcalc' command not found. Is libchromaprint-tools installed?"
-        result_data["exception"] = error_msg
-        logger.error(error_msg)
-    except subprocess.TimeoutExpired:
-        error_msg = "'fpcalc' command timed out."
-        result_data["exception"] = error_msg
-        logger.error(error_msg)
-    except Exception as e:
-        error_msg = f"Unexpected error running fpcalc: {str(e)}"
-        result_data["exception"] = error_msg
-        logger.exception(error_msg)
-        
-    return result_data
-
 @router.post("/search")
 async def search_and_analyze(title: str = Form(...), artist: str = Form(...)) -> Dict[str, Any]:
     """
@@ -70,6 +33,22 @@ async def search_and_analyze(title: str = Form(...), artist: str = Form(...)) ->
     Returns:
         Dictionary containing search result, analysis, and similar tracks
     """
+    # --- BEGIN FP CALC CHECK (Temporary) --- 
+    fpcalc_command = ["fpcalc", "--version"]
+    try:
+        fp_process = subprocess.run(fpcalc_command, capture_output=True, text=True, check=False, timeout=5)
+        fp_output = fp_process.stdout.strip() if fp_process.stdout else None
+        fp_error = fp_process.stderr.strip() if fp_process.stderr else None
+        if fp_process.returncode == 0:
+            logger.info(f"[FP Calc Check - OK] Command '{' '.join(fpcalc_command)}' succeeded. Output: {fp_output}")
+        else:
+            logger.warning(f"[FP Calc Check - FAILED] Command '{' '.join(fpcalc_command)}' failed. Code: {fp_process.returncode}. Error: {fp_error}")
+    except FileNotFoundError:
+        logger.error(f"[FP Calc Check - FAILED] Command '{' '.join(fpcalc_command)}' not found. Is libchromaprint-tools installed?")
+    except Exception as fp_e:
+        logger.exception(f"[FP Calc Check - FAILED] Unexpected error running command '{' '.join(fpcalc_command)}': {fp_e}")
+    # --- END FP CALC CHECK --- 
+    
     logger.info(f"Processing search for title: '{title}', artist: '{artist}'")
     
     musixmatch_metadata: Optional[Dict] = None
