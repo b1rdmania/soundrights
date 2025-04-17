@@ -35,8 +35,8 @@ class Settings(BaseSettings):
     ALLOWED_AUDIO_TYPES: set = {"audio/mpeg", "audio/mp3", "audio/wav"}
     
     # Discogs API Credentials
-    DISCOGS_CONSUMER_KEY: str = ""
-    DISCOGS_CONSUMER_SECRET: str = ""
+    DISCOGS_CONSUMER_KEY: Optional[str] = None
+    DISCOGS_CONSUMER_SECRET: Optional[str] = None
     
     # Use Pydantic V1 style Config class
     class Config:
