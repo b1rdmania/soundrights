@@ -44,24 +44,35 @@ class GeminiService:
         instrumental_info = "which is instrumental" if instrumental else ""
         rating_info = f"and has a rating of {rating}" if rating is not None else ""
 
+        # Add info about AcousticBrainz data if present
+        bpm = track_metadata.get('bpm')
+        key = track_metadata.get('key')
+        scale = track_metadata.get('scale')
+        acousticbrainz_info = ""
+        if bpm:
+            acousticbrainz_info += f" with an estimated BPM of {bpm}."
+        if key and scale:
+            acousticbrainz_info += f" The key is likely {key} {scale}."
+            
+
         prompt = f"""
-        Analyze the song "{title}" by "{artist}" {genre_info} {explicit_info} {instrumental_info} {rating_info}.
+        Analyze the song "{title}" by "{artist}" {genre_info} {explicit_info} {instrumental_info} {rating_info}.{acousticbrainz_info}
 
-        Based *only* on the provided metadata:
-        1.  Provide a detailed technical description (3-4 sentences) focusing on objective musical characteristics useful for finding similar *royalty-free* music (e.g., on Jamendo). Include:
-            *   Likely **tempo range** (e.g., slow < 80 BPM, medium 80-120 BPM, fast > 120 BPM). Estimate BPM if possible based on genre/era.
-            *   Likely **instrumentation** based on genre/era (e.g., 'distorted electric guitar, bass, acoustic drums', 'synthesizers, drum machine, piano', 'orchestral strings, brass').
-            *   Likely **vocal presence and style** (e.g., 'prominent lead vocal', 'backing vocals', 'instrumental', 'choir'). Do NOT guess gender unless explicitly suggested by the artist name (e.g., 'feat. [Female Name]').
-            *   Overall **mood and energy level** (e.g., 'calm and melancholic', 'upbeat and energetic', 'dramatic and intense').
-            *   Estimate the **approximate musical era** (e.g., '1960s', '80s synth-pop', 'modern folk', '2010s electronic').
-            *   Avoid subjective opinions, musical key analysis, specific vocal gender guessing (unless obvious from artist name), or external knowledge not present in the metadata.
-        2.  Generate a list of **6-8 keywords** (tags) suitable for searching a royalty-free music library like Jamendo. Keywords MUST primarily reflect the **Genre(s), Mood, and Tempo/Energy level**. Include 1-2 keywords for the most prominent **Instrumentation or Era** if highly characteristic and likely useful search terms on Jamendo. Use terms like 'vocal' or 'instrumental' based on the input flag. Ensure keywords are terms commonly used for music discovery (e.g., 'upbeat pop', 'sad acoustic guitar', 'cinematic orchestral', '80s synthwave'). Output *only* the keywords as a JSON list of strings.
+        Based *only* on the provided metadata (including BPM/Key if available):
+        1.  Provide a detailed technical description (3-4 sentences) focusing on objective musical characteristics useful for finding similar *royalty-free* music (e.g., on Jamendo). Incorporate the provided BPM and Key/Scale if available. Also include:
+            *   Likely **tempo range** (e.g., slow < 80 BPM, medium 80-120 BPM, fast > 120 BPM). REFINE this based on the provided BPM if available.
+            *   Likely **instrumentation** based on genre/era.
+            *   Likely **vocal presence and style** (e.g., 'prominent lead vocal', 'instrumental'). Do NOT guess gender unless explicitly suggested.
+            *   Overall **mood and energy level**.
+            *   Estimate the **approximate musical era** (e.g., '1960s', '80s synth-pop').
+            *   Avoid subjective opinions or external knowledge not present in the metadata.
+        2.  Generate a list of **6-8 keywords** (tags) suitable for searching a royalty-free music library like Jamendo. Keywords MUST primarily reflect the **Genre(s), Mood, and Tempo/Energy level (informed by BPM if available)**. Include 1-2 keywords for the most prominent **Instrumentation, Era, or Key/Scale** if highly characteristic and likely useful search terms. Use terms like 'vocal' or 'instrumental' based on the input flag. Ensure keywords are common terms (e.g., 'upbeat pop', 'sad acoustic guitar {key} {scale}', 'cinematic orchestral', 'fast 80s synthwave'). Output *only* the keywords as a JSON list of strings.
 
-        Example Input Data: {{ 'title': 'Uptown Funk', 'artist': 'Mark Ronson ft. Bruno Mars', 'genres': ['Funk', 'Pop'], 'explicit': False, 'instrumental': False, 'rating': 90 }}
+        Example Input Data: {{ 'title': 'Uptown Funk', 'artist': 'Mark Ronson ft. Bruno Mars', 'genres': ['Funk', 'Pop'], 'explicit': False, 'instrumental': False, 'rating': 90, 'bpm': 115, 'key': 'D', 'scale': 'Minor'}}
         Example Output (JSON):
         {{
-          "description": "Likely a high-energy (fast tempo, ~115 BPM) funk-pop track from the 2010s. Instrumentation probably features prominent bass guitar, horns, drums, and synthesizers, with a strong male lead vocal. The mood is upbeat, groovy, and suitable for dancing.",
-          "keywords": ["funk", "pop", "upbeat", "dance", "high-energy", "retro", "horns", "male vocal"]
+          "description": "A high-energy (fast tempo, 115 BPM) funk-pop track from the 2010s, likely in D Minor. Instrumentation features prominent bass guitar, horns, drums, and synthesizers, with a strong male lead vocal. The mood is upbeat, groovy, and suitable for dancing.",
+          "keywords": ["funk", "pop", "upbeat", "dance", "fast tempo", "115 bpm", "D Minor", "horns", "male vocal"]
         }}
 
         Input Data: {json.dumps(track_metadata)}

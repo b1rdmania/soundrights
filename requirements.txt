@@ -33,3 +33,6 @@ uritemplate==4.1.1
 urllib3==2.4.0
 uvicorn[standard]==0.30.3
 python-multipart
+spotipy
+openai
+musicbrainzngs

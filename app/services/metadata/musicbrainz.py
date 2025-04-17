@@ -2,6 +2,8 @@ import requests
 from typing import Dict, Any, Optional
 from ...core.logging import logger
 from ...core.exceptions import MetadataAPIError
+import asyncio
+import musicbrainzngs # Import the library
 
 class MusicBrainzClient:
     """Client for interacting with MusicBrainz API."""
@@ -10,11 +12,60 @@ class MusicBrainzClient:
     USER_AGENT = "SoundMatch/1.0 (andy@example.com)"
     
     def __init__(self):
-        self.headers = {
-            "User-Agent": self.USER_AGENT,
-            "Accept": "application/json"
-        }
-    
+        # No headers needed for musicbrainzngs library
+        # Setup musicbrainzngs user agent
+        musicbrainzngs.set_useragent(app="SoundMatch", version="1.0", contact="andy@example.com") # Replace with actual contact
+
+    async def _search_recordings_async(self, title: str, artist: str, limit: int = 5):
+        """Internal async wrapper for musicbrainzngs search."""
+        try:
+            # Use to_thread as musicbrainzngs is synchronous
+            result = await asyncio.to_thread(
+                musicbrainzngs.search_recordings,
+                query=f'recording:"{title}" AND artist:"{artist}"', 
+                limit=limit,
+                strict=True # Use strict search for potentially better matches
+            )
+            return result
+        except musicbrainzngs.WebServiceError as exc:
+            logger.error(f"MusicBrainz API error during recording search: {exc}")
+            raise MetadataAPIError(f"MusicBrainz API error: {exc}")
+        except Exception as e:
+            logger.error(f"Unexpected error during MusicBrainz search: {e}", exc_info=True)
+            raise MetadataAPIError(f"Unexpected error during MusicBrainz search: {e}")
+
+    async def get_recording_mbid(self, title: str, artist: str) -> Optional[str]:
+        """Search MusicBrainz for a recording and return the best match MBID."""
+        logger.info(f"Searching MusicBrainz for MBID for: '{title}' by '{artist}'")
+        try:
+            results = await self._search_recordings_async(title=title, artist=artist)
+            
+            recordings = results.get('recording-list', [])
+            if not recordings:
+                logger.warning(f"MusicBrainz found no recordings for: '{title}' by '{artist}'")
+                return None
+
+            # Select the best match (often the first one with high score)
+            # We could add more sophisticated matching logic here if needed
+            # For now, trust the first result if score is high enough
+            best_match = recordings[0]
+            score = int(best_match.get('ext:score', '0'))
+            mbid = best_match.get('id')
+
+            if score > 85 and mbid: # Use a score threshold 
+                 logger.info(f"Found potential MBID: {mbid} with score {score} for '{title}'")
+                 return mbid
+            else:
+                logger.warning(f"MusicBrainz top match score ({score}) too low or no MBID for: '{title}' by '{artist}'. Match: {best_match}")
+                return None
+
+        except MetadataAPIError:
+             # Error already logged in _search_recordings_async
+             return None # Return None if search fails
+        except Exception as e:
+            logger.exception(f"Unexpected error getting MBID for '{title}' by '{artist}': {e}")
+            return None
+            
     async def search_track(self, query: str) -> Optional[Dict[str, Any]]:
         """Search for a track in MusicBrainz."""
         try:
