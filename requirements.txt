@@ -35,3 +35,9 @@ uvicorn[standard]==0.30.3
 python-multipart
 discogs-client
 aiofiles
+
+# Music Metadata & Analysis
+# shazamio # REMOVE: Audio recognition via Shazam
+musicbrainzngs # MusicBrainz API client
+python-musixmatch # Musixmatch API client
+pyjamendo # Jamendo API client (if a dedicated library exists, else use httpx)
