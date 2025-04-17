@@ -48,30 +48,38 @@ class GeminiService:
         if musicbrainz_tags:
             musicbrainz_info = f" MusicBrainz tags suggest: {', '.join(musicbrainz_tags[:5])}."
             
+        # Check for Discogs data (styles, year)
+        discogs_styles = track_metadata.get('discogs_styles')
+        discogs_year = track_metadata.get('discogs_year')
+        discogs_info = ""
+        if discogs_year:
+             discogs_info += f" Released around {discogs_year}."
+        if discogs_styles:
+             discogs_info += f" Discogs styles include: {', '.join(discogs_styles[:3])}."
 
         prompt = f"""
-        Analyze the song "{title}" by "{artist}" {genre_info} {instrumental_info} {rating_info}.{musicbrainz_info}
+        Analyze the song "{title}" by "{artist}" {genre_info} {instrumental_info} {rating_info}.{musicbrainz_info}{discogs_info}
 
-        Based *only* on the provided metadata (Musixmatch primary, with potential MusicBrainz tags):
+        Based *only* on the provided metadata (Musixmatch primary, with potential MusicBrainz tags and Discogs styles/year):
         1.  Provide a detailed technical description (3-4 sentences) focusing on objective musical characteristics useful for finding similar *royalty-free* music (e.g., on Jamendo). 
-            *   **If BPM/Key/Scale data is provided:** Incorporate it into the description (e.g., "fast tempo, 140 BPM", "key of C Major").
-            *   **If BPM/Key/Scale data is NOT provided:** Make reasonable estimations based on Genre/Artist/Era.
-            *   Base estimations primarily on Musixmatch data (Genre, Artist). Use MusicBrainz tags (if provided) to refine the description.
-            *   Include: Estimated tempo range, likely instrumentation, vocal presence/style (NOT specific gender), mood/energy, approximate musical era.
+            *   Base estimations primarily on Musixmatch data (Genre, Artist).
+            *   Use MusicBrainz tags and Discogs styles/year (if provided) to refine the description (especially era and subgenre).
+            *   Include: Estimated tempo range, likely instrumentation, vocal presence/style (NOT specific gender), mood/energy, approximate musical era (Refine using Discogs year if available).
             *   Avoid subjective opinions or external knowledge. Do NOT mention if the track is explicit.
-        2.  Generate a list of **6-8 keywords** (tags) suitable for searching a royalty-free music library like Jamendo. Keywords MUST primarily reflect the **Genre(s), Mood, and Estimated Tempo/Energy level**. 
-            *   **If BPM/Key/Scale data is provided:** Consider adding a keyword reflecting the specific BPM or Key (e.g., '140 bpm', 'C Major') if highly characteristic.
+        2.  Generate a list of **6-8 keywords** (tags) suitable for searching a royalty-free music library like Jamendo. Keywords MUST primarily reflect the **Genre(s) (prioritize Musixmatch, refine with Discogs Styles/Genres), Mood, and Estimated Tempo/Energy level**. 
             *   Use the MusicBrainz tags (if provided) to inspire 1-2 relevant keywords if they seem useful for search (e.g., a subgenre or instrument tag).
-            *   Include 1-2 keywords for the most prominent **Instrumentation or Era** if useful.
+            *   Use the Discogs **Styles** (if provided) to add 1-2 specific subgenre or style keywords (e.g., 'Synth-pop', 'Deep House').
+            *   Use the Discogs **Year** (if provided) to potentially add an era keyword (e.g., '80s', '2010s').
+            *   Include 1 keyword for the most prominent **Instrumentation** if useful.
             *   Use terms like 'vocal' or 'instrumental' based on the input flag.
             *   Do NOT include keywords related to the track being explicit.
             *   Ensure keywords are common terms (e.g., 'upbeat pop', 'sad acoustic guitar', 'cinematic orchestral', 'fast 80s synthwave'). Output *only* the keywords as a JSON list of strings.
 
-        Example Input Data: {{ 'title': 'Uptown Funk', 'artist': 'Mark Ronson ft. Bruno Mars', 'genres': ['Funk', 'Pop'], 'instrumental': False, 'rating': 90, 'musicbrainz_tags': ['funk', 'pop', 'soul', 'disco'] }}
+        Example Input Data: {{ 'title': 'Enjoy the Silence', 'artist': 'Depeche Mode', 'genres': ['Electronic'], 'instrumental': False, 'rating': 95, 'musicbrainz_tags': ['synthpop', 'electronic', '80s'], 'discogs_styles': ['Synth-pop', 'New Wave'], 'discogs_year': 1990 }}
         Example Output (JSON):
         {{
-          "description": "Likely a high-energy funk-pop track from the 2010s, with a fast tempo. Based on genres and tags, instrumentation probably features prominent bass guitar, drums, and possibly horns or synthesizers, with a lead vocal. The mood is upbeat, groovy, and suitable for dancing.",
-          "keywords": ["funk", "pop", "upbeat", "dance", "high-energy", "retro", "soul", "disco"]
+          "description": "An electronic track from 1990, likely Synth-pop or New Wave style. Expect synthesizers, drum machines, and vocals with a moderate to fast tempo. The mood is likely atmospheric, possibly melancholic or driving, typical of the era.",
+          "keywords": ["Electronic", "Synth-pop", "New Wave", "80s", "90s", "atmospheric", "vocal", "synthesizer"]
         }}
 
         Input Data: {json.dumps(track_metadata)}

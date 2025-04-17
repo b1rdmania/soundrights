@@ -8,6 +8,7 @@ from app.services.metadata.jamendo import jamendo_service
 from app.services.metadata.musixmatch import musixmatch_service
 from app.services.recognition.shazam import zyla_shazam_client
 from app.services.ai.gemini_service import gemini_service
+from app.services.metadata.discogs_service import discogs_service
 from app.core.exceptions import RecognitionAPIError, AIServiceError, MusixmatchAPIError, MetadataAPIError
 import tempfile
 import os
@@ -34,6 +35,7 @@ async def search_and_analyze(title: str = Form(...), artist: str = Form(...)) ->
     
     musixmatch_metadata: Optional[Dict] = None
     musicbrainz_data: Optional[Dict] = None
+    discogs_data: Optional[Dict] = None
     gemini_analysis: Optional[Dict] = None
     jamendo_tracks: List[Dict] = []
 
@@ -89,6 +91,22 @@ async def search_and_analyze(title: str = Form(...), artist: str = Form(...)) ->
          logger.exception(f"Unexpected error searching MusicBrainz: {e}. Proceeding without it.")
          musicbrainz_data = None
 
+    # --- 3. Get Discogs Data --- 
+    try:
+        mb_title = musixmatch_metadata.get('title', title)
+        mb_artist = musixmatch_metadata.get('artist', artist)
+        discogs_data = await discogs_service.get_release_data(title=mb_title, artist=mb_artist)
+        if discogs_data:
+            logger.info(f"Successfully retrieved Discogs data: {discogs_data}")
+        else:
+            logger.info(f"No suitable Discogs data found for {mb_title} by {mb_artist}.")
+    except MetadataAPIError as e: # Discogs client might raise this on error
+        logger.error(f"Error searching Discogs for data: {e}. Proceeding without it.")
+        discogs_data = None 
+    except Exception as e: 
+         logger.exception(f"Unexpected error searching Discogs: {e}. Proceeding without it.")
+         discogs_data = None
+
     # --- Analyze with Gemini (using only Musixmatch data) --- 
     try:
         # Combine data for Gemini analysis
@@ -99,7 +117,15 @@ async def search_and_analyze(title: str = Form(...), artist: str = Form(...)) ->
             logger.info("Including MusicBrainz tags in Gemini prompt.")
         else:
             logger.info("No MusicBrainz tags to include in Gemini prompt.")
-            
+        
+        if discogs_data: # ADD Discogs data if available
+            if discogs_data.get("styles"):
+                 analysis_input["discogs_styles"] = discogs_data["styles"]
+                 logger.info("Including Discogs styles in Gemini prompt.")
+            if discogs_data.get("year"):
+                 analysis_input["discogs_year"] = discogs_data["year"]
+                 logger.info("Including Discogs year in Gemini prompt.")
+        
         logger.info(f"Starting Gemini analysis with combined data: {analysis_input.get('title')}...")
         gemini_analysis = await gemini_service.analyze_song_and_generate_keywords(analysis_input)
         logger.info(f"Gemini analysis successful for {analysis_input.get('title', 'Unknown Title')} by {analysis_input.get('artist', 'Unknown Artist')}. Keywords: {gemini_analysis['keywords']}")
@@ -110,6 +136,7 @@ async def search_and_analyze(title: str = Form(...), artist: str = Form(...)) ->
              return {
                  "source_track": musixmatch_metadata, 
                  "musicbrainz_data": musicbrainz_data,
+                 "discogs_data": discogs_data,
                  "analysis": gemini_analysis, 
                  "similar_tracks": []
              }
@@ -140,6 +167,7 @@ async def search_and_analyze(title: str = Form(...), artist: str = Form(...)) ->
         return {
             "source_track": musixmatch_metadata, 
             "musicbrainz_data": musicbrainz_data,
+            "discogs_data": discogs_data,
             "analysis": gemini_analysis,
             "similar_tracks": jamendo_tracks
         }
@@ -150,6 +178,7 @@ async def search_and_analyze(title: str = Form(...), artist: str = Form(...)) ->
         return {
             "source_track": musixmatch_metadata, 
             "musicbrainz_data": musicbrainz_data,
+            "discogs_data": discogs_data,
             "analysis": {"description": "AI analysis failed.", "keywords": []}, 
             "similar_tracks": []
         }
@@ -183,6 +212,7 @@ async def process_file(file: UploadFile = File(...)) -> Dict[str, Any]:
     shazam_result: Optional[Dict] = None
     musixmatch_metadata: Optional[Dict] = None
     musicbrainz_data: Optional[Dict] = None
+    discogs_data: Optional[Dict] = None
     gemini_analysis: Optional[Dict] = None
     jamendo_tracks: List[Dict] = []
     shazam_title: Optional[str] = None
@@ -236,7 +266,22 @@ async def process_file(file: UploadFile = File(...)) -> Dict[str, Any]:
              logger.warning("Insufficient title/artist info to search MusicBrainz.")
              musicbrainz_data = None
              
-        # 4. Analyze with Gemini 
+        # 4. Get Discogs Data 
+        if lookup_title and lookup_artist:
+            try:
+                discogs_data = await discogs_service.get_release_data(title=lookup_title, artist=lookup_artist)
+                if discogs_data:
+                    logger.info(f"Successfully retrieved Discogs data for {lookup_title}")
+                else:
+                    logger.info(f"No suitable Discogs data found for {lookup_title}.")
+            except Exception as e:
+                 logger.exception(f"Unexpected error searching Discogs: {e}. Proceeding without it.")
+                 discogs_data = None
+        else:
+             logger.warning("Insufficient title/artist info to search Discogs.")
+             discogs_data = None
+
+        # 5. Analyze with Gemini 
         analysis_input = None
         if musixmatch_metadata:
             analysis_input = {**musixmatch_metadata}
@@ -251,6 +296,7 @@ async def process_file(file: UploadFile = File(...)) -> Dict[str, Any]:
                  "recognized_track": shazam_result, # May be None or partial
                  "metadata": None,
                  "musicbrainz_data": None,
+                 "discogs_data": None,
                  "analysis": {"description": "Analysis skipped: Insufficient info.", "keywords": []},
                  "similar_tracks": []
              }
@@ -258,6 +304,12 @@ async def process_file(file: UploadFile = File(...)) -> Dict[str, Any]:
         if musicbrainz_data and musicbrainz_data.get("tags"):
             analysis_input["musicbrainz_tags"] = musicbrainz_data["tags"]
             logger.info("Including MusicBrainz tags in Gemini prompt.")
+
+        if discogs_data: # ADD Discogs data
+            if discogs_data.get("styles"):
+                 analysis_input["discogs_styles"] = discogs_data["styles"]
+            if discogs_data.get("year"):
+                 analysis_input["discogs_year"] = discogs_data["year"]
 
         logger.info(f"Starting Gemini analysis with data: {analysis_input.get('title')}...")
         try:
@@ -271,6 +323,7 @@ async def process_file(file: UploadFile = File(...)) -> Dict[str, Any]:
                     "recognized_track": shazam_result,
                     "metadata": musixmatch_metadata,
                     "musicbrainz_data": musicbrainz_data,
+                    "discogs_data": discogs_data,
                     "analysis": gemini_analysis, 
                     "similar_tracks": []
                 }
@@ -280,11 +333,12 @@ async def process_file(file: UploadFile = File(...)) -> Dict[str, Any]:
                  "recognized_track": shazam_result,
                  "metadata": musixmatch_metadata,
                  "musicbrainz_data": musicbrainz_data,
+                 "discogs_data": discogs_data,
                  "analysis": {"description": "AI analysis failed.", "keywords": []}, 
                  "similar_tracks": []
              }
 
-        # 5. Find similar tracks on Jamendo
+        # 6. Find similar tracks on Jamendo
         logger.info(f"Original Gemini keywords: {keywords}")
         
         # Prepend Musixmatch genres (if available) for Jamendo search priority
@@ -306,6 +360,7 @@ async def process_file(file: UploadFile = File(...)) -> Dict[str, Any]:
             "recognized_track": shazam_result,
             "metadata": musixmatch_metadata,
             "musicbrainz_data": musicbrainz_data,
+            "discogs_data": discogs_data,
             "analysis": gemini_analysis,
             "similar_tracks": jamendo_tracks
         }

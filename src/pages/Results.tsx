@@ -96,6 +96,13 @@ interface ResultsData {
       // Add other potential MB fields if fetched later
       [key: string]: any; 
   } | null;
+  discogs_data?: { // ADD Discogs data
+      discogs_id?: number;
+      styles?: string[];
+      year?: number;
+      genres?: string[]; // Discogs genres
+      [key: string]: any;
+  } | null;
   source_track?: { // From text search (Musixmatch)
     title: string;
     artist: string;
@@ -213,6 +220,7 @@ const Results: React.FC = () => {
   const similarTracks = resultsData?.similar_tracks || [];
   const analysis = resultsData?.analysis;
   const musicbrainz_data = resultsData?.musicbrainz_data;
+  const discogs_data = resultsData?.discogs_data;
 
   // Determine display title/artist *before* the return statement
   const displayTitle = sourceTrack?.title || 'Unknown Title';
@@ -332,6 +340,11 @@ const Results: React.FC = () => {
                     <h4 className="font-semibold text-sm mt-3 mb-2 text-foreground">MusicBrainz Data:</h4>
                     {musicbrainz_data ? (
                          <pre className="overflow-x-auto bg-gray-50 p-2 rounded text-xs">{JSON.stringify(musicbrainz_data, null, 2)}</pre>
+                    ) : <p>N/A</p>}
+                    
+                    <h4 className="font-semibold text-sm mt-3 mb-2 text-foreground">Discogs Data:</h4>
+                    {discogs_data ? (
+                         <pre className="overflow-x-auto bg-gray-50 p-2 rounded text-xs">{JSON.stringify(discogs_data, null, 2)}</pre>
                     ) : <p>N/A</p>}
                 </div>
             </div>

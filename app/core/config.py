@@ -2,6 +2,7 @@ from pydantic_settings import BaseSettings
 from typing import Optional
 import os
 from dotenv import load_dotenv
+from pydantic import SettingsConfigDict
 
 # Load environment variables
 load_dotenv()
@@ -23,7 +24,7 @@ class Settings(BaseSettings):
     PIXABAY_API_KEY: Optional[str] = os.getenv("PIXABAY_API_KEY")
     JAMENDO_API_KEY: Optional[str] = os.getenv("JAMENDO_API_KEY")
     ZYLA_SHAZAM_API_KEY: Optional[str] = os.getenv("ZYLA_SHAZAM_API_KEY")
-    GOOGLE_GEMINI_API_KEY: Optional[str] = os.getenv("GOOGLE_GEMINI_API_KEY")
+    ZYLALABS_API_KEY: str = ""
     MUSIXMATCH_API_KEY: Optional[str] = os.getenv("MUSIXMATCH_API_KEY")
     
     # Storage
@@ -33,8 +34,17 @@ class Settings(BaseSettings):
     MAX_UPLOAD_SIZE: int = 10 * 1024 * 1024  # 10MB
     ALLOWED_AUDIO_TYPES: set = {"audio/mpeg", "audio/mp3", "audio/wav"}
     
+    # Discogs API Credentials
+    DISCOGS_CONSUMER_KEY: str = ""
+    DISCOGS_CONSUMER_SECRET: str = ""
+    
     class Config:
         case_sensitive = True
+        model_config = SettingsConfigDict(
+            env_file=".env",
+            env_file_encoding='utf-8',
+            extra='ignore'  # Ignore extra fields from environment/dotenv
+        )
 
 # Create global settings object
 settings = Settings() 
