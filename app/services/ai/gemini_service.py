@@ -58,28 +58,36 @@ class GeminiService:
              discogs_info += f" Discogs styles include: {', '.join(discogs_styles[:3])}."
 
         prompt = f"""
-        Analyze the song "{title}" by "{artist}" {genre_info} {instrumental_info} {rating_info}.{musicbrainz_info}{discogs_info}
+        Analyze the song "{title}" by "{artist}". You have the following metadata:
+        - Musixmatch Data: {{'title': '{title}', 'artist': '{artist}', 'genres': {genres}, 'instrumental': {instrumental}, 'rating': {rating}}}
+        - MusicBrainz Data: {musicbrainz_info if musicbrainz_info else 'Not Available'}
+        - Discogs Data: {discogs_info if discogs_info else 'Not Available'}
 
-        Based *only* on the provided metadata (Musixmatch primary, with potential MusicBrainz tags and Discogs styles/year):
-        1.  Provide a detailed technical description (3-4 sentences) focusing on objective musical characteristics useful for finding similar *royalty-free* music (e.g., on Jamendo). 
-            *   Base estimations primarily on Musixmatch data (Genre, Artist).
-            *   Use MusicBrainz tags and Discogs styles/year (if provided) to refine the description (especially era and subgenre).
-            *   Include: Estimated tempo range, likely instrumentation, vocal presence/style (NOT specific gender), mood/energy, approximate musical era (Refine using Discogs year if available).
-            *   Avoid subjective opinions or external knowledge. Do NOT mention if the track is explicit.
-        2.  Generate a list of **6-8 keywords** (tags) suitable for searching a royalty-free music library like Jamendo. Keywords MUST primarily reflect the **Genre(s) (prioritize Musixmatch, refine with Discogs Styles/Genres), Mood, and Estimated Tempo/Energy level**. 
-            *   Use the MusicBrainz tags (if provided) to inspire 1-2 relevant keywords if they seem useful for search (e.g., a subgenre or instrument tag).
-            *   Use the Discogs **Styles** (if provided) to add 1-2 specific subgenre or style keywords (e.g., 'Synth-pop', 'Deep House').
-            *   Use the Discogs **Year** (if provided) to potentially add an era keyword (e.g., '80s', '2010s').
-            *   Include 1 keyword for the most prominent **Instrumentation** if useful.
-            *   Use terms like 'vocal' or 'instrumental' based on the input flag.
-            *   Do NOT include keywords related to the track being explicit.
-            *   Ensure keywords are common terms (e.g., 'upbeat pop', 'sad acoustic guitar', 'cinematic orchestral', 'fast 80s synthwave'). Output *only* the keywords as a JSON list of strings.
+        Synthesize insights *from all available data sources* to perform the following tasks:
 
-        Example Input Data: {{ 'title': 'Enjoy the Silence', 'artist': 'Depeche Mode', 'genres': ['Electronic'], 'instrumental': False, 'rating': 95, 'musicbrainz_tags': ['synthpop', 'electronic', '80s'], 'discogs_styles': ['Synth-pop', 'New Wave'], 'discogs_year': 1990 }}
-        Example Output (JSON):
+        1.  **Provide a SPECIFIC technical description (3-4 sentences)** focusing on objective musical characteristics useful for finding similar *royalty-free* music. 
+            *   Synthesize information from Musixmatch genres, Discogs genres/styles, and MusicBrainz tags to determine the most likely subgenre(s) and overall sound.
+            *   Use the Discogs year for era context.
+            *   Infer distinctive instrumentation (beyond basic drums/bass/guitar) and vocal styles (e.g., falsetto, rap, male/female lead, harmonies) if implied by the combined metadata (artist, genre, styles, era).
+            *   Estimate tempo range and primary mood/energy based on the synthesized understanding.
+            *   Example: Instead of 'Pop song with vocals', aim for 'Upbeat 80s synth-pop with prominent synthesizers, electronic drums, and a clear male lead vocal'. Instead of 'Funk track', aim for 'Minimalist mid-80s funk with a distinctive falsetto vocal, syncopated drum machine beat, and funky guitar riff'.
+            *   Avoid generic descriptions. Focus on what makes the track potentially unique based *only* on the provided metadata.
+            *   Do NOT mention if the track is explicit.
+
+        2.  **Generate a list of 6-8 SPECIFIC keywords** (tags) suitable for searching a royalty-free music library. Keywords MUST reflect the synthesized understanding of the track.
+            *   **Prioritize Specificity:** Start with the most specific Genre/Style terms available (Discogs Styles first, then Musixmatch Genres, then Discogs Genres, then relevant MusicBrainz tags).
+            *   Add 1-2 keywords reflecting the primary Mood/Energy (e.g., 'upbeat', 'melancholic', 'driving', 'chill').
+            *   Add 1 keyword reflecting the Era (using Discogs Year if available, e.g., '80s', '2010s').
+            *   Add 1 keyword for distinctive Instrumentation if identifiable (e.g., 'synthesizer', 'acoustic guitar', 'orchestral', '808s').
+            *   Add 'vocal' or 'instrumental' based on the input flag.
+            *   Ensure keywords are common search terms. Output *only* the keywords as a JSON list of strings.
+
+        Example Input Data (Depeche Mode): {{...}} # Keep existing example
+        Example Input Data (Prince - Kiss): {{ 'title': 'Kiss', 'artist': 'Prince', 'genres': [], 'instrumental': False, 'rating': 63, 'discogs_styles': ['Funk'], 'discogs_year': 1986, 'discogs_genres': ['Funk / Soul', 'Pop'] }}
+        Example Output (Prince - Kiss): 
         {{
-          "description": "An electronic track from 1990, likely Synth-pop or New Wave style. Expect synthesizers, drum machines, and vocals with a moderate to fast tempo. The mood is likely atmospheric, possibly melancholic or driving, typical of the era.",
-          "keywords": ["Electronic", "Synth-pop", "New Wave", "80s", "90s", "atmospheric", "vocal", "synthesizer"]
+          "description": "A minimalist mid-80s funk track (1986) featuring a distinctive falsetto vocal. The arrangement likely relies heavily on a syncopated drum machine beat and a signature funky guitar riff, with less emphasis on bass compared to traditional funk. The mood is upbeat, confident, and danceable.",
+          "keywords": ["Funk", "Minimal Funk", "80s", "Falsetto", "Upbeat", "Danceable", "Vocal", "Drum Machine"]
         }}
 
         Input Data: {json.dumps(track_metadata)}
