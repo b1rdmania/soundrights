@@ -10,25 +10,19 @@ import requests # Add requests import
 class DiscogsService:
     """Client for interacting with the Discogs API."""
     
-    USER_AGENT = "SoundMatch/1.0 (andy@example.com)" # Replace with actual contact if possible
+    USER_AGENT = "SoundMatch/1.0 (andy@example.com)" 
 
     def __init__(self):
         self.client = None
         key = settings.DISCOGS_CONSUMER_KEY
         secret = settings.DISCOGS_CONSUMER_SECRET
         
-        # --- DEBUG LOG --- 
-        logger.info(f"Attempting to initialize Discogs client.")
-        logger.info(f"Read DISCOGS_CONSUMER_KEY (starts with): {key[:5] if key else 'None'}")
-        logger.info(f"Read DISCOGS_CONSUMER_SECRET (starts with): {secret[:5] if secret else 'None'}")
-        # --- END DEBUG LOG ---
-        
         if key and secret:
             try:
                 self.client = discogs_client.Client(
                     self.USER_AGENT,
-                    consumer_key=key, # Use variable
-                    consumer_secret=secret # Use variable
+                    consumer_key=key, 
+                    consumer_secret=secret
                 )
                 logger.info("Discogs client initialized successfully.")
             except Exception as e:
@@ -76,35 +70,7 @@ class DiscogsService:
         logger.info(f"Searching Discogs for release data: '{title}' by '{artist}'")
         search_query = f"{artist} {title}"
         
-        # --- Direct Request Test --- 
-        try:
-            logger.info("Attempting direct Discogs search request...")
-            direct_url = "https://api.discogs.com/database/search"
-            key = settings.DISCOGS_CONSUMER_KEY
-            secret = settings.DISCOGS_CONSUMER_SECRET
-            headers = {
-                'User-Agent': self.USER_AGENT,
-                'Authorization': f'Discogs key={key}, secret={secret}'
-            }
-            params = {'q': search_query, 'type': 'master', 'limit': 1}
-            
-            await asyncio.sleep(0.5) # Small delay before direct call
-            response = await asyncio.to_thread(
-                 requests.get, direct_url, headers=headers, params=params, timeout=10.0
-            )
-            logger.info(f"Direct Discogs request status code: {response.status_code}")
-            if response.status_code != 200:
-                 logger.error(f"Direct Discogs request failed! Response text: {response.text[:500]}") # Log part of the response
-            else:
-                 logger.info("Direct Discogs request succeeded!")
-                 # Optionally log response.json().get('results') if needed
-                 
-        except Exception as direct_e:
-             logger.error(f"Error during direct Discogs request test: {direct_e}", exc_info=True)
-        # --- End Direct Request Test ---
-
-        
-        # Prioritize searching for 'master' releases
+        # Prioritize searching for 'master' releases (Using discogs-client)
         results = await self._search_release_async(search_query, search_type='master', limit=1)
         
         # Fallback to general release search if no master found
@@ -116,36 +82,30 @@ class DiscogsService:
             logger.warning(f"Discogs found no releases for query: {search_query}")
             return None
 
-        # Extract data from the best match (first result)
-        # The result object might be Master or Release, properties differ slightly
         best_match = results[0] 
         
-        try: # Restore try/except block
-            # Attempt to refresh data to get full details (requires another API call)
+        try: 
             release_to_fetch = getattr(best_match, 'main_release', best_match)
             if release_to_fetch:
                 logger.debug(f"Refreshing Discogs release ID: {release_to_fetch.id}")
                 await asyncio.to_thread(release_to_fetch.refresh)
-                await asyncio.sleep(0.5) # Small delay after refresh
+                await asyncio.sleep(0.5) 
             else:
                  logger.warning("Could not determine release object to refresh.")
                  return None 
         
             discogs_data = {"discogs_id": best_match.id}
         
-            # Get styles (more specific genres)
             styles = getattr(release_to_fetch, 'styles', [])
             if styles:
                 discogs_data["styles"] = styles
                 logger.info(f"Extracted Discogs styles: {styles}")
         
-            # Get year
             year = getattr(release_to_fetch, 'year', None)
             if year and year > 0: 
                 discogs_data["year"] = year
                 logger.info(f"Extracted Discogs year: {year}")
                 
-            # Get primary genre(s)
             genres = getattr(release_to_fetch, 'genres', [])
             if genres:
                  discogs_data["genres"] = genres 
@@ -156,8 +116,7 @@ class DiscogsService:
              logger.error(f"Attribute error accessing Discogs data for ID {best_match.id}: {e}")
              return None
         except discogs_client.exceptions.HTTPError as e:
-             logger.error(f"Discogs API HTTP error during refresh: {e.status_code} - {e}") # Keep error check
-             # Re-check if this is the 401 source
+             logger.error(f"Discogs API HTTP error during refresh: {e.status_code} - {e}") 
              if e.status_code == 401:
                   logger.error("Authentication failed specifically during Discogs refresh call!")
              return None
