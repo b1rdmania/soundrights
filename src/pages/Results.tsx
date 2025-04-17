@@ -360,7 +360,19 @@ const Results: React.FC = () => {
             </div>
             
             <div className="space-y-4">
-              <h2 className="text-2xl font-semibold mb-4">Similar Royalty-Free Tracks (from Jamendo)</h2>
+              <h2 className="text-2xl font-semibold mb-2">Similar Royalty-Free Tracks (from Jamendo)</h2>
+              {/* Display Keywords Used */} 
+              {analysis?.keywords && analysis.keywords.length > 0 && (
+                  <div className="mb-4 text-sm text-muted-foreground">
+                      <span className="font-medium text-foreground">Keywords used:</span>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                          {analysis.keywords.map((kw, idx) => (
+                              <span key={idx} className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs font-mono">{kw}</span>
+                          ))}
+                      </div>
+                  </div>
+              )}
+              
               {similarTracks.length > 0 ? (
                 similarTracks.map((track) => (
                   <div
