@@ -104,10 +104,19 @@ class DiscogsService:
                 discogs_data["year"] = year
                 logger.info(f"Extracted Discogs year: {year}")
                 
+            # Get primary genre(s)
             genres = getattr(release_to_fetch, 'genres', [])
             if genres:
                  discogs_data["genres"] = genres 
-        
+                 
+            # Get primary image URL
+            images = getattr(release_to_fetch, 'images', [])
+            if images and isinstance(images, list) and len(images) > 0:
+                primary_image = images[0]
+                if isinstance(primary_image, dict) and primary_image.get('uri'):
+                     discogs_data["image_url"] = primary_image['uri']
+                     logger.info(f"Extracted Discogs image URL: {primary_image['uri']}")
+
             return discogs_data
             
         except AttributeError as e:

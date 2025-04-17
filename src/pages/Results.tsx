@@ -101,6 +101,7 @@ interface ResultsData {
       styles?: string[];
       year?: number;
       genres?: string[]; // Discogs genres
+      image_url?: string; // Add Discogs image URL
       [key: string]: any;
   } | null;
   source_track?: { // From text search (Musixmatch)
@@ -122,6 +123,7 @@ interface ResultsData {
     key?: string; // Shazam key
     explicit?: boolean; // Added to satisfy type checker
     instrumental?: boolean; // Added to satisfy type checker
+    image_url?: string; // Add optional Shazam image URL
     // Add other fields from Shazam if needed
   } | null;
   analysis?: { // From Gemini
@@ -229,6 +231,8 @@ const Results: React.FC = () => {
   // Determine display title/artist *before* the return statement
   const displayTitle = sourceTrackForDisplay?.title || 'Unknown Title';
   const displayArtist = musixmatchDataSource?.artist || recognizedDataSource?.subtitle || 'Unknown Artist';
+  // Determine image URL to use
+  const sourceImageUrl = discogs_data?.image_url || recognizedDataSource?.image_url;
 
   // --- Conditional Rendering Logic ---
 
@@ -286,115 +290,81 @@ const Results: React.FC = () => {
           <div className="max-w-4xl mx-auto">
             <div className="mb-8">
               <h1 className="text-3xl font-bold mb-4">Source Track</h1>
-              <div className="bg-white rounded-lg p-6 shadow-sm border">
-                <h2 className="text-xl font-semibold mb-2">{displayTitle}</h2>
-                <p className="text-muted-foreground mb-4">{displayArtist}</p>
-                {displayTags.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {displayTags.map((tag, index) => (
-                      <span
-                        key={index}
-                        className="px-2 py-1 bg-primary/10 text-primary rounded-full text-sm"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
-                {analysis?.description && (
-                  <div className="mt-4 pt-4 border-t border-muted">
-                    <h3 className="text-lg font-semibold mb-2">AI Analysis:</h3>
-                    <p className="text-muted-foreground italic text-sm">{analysis.description}</p>
-                  </div>
-                )}
-                {/* --- Display AcousticBrainz & Musixmatch Details --- */}
-                {(musicbrainz_data || sourceTrackForDisplay?.explicit !== undefined || sourceTrackForDisplay?.instrumental !== undefined) && (
-                    <div className="mt-4 pt-4 border-t border-muted text-xs text-muted-foreground space-y-1">
-                         <h4 className="font-semibold text-sm mb-1 text-foreground">Track Details:</h4>
-                         {musicbrainz_data?.mbid && (
-                             <p><span className="font-medium">MBID:</span> {musicbrainz_data.mbid}</p>
-                         )}
-                         {musicbrainz_data?.match_score && (
-                             <p><span className="font-medium">Match Score:</span> {musicbrainz_data.match_score}</p>
-                         )}
-                         {sourceTrackForDisplay?.explicit !== undefined && (
-                             <p><span className="font-medium">Explicit:</span> {sourceTrackForDisplay.explicit ? 'Yes' : 'No'}</p>
-                         )}
-                         {sourceTrackForDisplay?.instrumental !== undefined && (
-                              <p><span className="font-medium">Instrumental:</span> {sourceTrackForDisplay.instrumental ? 'Yes' : 'No'}</p>
-                         )}
-                         {/* Add Musixmatch Rating if desired */}
-                         {/* {sourceTrack?.rating !== undefined && (
-                              <p><span className="font-medium">Musixmatch Rating:</span> {sourceTrack.rating}/100</p>
-                         )} */}
+              {/* --- Updated Source Track Card --- */}
+              <div className="bg-white rounded-lg p-6 shadow-sm border flex flex-col sm:flex-row items-start gap-6">
+                 {/* Image Column */} 
+                 {sourceImageUrl ? (
+                    <img 
+                        src={sourceImageUrl} 
+                        alt={`${displayTitle} cover art`} 
+                        className="w-full sm:w-32 h-auto sm:h-32 rounded-md object-cover flex-shrink-0 shadow-md border" 
+                    />
+                 ) : (
+                    <div className="w-full sm:w-32 h-32 rounded-md bg-gray-100 flex items-center justify-center text-muted-foreground flex-shrink-0">
+                        <Music className="w-12 h-12" />
                     </div>
-                )}
+                 )}
+                 {/* Details Column */} 
+                 <div className="flex-1">
+                    <h2 className="text-xl font-semibold mb-1">{displayTitle}</h2>
+                    <p className="text-muted-foreground mb-4">{displayArtist}</p>
+                    {displayTags.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {displayTags.map((tag, index) => (
+                          <span
+                            key={index}
+                            className="px-2 py-1 bg-primary/10 text-primary rounded-full text-xs"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    {analysis?.description && (
+                      <div className="mt-4 pt-4 border-t border-muted">
+                        <h3 className="text-lg font-semibold mb-2">AI Analysis:</h3>
+                        <p className="text-muted-foreground italic text-sm">{analysis.description}</p>
+                      </div>
+                    )}
+                     {/* Enhanced Details Section (Moved inside card) */} 
+                     <div className="mt-4 pt-4 border-t border-muted text-sm">
+                         <h4 className="font-semibold mb-2">Summary Details:</h4>
+                         <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                             {discogs_data?.year && (
+                                 <li><span className="font-medium text-foreground">Year:</span> {discogs_data.year}</li>
+                             )}
+                             {musixmatchDataSource?.genres && musixmatchDataSource.genres.length > 0 && (
+                                 <li><span className="font-medium text-foreground">Genres (Musixmatch):</span> {musixmatchDataSource.genres.join(', ')}</li>
+                             )}
+                             {discogs_data?.genres && discogs_data.genres.length > 0 && (
+                                  <li><span className="font-medium text-foreground">Genres (Discogs):</span> {discogs_data.genres.join(', ')}</li>
+                             )}
+                             {discogs_data?.styles && discogs_data.styles.length > 0 && (
+                                  <li><span className="font-medium text-foreground">Styles (Discogs):</span> {discogs_data.styles.join(', ')}</li>
+                             )}
+                              {sourceTrackForDisplay?.instrumental !== undefined && (
+                                  <li><span className="font-medium text-foreground">Instrumental:</span> {sourceTrackForDisplay.instrumental ? 'Yes' : 'No'}</li>
+                              )}
+                              {/* Add Explicit Flag Back? */}
+                              {sourceTrackForDisplay?.explicit !== undefined && (
+                                  <li><span className="font-medium text-foreground">Explicit:</span> {sourceTrackForDisplay.explicit ? 'Yes' : 'No'}</li>
+                              )}
+                              {discogs_data?.discogs_id && (
+                                  <li>
+                                     <span className="font-medium text-foreground">Discogs ID:</span> 
+                                     <a href={`https://www.discogs.com/release/${discogs_data.discogs_id}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline ml-1">{discogs_data.discogs_id}</a>
+                                  </li>
+                              )}
+                              {musicbrainz_data?.mbid && (
+                                 <li>
+                                    <span className="font-medium text-foreground">MusicBrainz ID:</span> 
+                                    <a href={`https://musicbrainz.org/recording/${musicbrainz_data.mbid}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline ml-1">{musicbrainz_data.mbid}</a>
+                                 </li>
+                             )}
+                         </ul>
+                     </div>
+                 </div>
               </div>
-            </div>
-            
-            {/* --- Technical Details Section (Reformatted with specific blocks) --- */}
-            <div className="mb-8">
-                <h2 className="text-2xl font-semibold mb-4">Technical Details</h2>
-                <div className="bg-white rounded-lg p-4 shadow-sm border space-y-6">
-                    {/* --- Musixmatch Block --- */}
-                    {musixmatchDataSource && ( // Only show if from search result
-                        <div className="border-b pb-4 border-gray-100">
-                            <h3 className="text-lg font-semibold mb-3 flex items-center"><span className="text-xl mr-2">🎵</span> Musixmatch Data</h3>
-                            <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                                <div className="col-span-1"><dt className="font-medium text-gray-500">Title:</dt><dd className="text-gray-800">{musixmatchDataSource.title}</dd></div>
-                                <div className="col-span-1"><dt className="font-medium text-gray-500">Artist:</dt><dd className="text-gray-800">{musixmatchDataSource.artist}</dd></div>
-                                {musixmatchDataSource.album && <div className="col-span-1"><dt className="font-medium text-gray-500">Album:</dt><dd className="text-gray-800">{musixmatchDataSource.album}</dd></div>}
-                                {musixmatchDataSource.genres && musixmatchDataSource.genres.length > 0 && (
-                                    <div className="col-span-1"><dt className="font-medium text-gray-500">Genres:</dt><dd className="text-gray-800 flex flex-wrap gap-1 mt-1">{musixmatchDataSource.genres.map(g => <span key={g} className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full text-xs">{g}</span>)}</dd></div>
-                                )}
-                                <div className="col-span-1"><dt className="font-medium text-gray-500">Instrumental:</dt><dd className="text-gray-800">{musixmatchDataSource.instrumental ? 'Yes' : 'No'}</dd></div>
-                                <div className="col-span-1"><dt className="font-medium text-gray-500">Explicit:</dt><dd className="text-gray-800">{musixmatchDataSource.explicit ? 'Yes' : 'No'}</dd></div>
-                                {musixmatchDataSource.rating && <div className="col-span-1"><dt className="font-medium text-gray-500">Rating:</dt><dd className="text-gray-800">{musixmatchDataSource.rating}/100</dd></div>}
-                                {musixmatchDataSource.musixmatch_id && <div className="col-span-1"><dt className="font-medium text-gray-500">Musixmatch ID:</dt><dd className="text-gray-800 font-mono text-xs">{musixmatchDataSource.musixmatch_id}</dd></div>}
-                            </dl>
-                        </div>
-                    )}
-                    
-                    {/* --- MusicBrainz Block --- */}
-                    {musicbrainz_data && (
-                        <div className="border-b pb-4 border-gray-100">
-                            <h3 className="text-lg font-semibold mb-3 flex items-center"><span className="text-xl mr-2">🧠</span> MusicBrainz Data</h3>
-                             <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                                {musicbrainz_data.mbid && (
-                                    <div className="col-span-1"><dt className="font-medium text-gray-500">Recording ID:</dt><dd className="text-gray-800 font-mono text-xs"><a href={`https://musicbrainz.org/recording/${musicbrainz_data.mbid}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{musicbrainz_data.mbid}</a></dd></div>
-                                )}
-                                {musicbrainz_data.match_score && <div className="col-span-1"><dt className="font-medium text-gray-500">Match Score:</dt><dd className="text-gray-800">{musicbrainz_data.match_score}%</dd></div>}
-                                {musicbrainz_data.tags && musicbrainz_data.tags.length > 0 && (
-                                    <div className="md:col-span-2"><dt className="font-medium text-gray-500">Tags:</dt><dd className="text-gray-800 flex flex-wrap gap-1 mt-1">{musicbrainz_data.tags.map(t => <span key={t} className="px-2 py-0.5 bg-purple-100 text-purple-800 rounded-full text-xs">{t}</span>)}</dd></div>
-                                )}
-                             </dl>
-                        </div>
-                    )}
-
-                    {/* --- Discogs Block --- */}
-                    {discogs_data && (
-                        <div> {/* No border-b on last item */} 
-                            <h3 className="text-lg font-semibold mb-3 flex items-center"><span className="text-xl mr-2">💿</span> Discogs Data</h3>
-                             <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                                 {discogs_data.discogs_id && (
-                                    <div className="col-span-1"><dt className="font-medium text-gray-500">Release ID:</dt><dd className="text-gray-800 font-mono text-xs"><a href={`https://www.discogs.com/release/${discogs_data.discogs_id}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{discogs_data.discogs_id}</a></dd></div>
-                                )}
-                                {discogs_data.year && <div className="col-span-1"><dt className="font-medium text-gray-500">Year:</dt><dd className="text-gray-800">{discogs_data.year}</dd></div>}
-                                {discogs_data.genres && discogs_data.genres.length > 0 && (
-                                    <div className="col-span-1"><dt className="font-medium text-gray-500">Genres:</dt><dd className="text-gray-800 flex flex-wrap gap-1 mt-1">{discogs_data.genres.map(g => <span key={g} className="px-2 py-0.5 bg-green-100 text-green-800 rounded-full text-xs">{g}</span>)}</dd></div>
-                                )}
-                                {discogs_data.styles && discogs_data.styles.length > 0 && (
-                                     <div className="col-span-1"><dt className="font-medium text-gray-500">Styles:</dt><dd className="text-gray-800 flex flex-wrap gap-1 mt-1">{discogs_data.styles.map(s => <span key={s} className="px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded-full text-xs">{s}</span>)}</dd></div>
-                                )}
-                            </dl>
-                        </div>
-                    )}
-                    
-                    {/* Show message if no technical data found */} 
-                    {!musixmatchDataSource && !musicbrainz_data && !discogs_data && (
-                        <p className="text-sm text-muted-foreground italic">No detailed technical data available from external sources.</p>
-                    )}
-                </div>
             </div>
             
             <div className="mb-8">
