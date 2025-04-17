@@ -63,22 +63,23 @@ class GeminiService:
         - MusicBrainz Data: {musicbrainz_info if musicbrainz_info else 'Not Available'}
         - Discogs Data: {discogs_info if discogs_info else 'Not Available'}
 
-        Synthesize insights *from all available data sources* to perform the following tasks:
+        Synthesize insights from the available structured data AND your internal knowledge base to perform the following tasks:
 
         1.  **Provide a SPECIFIC technical description (3-4 sentences)** focusing on objective musical characteristics useful for finding similar *royalty-free* music. 
             *   Synthesize information from Musixmatch genres, Discogs genres/styles, and MusicBrainz tags to determine the most likely subgenre(s) and overall sound.
+            *   **Use your internal knowledge** about the song and artist to enrich the description with details about characteristic instrumentation (e.g., specific synth models used, unique guitar sounds), production techniques (e.g., reverb style, drum machine sound), or common interpretations/cultural context, *if known and relevant*.
             *   Use the Discogs year for era context.
-            *   Infer distinctive instrumentation (beyond basic drums/bass/guitar) and vocal styles (e.g., falsetto, rap, male/female lead, harmonies) if implied by the combined metadata (artist, genre, styles, era).
+            *   Infer distinctive instrumentation (beyond basic drums/bass/guitar) and vocal styles (e.g., falsetto, rap, male/female lead, harmonies) if implied by the combined metadata (artist, genre, styles, era) **or your internal knowledge**.
             *   Estimate tempo range and primary mood/energy based on the synthesized understanding.
-            *   Example: Instead of 'Pop song with vocals', aim for 'Upbeat 80s synth-pop with prominent synthesizers, electronic drums, and a clear male lead vocal'. Instead of 'Funk track', aim for 'Minimalist mid-80s funk with a distinctive falsetto vocal, syncopated drum machine beat, and funky guitar riff'.
-            *   Avoid generic descriptions. Focus on what makes the track potentially unique based *only* on the provided metadata.
+            *   Example: Instead of 'Pop song with vocals', aim for 'Upbeat 80s synth-pop with prominent synthesizers (like Juno or DX7 sounds), gated reverb drums, and a clear male lead vocal'. Instead of 'Funk track', aim for 'Minimalist mid-80s funk with a distinctive falsetto vocal, LinnDrum machine beat, and sparse, clean guitar riff'.
+            *   Prioritize provided metadata, but enhance with verifiable internal knowledge. Avoid pure speculation.
             *   Do NOT mention if the track is explicit.
 
         2.  **Generate a list of 6-8 SPECIFIC keywords** (tags) suitable for searching a royalty-free music library. Keywords MUST reflect the synthesized understanding of the track.
             *   **Prioritize Specificity:** Start with the most specific Genre/Style terms available (Discogs Styles first, then Musixmatch Genres, then Discogs Genres, then relevant MusicBrainz tags).
             *   Add 1-2 keywords reflecting the primary Mood/Energy (e.g., 'upbeat', 'melancholic', 'driving', 'chill').
             *   Add 1 keyword reflecting the Era (using Discogs Year if available, e.g., '80s', '2010s').
-            *   Add 1 keyword for distinctive Instrumentation if identifiable (e.g., 'synthesizer', 'acoustic guitar', 'orchestral', '808s').
+            *   Add 1-2 keywords for distinctive Instrumentation or Production elements identified (e.g., 'synthesizer', 'falsetto', 'drum machine', 'gated reverb', 'LinnDrum').
             *   Add 'vocal' or 'instrumental' based on the input flag.
             *   Ensure keywords are common search terms. Output *only* the keywords as a JSON list of strings.
 
