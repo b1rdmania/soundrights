@@ -16,10 +16,10 @@ interface AnalyzingDisplayProps {
 
 // New component for the "Analyzing" display
 const AnalyzingDisplay: React.FC<AnalyzingDisplayProps> = ({ title, artist }) => {
-  const componentVersion = "v1.1"; // Add a version number
+  const buildId = "build_" + Math.random().toString(16).slice(8); // Add a random build ID
   // Dynamically generate lines using props
   const lines = [
-    `> Initializing SoundMatch Analysis Core v3.2... OK`, // Version bump!
+    `> Initializing SoundMatch Analysis Core v3.2... OK [${buildId}]`, // Add build ID here
     `> Target Locked: ${artist} - ${title}`,
     `> Engaging Musixmatch API [matcher.track.get]...`,
     // Simulate success/fallback/failure - add slight randomness/variation
@@ -36,7 +36,7 @@ const AnalyzingDisplay: React.FC<AnalyzingDisplayProps> = ({ title, artist }) =>
     `> Gemini Analysis: ${Math.random() > 0.1 ? 'Synthesis Complete.' : 'Analysis Timed Out/Failed.'}`,
     `> Cross-Referencing Jamendo Royalty-Free Database [fuzzytags]...`,
     `> Compiling Results Vector... DONE`,
-    `> Rendering Output Interface... [Display ${componentVersion}]` // Include version
+    `> Rendering Output Interface... [Display v1.1]` // Keep previous version marker too
   ];
   const [displayedLines, setDisplayedLines] = useState<string[]>([]);
   const [showCursor, setShowCursor] = useState(true);
