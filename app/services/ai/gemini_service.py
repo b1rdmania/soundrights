@@ -42,38 +42,36 @@ class GeminiService:
         instrumental_info = "which is instrumental" if instrumental else ""
         rating_info = f"and has a rating of {rating}" if rating is not None else ""
 
-        # Add info about AcousticBrainz data if present
-        bpm = track_metadata.get('bpm')
-        key = track_metadata.get('key')
-        scale = track_metadata.get('scale')
-        acousticbrainz_info = ""
-        if bpm:
-            acousticbrainz_info += f" with an estimated BPM of {bpm}."
-        if key and scale:
-            acousticbrainz_info += f" The key is likely {key} {scale}."
+        # Check for MusicBrainz tags
+        musicbrainz_tags = track_metadata.get('musicbrainz_tags')
+        musicbrainz_info = ""
+        if musicbrainz_tags:
+            musicbrainz_info = f" MusicBrainz tags suggest: {', '.join(musicbrainz_tags[:5])}."
             
 
         prompt = f"""
-        Analyze the song "{title}" by "{artist}" {genre_info} {instrumental_info} {rating_info}.{acousticbrainz_info}
+        Analyze the song "{title}" by "{artist}" {genre_info} {instrumental_info} {rating_info}.{musicbrainz_info}
 
-        Based *only* on the provided metadata (including BPM/Key if available):
+        Based *only* on the provided metadata (Musixmatch primary, with potential MusicBrainz tags):
         1.  Provide a detailed technical description (3-4 sentences) focusing on objective musical characteristics useful for finding similar *royalty-free* music (e.g., on Jamendo). 
             *   **If BPM/Key/Scale data is provided:** Incorporate it into the description (e.g., "fast tempo, 140 BPM", "key of C Major").
             *   **If BPM/Key/Scale data is NOT provided:** Make reasonable estimations based on Genre/Artist/Era.
-            *   Include: Tempo range, likely instrumentation, vocal presence/style (NOT specific gender), mood/energy, approximate musical era.
+            *   Base estimations primarily on Musixmatch data (Genre, Artist). Use MusicBrainz tags (if provided) to refine the description.
+            *   Include: Estimated tempo range, likely instrumentation, vocal presence/style (NOT specific gender), mood/energy, approximate musical era.
             *   Avoid subjective opinions or external knowledge. Do NOT mention if the track is explicit.
-        2.  Generate a list of **6-8 keywords** (tags) suitable for searching a royalty-free music library like Jamendo. Keywords MUST primarily reflect the **Genre(s), Mood, and Tempo/Energy level**. 
+        2.  Generate a list of **6-8 keywords** (tags) suitable for searching a royalty-free music library like Jamendo. Keywords MUST primarily reflect the **Genre(s), Mood, and Estimated Tempo/Energy level**. 
             *   **If BPM/Key/Scale data is provided:** Consider adding a keyword reflecting the specific BPM or Key (e.g., '140 bpm', 'C Major') if highly characteristic.
+            *   Use the MusicBrainz tags (if provided) to inspire 1-2 relevant keywords if they seem useful for search (e.g., a subgenre or instrument tag).
             *   Include 1-2 keywords for the most prominent **Instrumentation or Era** if useful.
             *   Use terms like 'vocal' or 'instrumental' based on the input flag.
             *   Do NOT include keywords related to the track being explicit.
             *   Ensure keywords are common terms (e.g., 'upbeat pop', 'sad acoustic guitar', 'cinematic orchestral', 'fast 80s synthwave'). Output *only* the keywords as a JSON list of strings.
 
-        Example Input Data: {{ 'title': 'Uptown Funk', 'artist': 'Mark Ronson ft. Bruno Mars', 'genres': ['Funk', 'Pop'], 'instrumental': False, 'rating': 90, 'bpm': 115, 'key': 'D', 'scale': 'Minor'}}
+        Example Input Data: {{ 'title': 'Uptown Funk', 'artist': 'Mark Ronson ft. Bruno Mars', 'genres': ['Funk', 'Pop'], 'instrumental': False, 'rating': 90, 'musicbrainz_tags': ['funk', 'pop', 'soul', 'disco'] }}
         Example Output (JSON):
         {{
-          "description": "A high-energy (fast tempo, 115 BPM) funk-pop track from the 2010s, likely in D Minor. Instrumentation features prominent bass guitar, horns, drums, and synthesizers, with a strong male lead vocal. The mood is upbeat, groovy, and suitable for dancing.",
-          "keywords": ["funk", "pop", "upbeat", "dance", "fast tempo", "115 bpm", "D Minor", "horns", "male vocal"]
+          "description": "Likely a high-energy funk-pop track from the 2010s, with a fast tempo. Based on genres and tags, instrumentation probably features prominent bass guitar, drums, and possibly horns or synthesizers, with a lead vocal. The mood is upbeat, groovy, and suitable for dancing.",
+          "keywords": ["funk", "pop", "upbeat", "dance", "high-energy", "retro", "soul", "disco"]
         }}
 
         Input Data: {json.dumps(track_metadata)}

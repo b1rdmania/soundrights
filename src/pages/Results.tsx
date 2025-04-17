@@ -89,14 +89,13 @@ interface Track {
 }
 
 interface ResultsData {
-  audio_features?: { 
-      bpm?: number;
-      key?: string;
-      scale?: string;
-      key_confidence?: number;
-      // Add other potential features from AcousticBrainz if needed
-      [key: string]: any; // Allow other arbitrary features
-  } | null; 
+  musicbrainz_data?: { // ADD MusicBrainz data
+      mbid?: string;
+      match_score?: number;
+      tags?: string[];
+      // Add other potential MB fields if fetched later
+      [key: string]: any; 
+  } | null;
   source_track?: { // From text search (Musixmatch)
     title: string;
     artist: string;
@@ -213,7 +212,7 @@ const Results: React.FC = () => {
   const sourceTrack = resultsData?.source_track || resultsData?.recognized_track;
   const similarTracks = resultsData?.similar_tracks || [];
   const analysis = resultsData?.analysis;
-  const audioFeatures = resultsData?.audio_features;
+  const musicbrainz_data = resultsData?.musicbrainz_data;
 
   // Determine display title/artist *before* the return statement
   const displayTitle = sourceTrack?.title || 'Unknown Title';
@@ -297,14 +296,14 @@ const Results: React.FC = () => {
                   </div>
                 )}
                 {/* --- Display AcousticBrainz & Musixmatch Details --- */}
-                {(audioFeatures || sourceTrack?.explicit !== undefined || sourceTrack?.instrumental !== undefined) && (
+                {(musicbrainz_data || sourceTrack?.explicit !== undefined || sourceTrack?.instrumental !== undefined) && (
                     <div className="mt-4 pt-4 border-t border-muted text-xs text-muted-foreground space-y-1">
                          <h4 className="font-semibold text-sm mb-1 text-foreground">Track Details:</h4>
-                         {audioFeatures?.bpm && (
-                             <p><span className="font-medium">BPM:</span> {audioFeatures.bpm}</p>
+                         {musicbrainz_data?.mbid && (
+                             <p><span className="font-medium">MBID:</span> {musicbrainz_data.mbid}</p>
                          )}
-                         {audioFeatures?.key && audioFeatures?.scale && (
-                             <p><span className="font-medium">Key:</span> {audioFeatures.key} {audioFeatures.scale} {audioFeatures.key_confidence ? `(Confidence: ${Math.round(audioFeatures.key_confidence * 100)}%)` : ''}</p>
+                         {musicbrainz_data?.match_score && (
+                             <p><span className="font-medium">Match Score:</span> {musicbrainz_data.match_score}</p>
                          )}
                          {sourceTrack?.explicit !== undefined && (
                              <p><span className="font-medium">Explicit:</span> {sourceTrack.explicit ? 'Yes' : 'No'}</p>
@@ -330,9 +329,9 @@ const Results: React.FC = () => {
                         <pre className="overflow-x-auto bg-gray-50 p-2 rounded text-xs">{JSON.stringify(sourceTrack, null, 2)}</pre>
                     ) : <p>N/A</p>}
                     
-                    <h4 className="font-semibold text-sm mt-3 mb-2 text-foreground">AcousticBrainz Data:</h4>
-                    {audioFeatures ? (
-                         <pre className="overflow-x-auto bg-gray-50 p-2 rounded text-xs">{JSON.stringify(audioFeatures, null, 2)}</pre>
+                    <h4 className="font-semibold text-sm mt-3 mb-2 text-foreground">MusicBrainz Data:</h4>
+                    {musicbrainz_data ? (
+                         <pre className="overflow-x-auto bg-gray-50 p-2 rounded text-xs">{JSON.stringify(musicbrainz_data, null, 2)}</pre>
                     ) : <p>N/A</p>}
                 </div>
             </div>

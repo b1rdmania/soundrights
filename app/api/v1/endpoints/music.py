@@ -7,9 +7,8 @@ from app.services.metadata.musicbrainz import musicbrainz_client
 from app.services.metadata.jamendo import jamendo_service
 from app.services.metadata.musixmatch import musixmatch_service
 from app.services.recognition.shazam import zyla_shazam_client
-from app.services.audio_analysis.acousticbrainz import acousticbrainz_service
 from app.services.ai.gemini_service import gemini_service
-from app.core.exceptions import RecognitionAPIError, AIServiceError, MusixmatchAPIError, MetadataAPIError, AudioAnalysisError
+from app.core.exceptions import RecognitionAPIError, AIServiceError, MusixmatchAPIError, MetadataAPIError
 import tempfile
 import os
 import time
@@ -34,10 +33,9 @@ async def search_and_analyze(title: str = Form(...), artist: str = Form(...)) ->
     logger.info(f"Processing search for title: '{title}', artist: '{artist}'")
     
     musixmatch_metadata: Optional[Dict] = None
-    acousticbrainz_features: Optional[Dict] = None
+    musicbrainz_data: Optional[Dict] = None
     gemini_analysis: Optional[Dict] = None
     jamendo_tracks: List[Dict] = []
-    mbid: Optional[str] = None
 
     try:
         # 1. Try searching Musixmatch using the precise matcher.track.get
@@ -74,41 +72,33 @@ async def search_and_analyze(title: str = Form(...), artist: str = Form(...)) ->
         logger.error(f"Logic error: No Musixmatch metadata found after primary and fallback attempts for '{title}' '{artist}'")
         raise HTTPException(status_code=500, detail="Failed to retrieve metadata after fallback attempts.")
 
-    # --- 2. Get MusicBrainz Recording ID (MBID) --- 
+    # --- 2. Get MusicBrainz Data (Tags, MBID) --- 
     try:
-        mbid = await musicbrainz_client.get_recording_mbid(title=title, artist=artist)
-        if mbid:
-            logger.info(f"Found MBID: {mbid}")
+        # Use the title/artist confirmed by Musixmatch if possible
+        mb_title = musixmatch_metadata.get('title', title)
+        mb_artist = musixmatch_metadata.get('artist', artist)
+        musicbrainz_data = await musicbrainz_client.get_musicbrainz_data(title=mb_title, artist=mb_artist)
+        if musicbrainz_data:
+            logger.info(f"Successfully retrieved MusicBrainz data: {musicbrainz_data}")
         else:
-            logger.info(f"No suitable MBID found for {title} by {artist}. Proceeding without AcousticBrainz.")
-    except MetadataAPIError as e: # Catch potential errors from MB search
-        logger.error(f"Error searching MusicBrainz for MBID: {e}. Proceeding without AcousticBrainz.")
-        mbid = None # Ensure mbid is None if search fails
-    except Exception as e: # Catch unexpected errors
-         logger.exception(f"Unexpected error searching MusicBrainz: {e}. Proceeding without AcousticBrainz.")
-         mbid = None
-         
-    # --- 3. Get AcousticBrainz Features (if MBID found) --- 
-    if mbid:
-        try:
-            acousticbrainz_features = await acousticbrainz_service.get_audio_features(mbid)
-            if acousticbrainz_features:
-                logger.info(f"Successfully retrieved AcousticBrainz features for MBID {mbid}.")
-            else:
-                logger.info(f"No significant features found on AcousticBrainz for MBID {mbid}.")
-        except Exception as e: # Catch potential errors from AB service
-            logger.exception(f"Error retrieving AcousticBrainz data for MBID {mbid}: {e}")
-            acousticbrainz_features = None # Ensure features are None if AB fails
+            logger.info(f"No suitable MusicBrainz data found for {mb_title} by {mb_artist}.")
+    except MetadataAPIError as e: 
+        logger.error(f"Error searching MusicBrainz for data: {e}. Proceeding without it.")
+        musicbrainz_data = None 
+    except Exception as e: 
+         logger.exception(f"Unexpected error searching MusicBrainz: {e}. Proceeding without it.")
+         musicbrainz_data = None
 
-    # --- 4. Prepare data and Analyze with Gemini --- 
+    # --- Analyze with Gemini (using only Musixmatch data) --- 
     try:
         # Combine data for Gemini analysis
-        analysis_input = {**musixmatch_metadata}
-        if acousticbrainz_features:
-            analysis_input.update(acousticbrainz_features) # Add AB features if available
-            logger.info("Including AcousticBrainz features in Gemini prompt.")
+        analysis_input = {**musixmatch_metadata} # Start with Musixmatch data
+        if musicbrainz_data and musicbrainz_data.get("tags"):
+            # Add MB tags under a specific key to avoid collision
+            analysis_input["musicbrainz_tags"] = musicbrainz_data["tags"]
+            logger.info("Including MusicBrainz tags in Gemini prompt.")
         else:
-            logger.info("No AcousticBrainz features to include in Gemini prompt.")
+            logger.info("No MusicBrainz tags to include in Gemini prompt.")
             
         logger.info(f"Starting Gemini analysis with combined data: {analysis_input.get('title')}...")
         gemini_analysis = await gemini_service.analyze_song_and_generate_keywords(analysis_input)
@@ -117,11 +107,10 @@ async def search_and_analyze(title: str = Form(...), artist: str = Form(...)) ->
 
         if not keywords:
              logger.error("Gemini failed to generate keywords.")
-             # Return metadata + AB features + description if Gemini keywords fail
              return {
                  "source_track": musixmatch_metadata, 
-                 "audio_features": acousticbrainz_features, # Include AB features
-                 "analysis": gemini_analysis, # Include description
+                 "musicbrainz_data": musicbrainz_data,
+                 "analysis": gemini_analysis, 
                  "similar_tracks": []
              }
 
@@ -133,7 +122,7 @@ async def search_and_analyze(title: str = Form(...), artist: str = Form(...)) ->
 
         return {
             "source_track": musixmatch_metadata, 
-            "audio_features": acousticbrainz_features, # Include AB features
+            "musicbrainz_data": musicbrainz_data,
             "analysis": gemini_analysis,
             "similar_tracks": jamendo_tracks
         }
@@ -143,8 +132,8 @@ async def search_and_analyze(title: str = Form(...), artist: str = Form(...)) ->
         # Return partial results if Gemini fails
         return {
             "source_track": musixmatch_metadata, 
-            "audio_features": acousticbrainz_features,
-            "analysis": {"description": "AI analysis failed.", "keywords": []}, # Indicate failure
+            "musicbrainz_data": musicbrainz_data,
+            "analysis": {"description": "AI analysis failed.", "keywords": []}, 
             "similar_tracks": []
         }
     except HTTPException as http_exc: # Re-raise HTTP exceptions from Musixmatch step
@@ -176,10 +165,9 @@ async def process_file(file: UploadFile = File(...)) -> Dict[str, Any]:
 
     shazam_result: Optional[Dict] = None
     musixmatch_metadata: Optional[Dict] = None
-    acousticbrainz_features: Optional[Dict] = None
+    musicbrainz_data: Optional[Dict] = None
     gemini_analysis: Optional[Dict] = None
     jamendo_tracks: List[Dict] = []
-    mbid: Optional[str] = None
     shazam_title: Optional[str] = None
     shazam_artist: Optional[str] = None
 
@@ -212,51 +200,49 @@ async def process_file(file: UploadFile = File(...)) -> Dict[str, Any]:
                 logger.error(f"Unexpected error during Musixmatch fetch: {e}", exc_info=True)
                 musixmatch_metadata = None # Continue without Musixmatch data
 
-        # Determine best title/artist for MBID lookup
-        lookup_title = musixmatch_metadata.get('title') if musixmatch_metadata else shazam_title
-        lookup_artist = musixmatch_metadata.get('artist') if musixmatch_metadata else shazam_artist
+        # Determine best title/artist for MB lookup
+        lookup_title = musixmatch_metadata.get('title') if musixmatch_metadata else shazam_result.get('title')
+        lookup_artist = musixmatch_metadata.get('artist') if musixmatch_metadata else shazam_result.get('subtitle')
 
-        # 3. Get MusicBrainz Recording ID (MBID)
+        # 3. Get MusicBrainz Data
         if lookup_title and lookup_artist:
             try:
-                mbid = await musicbrainz_client.get_recording_mbid(title=lookup_title, artist=lookup_artist)
-                if mbid:
-                    logger.info(f"Found MBID: {mbid}")
+                musicbrainz_data = await musicbrainz_client.get_musicbrainz_data(title=lookup_title, artist=lookup_artist)
+                if musicbrainz_data:
+                    logger.info(f"Successfully retrieved MusicBrainz data for {lookup_title}")
                 else:
-                    logger.info(f"No suitable MBID found for {lookup_title} by {lookup_artist}.")
+                    logger.info(f"No suitable MusicBrainz data found for {lookup_title}.")
             except Exception as e:
-                 logger.exception(f"Unexpected error searching MusicBrainz: {e}. Proceeding without AcousticBrainz.")
-                 mbid = None
+                 logger.exception(f"Unexpected error searching MusicBrainz: {e}. Proceeding without it.")
+                 musicbrainz_data = None
         else:
              logger.warning("Insufficient title/artist info to search MusicBrainz.")
-             mbid = None
+             musicbrainz_data = None
              
-        # 4. Get AcousticBrainz Features (if MBID found)
-        if mbid:
-            try:
-                acousticbrainz_features = await acousticbrainz_service.get_audio_features(mbid)
-                if acousticbrainz_features:
-                    logger.info(f"Successfully retrieved AcousticBrainz features for MBID {mbid}.")
-            except Exception as e:
-                logger.exception(f"Error retrieving AcousticBrainz data for MBID {mbid}: {e}")
-                acousticbrainz_features = None
-
-        # 5. Analyze with Gemini and generate keywords
-        # Prepare combined data for Gemini 
-        analysis_input = { # Start with best available info
-            "title": lookup_title,
-            "artist": lookup_artist,
-        }
-        if musixmatch_metadata: # Add Musixmatch data if we got it
-            analysis_input.update(musixmatch_metadata)
-        else: # Add basic Shazam info if no Musixmatch
-            analysis_input['title'] = shazam_title
-            analysis_input['artist'] = shazam_artist
+        # 4. Analyze with Gemini 
+        analysis_input = None
+        if musixmatch_metadata:
+            analysis_input = {**musixmatch_metadata}
+            logger.info("Using Musixmatch data for Gemini analysis.")
+        elif lookup_title and lookup_artist: # Use Shazam info if no Musixmatch
+            analysis_input = {"title": lookup_title, "artist": lookup_artist}
+            logger.info("Using only Shazam title/artist for Gemini analysis.")
+        else:
+            # Handle case where even Shazam failed to provide basic info
+            logger.error("Cannot perform Gemini analysis: Insufficient track info.")
+            return { 
+                 "recognized_track": shazam_result, # May be None or partial
+                 "metadata": None,
+                 "musicbrainz_data": None,
+                 "analysis": {"description": "Analysis skipped: Insufficient info.", "keywords": []},
+                 "similar_tracks": []
+             }
             
-        if acousticbrainz_features: # Add AB features if available
-            analysis_input.update(acousticbrainz_features)
+        if musicbrainz_data and musicbrainz_data.get("tags"):
+            analysis_input["musicbrainz_tags"] = musicbrainz_data["tags"]
+            logger.info("Including MusicBrainz tags in Gemini prompt.")
 
-        logger.info(f"Starting Gemini analysis with combined data: {analysis_input.get('title')}...")
+        logger.info(f"Starting Gemini analysis with data: {analysis_input.get('title')}...")
         try:
             gemini_analysis = await gemini_service.analyze_song_and_generate_keywords(analysis_input)
             logger.info(f"Gemini analysis successful. Keywords: {gemini_analysis['keywords']}")
@@ -264,26 +250,24 @@ async def process_file(file: UploadFile = File(...)) -> Dict[str, Any]:
 
             if not keywords:
                 logger.error("Gemini failed to generate keywords.")
-                # Return partial if Gemini keywords fail
                 return {
                     "recognized_track": shazam_result,
                     "metadata": musixmatch_metadata,
-                    "audio_features": acousticbrainz_features,
-                    "analysis": gemini_analysis, # Include description
+                    "musicbrainz_data": musicbrainz_data,
+                    "analysis": gemini_analysis, 
                     "similar_tracks": []
                 }
         except AIServiceError as e:
              logger.error(f"Gemini analysis failed: {str(e)}")
-             # Return partial results if Gemini fails
              return {
                  "recognized_track": shazam_result,
                  "metadata": musixmatch_metadata,
-                 "audio_features": acousticbrainz_features,
+                 "musicbrainz_data": musicbrainz_data,
                  "analysis": {"description": "AI analysis failed.", "keywords": []}, 
                  "similar_tracks": []
              }
 
-        # 6. Find similar tracks on Jamendo using keywords
+        # 5. Find similar tracks on Jamendo
         logger.info(f"Searching Jamendo with keywords: {keywords}")
         jamendo_tracks = await jamendo_service.find_similar_tracks_by_keywords(keywords=keywords, limit=10)
         
@@ -292,7 +276,7 @@ async def process_file(file: UploadFile = File(...)) -> Dict[str, Any]:
         return {
             "recognized_track": shazam_result,
             "metadata": musixmatch_metadata,
-            "audio_features": acousticbrainz_features, # Added
+            "musicbrainz_data": musicbrainz_data,
             "analysis": gemini_analysis,
             "similar_tracks": jamendo_tracks
         }
