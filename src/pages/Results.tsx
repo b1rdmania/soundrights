@@ -122,6 +122,7 @@ interface ResultsData {
     key?: string; // Shazam key
     explicit?: boolean; // Added to satisfy type checker
     instrumental?: boolean; // Added to satisfy type checker
+    genres?: string[]; // Add optional genres to satisfy type checker
     // Add other fields from Shazam if needed
   } | null;
   analysis?: { // From Gemini
@@ -303,28 +304,33 @@ const Results: React.FC = () => {
                     <p className="text-muted-foreground italic text-sm">{analysis.description}</p>
                   </div>
                 )}
-                {/* --- Display AcousticBrainz & Musixmatch Details --- */}
-                {(musicbrainz_data || sourceTrack?.explicit !== undefined || sourceTrack?.instrumental !== undefined) && (
-                    <div className="mt-4 pt-4 border-t border-muted text-xs text-muted-foreground space-y-1">
-                         <h4 className="font-semibold text-sm mb-1 text-foreground">Track Details:</h4>
-                         {musicbrainz_data?.mbid && (
-                             <p><span className="font-medium">MBID:</span> {musicbrainz_data.mbid}</p>
-                         )}
-                         {musicbrainz_data?.match_score && (
-                             <p><span className="font-medium">Match Score:</span> {musicbrainz_data.match_score}</p>
-                         )}
-                         {sourceTrack?.explicit !== undefined && (
-                             <p><span className="font-medium">Explicit:</span> {sourceTrack.explicit ? 'Yes' : 'No'}</p>
-                         )}
+                
+                {/* --- Enhanced Details Section --- */}
+                <div className="mt-4 pt-4 border-t border-muted text-sm">
+                    <h4 className="font-semibold mb-2">Summary Details:</h4>
+                    <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                        {/* Display Discogs Year if available */} 
+                        {discogs_data?.year && (
+                            <li><span className="font-medium text-foreground">Year:</span> {discogs_data.year}</li>
+                        )}
+                        {/* Display Musixmatch Genres */} 
+                        {sourceTrack?.genres && sourceTrack.genres.length > 0 && (
+                            <li><span className="font-medium text-foreground">Genres:</span> {sourceTrack.genres.join(', ')}</li>
+                        )}
+                        {/* Display Discogs Styles if available */} 
+                        {discogs_data?.styles && discogs_data.styles.length > 0 && (
+                             <li><span className="font-medium text-foreground">Styles:</span> {discogs_data.styles.join(', ')}</li>
+                        )}
+                        {/* Display Instrumental Flag */} 
                          {sourceTrack?.instrumental !== undefined && (
-                              <p><span className="font-medium">Instrumental:</span> {sourceTrack.instrumental ? 'Yes' : 'No'}</p>
+                             <li><span className="font-medium text-foreground">Instrumental:</span> {sourceTrack.instrumental ? 'Yes' : 'No'}</li>
                          )}
-                         {/* Add Musixmatch Rating if desired */}
-                         {/* {sourceTrack?.rating !== undefined && (
-                              <p><span className="font-medium">Musixmatch Rating:</span> {sourceTrack.rating}/100</p>
-                         )} */}
-                    </div>
-                )}
+                        {/* Add other details if needed, e.g., Musixmatch rating */} 
+                         {/* {sourceTrack?.rating && (
+                              <li><span className="font-medium text-foreground">Musixmatch Rating:</span> {sourceTrack.rating}/100</li>
+                         )} */} 
+                    </ul>
+                </div>
               </div>
             </div>
             
