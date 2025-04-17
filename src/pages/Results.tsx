@@ -16,26 +16,27 @@ interface AnalyzingDisplayProps {
 
 // New component for the "Analyzing" display
 const AnalyzingDisplay: React.FC<AnalyzingDisplayProps> = ({ title, artist }) => {
+  const componentVersion = "v1.1"; // Add a version number
   // Dynamically generate lines using props
   const lines = [
     `> Initializing SoundMatch Analysis Core v3.2... OK`, // Version bump!
     `> Target Locked: ${artist} - ${title}`,
     `> Engaging Musixmatch API [matcher.track.get]...`,
     // Simulate success/fallback/failure - add slight randomness/variation
-    `> Musixmatch Query Status: ${Math.random() > 0.1 ? (Math.random() > 0.3 ? 'Exact Match Found.' : 'Fallback Search Initiated... Match Acquired.') : 'Metadata Retrieval Failed.'}`, 
-    `> Searching MusicBrainz Identifier Index...`, 
+    `> Musixmatch Query Status: ${Math.random() > 0.1 ? (Math.random() > 0.3 ? 'Exact Match Found.' : 'Fallback Search Initiated... Match Acquired.') : 'Metadata Retrieval Failed.'}`,
+    `> Searching MusicBrainz Identifier Index...`,
     // Simulate MB search outcome
     `> MusicBrainz Lookup: ${Math.random() > 0.4 ? 'MBID Located. Tags Extracted (if available).' : 'No Match Found/Low Confidence.'}`,
-    `> Querying Discogs Release Database...`, 
+    `> Querying Discogs Release Database...`,
     // Simulate Discogs outcome
-    `> Discogs Lookup: ${Math.random() > 0.3 ? 'Release Data Acquired (Year/Styles).' : 'No Match/Auth Failure.'}`, 
-    `> Preparing Metadata Payload for AI Analysis...`, 
+    `> Discogs Lookup: ${Math.random() > 0.3 ? 'Release Data Acquired (Year/Styles).' : 'No Match/Auth Failure.'}`,
+    `> Preparing Metadata Payload for AI Analysis...`,
     `> Initializing Gemini Language Model [gemini-1.5-flash]... Ready.`,
     `> Generating Sonic Description & Keyword Matrix...`,
-    `> Gemini Analysis: ${Math.random() > 0.1 ? 'Synthesis Complete.' : 'Analysis Timed Out/Failed.'}`, 
-    `> Cross-Referencing Jamendo Royalty-Free Database [fuzzytags]...`, 
-    `> Compiling Results Vector... DONE`, 
-    `> Rendering Output Interface...`
+    `> Gemini Analysis: ${Math.random() > 0.1 ? 'Synthesis Complete.' : 'Analysis Timed Out/Failed.'}`,
+    `> Cross-Referencing Jamendo Royalty-Free Database [fuzzytags]...`,
+    `> Compiling Results Vector... DONE`,
+    `> Rendering Output Interface... [Display ${componentVersion}]` // Include version
   ];
   const [displayedLines, setDisplayedLines] = useState<string[]>([]);
   const [showCursor, setShowCursor] = useState(true);
@@ -59,7 +60,7 @@ const AnalyzingDisplay: React.FC<AnalyzingDisplayProps> = ({ title, artist }) =>
         clearInterval(intervalId);
         clearInterval(cursorInterval);
     };
-  }, [lines]);
+  }, [lines]); // Dependency array includes lines, which change if title/artist change
 
   return (
     <div className="font-mono text-sm text-muted-foreground bg-card p-4 rounded-md shadow-lg border min-h-[220px]">
