@@ -30,49 +30,57 @@ We have made significant progress in building the core infrastructure and functi
 - **Backend API (FastAPI on Railway):**
     - Set up FastAPI application structure.
     - Implemented API endpoints for:
-        - `/search`: Takes a query, uses Spotify's basic search for initial info, queries MusicBrainz for detailed metadata, and then finds similar tracks on Jamendo.
-        - `/process-file`: Accepts an MP3 upload, analyzes it using MusicBrainz, and finds similar tracks on Jamendo.
-        - `/process-link`: Accepts a music URL, analyzes it using MusicBrainz, and finds similar tracks on Jamendo.
-    - Integrated MusicBrainz client for metadata fetching and analysis.
-    - Integrated Jamendo client for searching copyright-free music.
-    - Configured CORS to allow requests from the frontend.
-    - Set up environment variables for API keys and configuration.
-    - Added basic logging and error handling.
-    - Created Docker configurations (`docker-compose.yml`, `Dockerfile`) for local development and production (though primarily deploying via Railway).
+        - `/search`: Takes title/artist, fetches metadata from Musixmatch (with fallback search), MusicBrainz, Discogs, and Wikipedia. Analyzes combined data with Gemini to generate description/keywords, then searches Jamendo.
+        - `/process-file`: Accepts an MP3 upload, recognizes it using Shazam, fetches metadata from Musixmatch/MusicBrainz/Discogs/Wikipedia, analyzes with Gemini, and searches Jamendo.
+        - *`/process-link`: (Future Feature) Accepts a music URL.*
+    - Integrated Musixmatch client with fallback logic (`matcher.track.get` -> `track.search`).
+    - Integrated Shazam client (using a third-party wrapper) for audio recognition.
+    - Integrated MusicBrainz client to fetch recording MBID and tags.
+    - Integrated Discogs client to fetch release year, styles, genres, and **cover art URL**.
+    - Integrated **Wikipedia client** to fetch introductory summaries.
+    - Integrated **Gemini client (gemini-1.5-flash)**:
+        - Refined prompt significantly to **synthesize data from all sources (Musixmatch, MusicBrainz, Discogs)**.
+        - Instructed Gemini to use its **internal knowledge base** to enhance descriptions (e.g., specific instruments, production).
+        - Improved keyword generation strategy for more specific Jamendo searches.
+    - Integrated Jamendo client for searching copyright-free music based on Gemini keywords.
+    - Configured CORS, environment variables, logging, and basic error handling.
+    - Created Docker configurations for potential containerization.
 - **Frontend (React on Vercel):**
     - Set up React application using Vite and TypeScript.
-    - Created main pages: Index, Upload, Results, About, etc.
-    - Implemented routing using `react-router-dom`.
-    - Developed the `UploadForm` component allowing users to search, upload files, or paste links.
-    - Created the `Results` page to display track information and similar results.
+    - Created main pages (Index, Upload, Results) and routing.
+    - Developed the `UploadForm` component.
+    - Significantly **refactored the `Results` page**:
+        - Displays the source track with **cover art** (from Discogs/Shazam).
+        - Shows a detailed summary including data from Musixmatch, Discogs (genres, styles, year), and linked IDs (Discogs, MusicBrainz).
+        - Displays the **Wikipedia summary** in a dedicated section.
+        - Removed the raw technical data dumps.
+        - Added **audio playback controls** (play/pause/seek) for Jamendo results.
+        - Implemented a dynamic "Analyzing..." loading state.
     - Integrated API client (`axios`) to communicate with the backend.
-    - Configured UI components using `shadcn-ui` and styled with Tailwind CSS.
-    - Set up deployment pipeline to Vercel.
-    - Added error boundaries and loading states for better UX.
-- **Deployment:**
+    - Styled with Tailwind CSS and `shadcn-ui`.
+    - Added user feedback (toasts) for playback errors.
+- **Deployment & Infrastructure:**
     - Frontend successfully deployed to Vercel.
     - Backend successfully deployed to Railway.
-    - Configured Vercel and Railway environment variables.
-- **Troubleshooting:**
-    - Resolved CORS issues between frontend and backend.
-    - Debugged MIME type issues with Vercel static asset serving.
-    - Iteratively fixed backend API errors (500 errors) related to API integrations (Spotify, MusicBrainz) and error handling logic.
+    - Configured environment variables for all services.
+- **Troubleshooting & Refinement:**
+    - Resolved CORS issues.
+    - Iteratively fixed backend API errors related to various service integrations (Musixmatch, MusicBrainz, Discogs, Gemini, Jamendo) and error handling logic.
+    - Addressed initial **limitations with AcousticBrainz** (unreliable/discontinued data) by **removing it** and integrating richer sources (Discogs/MusicBrainz).
+    - Refined Gemini prompt multiple times to improve analysis specificity and keyword quality based on synthesized metadata.
+    - Improved frontend layout and data presentation based on available information.
 
-## Next Steps / Areas for Collaboration
+## Next Steps / Known Limitations
 
-- **Refine Search Accuracy:** Improve the logic for matching and finding *truly* similar tracks.
-- **Enhance UI/UX:** Make the results page more interactive and visually appealing. Add audio playback for Jamendo previews.
-- **Improve Error Handling:** Make error messages more user-friendly on the frontend. Add more robust backend logging.
-- **Link Processing:** Fully implement and test the `/process-link` functionality (needs robust URL parsing and service detection for various platforms like Spotify, YouTube, etc.).
-- **Audio Fingerprinting:** Integrate **Shazam API** or similar services for identifying tracks directly from audio snippets.
-- **Advanced Similarity Search:** Implement **FAISS** or other vector databases for more sophisticated similarity searches based on extracted audio features or embeddings.
-- **LLM-Powered Search Term Generation:** Explore an alternative model: Identify songs (via Shazam/Spotify names), feed info into an LLM (**Gemini/OpenAI**) to generate descriptive keywords/tags, and use those terms to search royalty-free libraries.
-- **Expand Music Sources:** Integrate with additional **open music royalty-free libraries** beyond Jamendo (e.g., Free Music Archive, Pixabay Music).
-- **Full Spotify Integration:** Explore deeper integration with the **Spotify API** (requiring authentication) for richer data or user-specific features.
-- **Other API Integrations:** Open to exploring other relevant music data or analysis APIs.
-- **Testing:** Add unit and integration tests for both frontend and backend.
-- **Scalability & Performance:** Optimize backend API calls and database interactions (if a DB is added later).
-- **Feature Expansion:** Consider adding features like user accounts, saved searches, or filtering options for Jamendo results.
+- **Improve Wikipedia Search Term:** Experiment with different search terms (e.g., `"Song Title (song)"`) for better Wikipedia summary results.
+- **Refine Gemini Prompt Further:** Continue tuning the prompt based on analysis quality for diverse tracks.
+- **Enhance Jamendo Keyword Strategy:** Explore techniques beyond simple keyword search on Jamendo (e.g., using tags, filtering by license).
+- **Link Processing:** Implement `/process-link` functionality.
+- **Advanced Similarity (Future):** Consider FAISS or vector similarity if keyword search proves insufficient.
+- **Expand Music Sources:** Integrate more royalty-free libraries.
+- **Testing:** Add comprehensive unit and integration tests.
+- **Scalability & Performance:** Optimize API calls, especially concurrent requests to external services.
+- **UI/UX Polish:** Add more loading indicators, refine playback controls, improve mobile responsiveness.
 
 ## Getting Started Locally
 
