@@ -17,6 +17,9 @@ import time
 import asyncio
 from fastapi import status
 import subprocess
+import aiofiles
+from .dependencies import get_musixmatch_service, get_jamendo_service, get_gemini_service, get_musicbrainz_service, get_discogs_service, get_wikipedia_service
+from app.services.audio_identification.acoustid_service import AcoustIDClient, AcoustIDError
 
 router = APIRouter()
 
@@ -220,109 +223,167 @@ async def search_and_analyze(title: str = Form(...), artist: str = Form(...)) ->
         )
 
 @router.post("/process-file")
-async def process_file(file: UploadFile = File(...)) -> Dict[str, Any]:
+async def process_file(
+    file: UploadFile = File(...),
+    musixmatch_service: MusixmatchService = Depends(get_musixmatch_service),
+    jamendo_service: JamendoService = Depends(get_jamendo_service),
+    gemini_service: GeminiService = Depends(get_gemini_service),
+    musicbrainz_client: MusicBrainzClient = Depends(get_musicbrainz_service),
+    acoustid_client: AcoustIDClient = Depends(AcoustIDClient),
+    discogs_service: DiscogsService = Depends(get_discogs_service),
+    wikipedia_service: WikipediaService = Depends(get_wikipedia_service)
+) -> Dict[str, Any]:
     """
-    Recognize uploaded audio with Shazam, enrich with Musixmatch, analyze with Gemini,
-    find similar tracks on Jamendo.
-
-    Args:
-        file: The uploaded audio file
-
-    Returns:
-        Dictionary containing recognition result, analysis, and similar tracks
+    Recognize uploaded audio with AcoustID/fpcalc, enrich with Musixmatch/MusicBrainz/Discogs/Wikipedia, 
+    analyze with Gemini, find similar tracks on Jamendo.
     """
     if not file.filename:
         raise HTTPException(status_code=400, detail="Filename missing from upload")
 
     logger.info(f"Processing uploaded file: {file.filename}")
-    audio_data = await file.read()
 
-    shazam_result: Optional[Dict] = None
+    # --- Save uploaded file temporarily for fpcalc --- 
+    # Create a temporary file to store the uploaded audio data
+    # Use NamedTemporaryFile to ensure it has a path accessible by fpcalc
+    # Keep the file open until fpcalc is done
+    with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(file.filename)[1] or '.tmp') as tmp_file:
+        try:
+            async with aiofiles.open(tmp_file.name, 'wb') as f:
+                content = await file.read()
+                await f.write(content)
+            tmp_file_path = tmp_file.name
+            logger.info(f"Saved uploaded file temporarily to: {tmp_file_path}")
+
+            # --- 1. Recognize with AcoustID --- 
+            acoustid_result: Optional[Dict] = None
+            recognized_track: Optional[Dict] = None # This will hold the mapped result
+            try:
+                logger.info(f"Starting AcoustID recognition for {tmp_file_path}...")
+                # Request recordings and release groups for metadata
+                acoustid_result = await acoustid_client.lookup_fingerprint(
+                    tmp_file_path, 
+                    metadata=['recordings', 'releasegroups', 'compress']
+                )
+
+                if acoustid_result and acoustid_result.get('score', 0) > 0.5: # Check score threshold
+                    logger.info(f"AcoustID recognized track with score: {acoustid_result['score']}")
+                    # Try to extract metadata from the first recording
+                    if acoustid_result.get('recordings'):
+                        recording = acoustid_result['recordings'][0]
+                        recognized_track = {
+                            "title": recording.get('title'),
+                            "subtitle": recording.get('artists', [{}])[0].get('name'), # Use first artist name as subtitle
+                            "acoustid_id": acoustid_result.get('id'), # Store AcoustID track ID
+                            "mbid": recording.get('id'), # Store MusicBrainz Recording ID
+                            "score": acoustid_result.get('score')
+                            # Add other fields if needed (e.g., release group title as album?)
+                        }
+                        logger.info(f"Mapped AcoustID result: {recognized_track}")
+                    else:
+                        logger.warning("AcoustID result found, but no recording metadata available.")
+                        # Fallback? Could use just the AcoustID? For now, treat as not found.
+                        recognized_track = None 
+                else:
+                    logger.warning(f"AcoustID did not recognize the track or score too low ({acoustid_result.get('score') if acoustid_result else 'N/A'}).")
+                    recognized_track = None
+
+            except AcoustIDError as e:
+                logger.error(f"AcoustID processing failed: {e}")
+                recognized_track = None # Treat as not found on error
+            except Exception as e:
+                 logger.exception(f"Unexpected error during AcoustID processing: {e}")
+                 recognized_track = None
+
+        finally:
+            # --- Clean up temporary file --- 
+            if os.path.exists(tmp_file_path):
+                try:
+                    os.unlink(tmp_file_path)
+                    logger.info(f"Cleaned up temporary file: {tmp_file_path}")
+                except OSError as e:
+                    logger.error(f"Error deleting temporary file {tmp_file_path}: {e}")
+
+    # --- Check if recognition was successful --- 
+    if not recognized_track:
+        raise HTTPException(status_code=404, detail="Could not recognize track using AcoustID.")
+
+    # --- Metadata Fetching (Musixmatch, MusicBrainz, Discogs, Wikipedia) --- 
+    # Use recognized title/artist for lookups
+    lookup_title = recognized_track.get('title')
+    lookup_artist = recognized_track.get('subtitle') # Artist mapped to subtitle
+    mbid_from_acoustid = recognized_track.get('mbid')
+
     musixmatch_metadata: Optional[Dict] = None
     musicbrainz_data: Optional[Dict] = None
     discogs_data: Optional[Dict] = None
     wikipedia_summary: Optional[str] = None
-    gemini_analysis: Optional[Dict] = None
-    jamendo_tracks: List[Dict] = []
-    shazam_title: Optional[str] = None
-    shazam_artist: Optional[str] = None
 
-    try:
-        # 1. Recognize with Shazam
-        logger.info("Starting Shazam recognition...")
-        shazam_result = await zyla_shazam_client.recognize_audio(audio_data, file.filename)
-
-        if not shazam_result or not shazam_result.get('title'):
-            logger.warning("Shazam did not recognize the track.")
-            raise HTTPException(status_code=404, detail="Could not recognize track using Shazam")
-        
-        shazam_title = shazam_result.get('title')
-        shazam_artist = shazam_result.get('subtitle') # Shazam often puts artist in subtitle
-        logger.info(f"Shazam recognized: {shazam_title} by {shazam_artist}")
-
-        # 2. Enrich with Musixmatch
-        if shazam_title and shazam_artist:
-            try:
-                logger.info("Fetching metadata from Musixmatch...")
-                musixmatch_metadata = await musixmatch_service.get_track_metadata(title=shazam_title, artist=shazam_artist)
-                if musixmatch_metadata:
-                    logger.info(f"Found Musixmatch metadata: {musixmatch_metadata}")
-                    logger.info(f"Musixmatch metadata received (process-file): {musixmatch_metadata}")
-                else:
-                    logger.info("No additional metadata found on Musixmatch.")
-            except MusixmatchAPIError as e:
-                logger.warning(f"Musixmatch API error, proceeding without enrichment: {e}")
-                musixmatch_metadata = None # Continue without Musixmatch data if it fails
-            except Exception as e:
-                logger.error(f"Unexpected error during Musixmatch fetch: {e}", exc_info=True)
-                musixmatch_metadata = None # Continue without Musixmatch data
-
-        # Determine best title/artist for MB lookup
-        lookup_title = musixmatch_metadata.get('title') if musixmatch_metadata else shazam_result.get('title')
-        lookup_artist = musixmatch_metadata.get('artist') if musixmatch_metadata else shazam_result.get('subtitle')
-
-        # 3. Get MusicBrainz Data
-        if lookup_title and lookup_artist:
-            try:
-                musicbrainz_data = await musicbrainz_client.get_musicbrainz_data(title=lookup_title, artist=lookup_artist)
-                if musicbrainz_data:
-                    logger.info(f"Successfully retrieved MusicBrainz data for {lookup_title}")
-                else:
-                    logger.info(f"No suitable MusicBrainz data found for {lookup_title}.")
-            except Exception as e:
-                 logger.exception(f"Unexpected error searching MusicBrainz: {e}. Proceeding without it.")
-                 musicbrainz_data = None
-        else:
-             logger.warning("Insufficient title/artist info to search MusicBrainz.")
-             musicbrainz_data = None
-             
-        # 4. Get Discogs Data 
-        if lookup_title and lookup_artist:
-            try:
-                discogs_data = await discogs_service.get_release_data(title=lookup_title, artist=lookup_artist)
-                if discogs_data:
-                    logger.info(f"Successfully retrieved Discogs data for {lookup_title}")
-                else:
-                    logger.info(f"No suitable Discogs data found for {lookup_title}.")
-            except Exception as e:
-                 logger.exception(f"Unexpected error searching Discogs: {e}. Proceeding without it.")
-                 discogs_data = None
-        else:
-             logger.warning("Insufficient title/artist info to search Discogs.")
-             discogs_data = None
-
-        # 5. Get Wikipedia Summary
+    # 2. Enrich with Musixmatch (using recognized title/artist)
+    if lookup_title and lookup_artist:
         try:
-            # Construct a search term - add " (song)" suffix
-            wiki_search_term = f"{lookup_title} ({lookup_artist} song)"
-            # Alternative: wiki_search_term = f"{lookup_title} (song)" 
+            logger.info(f"Fetching Musixmatch metadata for: {lookup_title} by {lookup_artist}")
+            musixmatch_metadata = await musixmatch_service.get_track_metadata(title=lookup_title, artist=lookup_artist)
+            if musixmatch_metadata:
+                logger.info(f"Found Musixmatch metadata: {musixmatch_metadata}")
+            else:
+                logger.info("No additional metadata found on Musixmatch.")
+        except MusixmatchAPIError as e:
+            logger.warning(f"Musixmatch API error, proceeding without enrichment: {e}")
+        except Exception as e:
+            logger.error(f"Unexpected error during Musixmatch fetch: {e}", exc_info=True)
+
+    # 3. Get MusicBrainz Data (Prioritize MBID from AcoustID if available)
+    # TODO: Refactor MusicBrainz client to allow lookup by MBID directly?
+    # For now, stick to title/artist lookup, but log if we had an MBID.
+    if mbid_from_acoustid:
+        logger.info(f"AcoustID provided MBID: {mbid_from_acoustid}. Using title/artist for MusicBrainz lookup for now.")
+        # Potential future enhancement: lookup by MBID directly
+    
+    if lookup_title and lookup_artist:
+        try:
+            musicbrainz_data = await musicbrainz_client.get_musicbrainz_data(title=lookup_title, artist=lookup_artist)
+            if musicbrainz_data:
+                logger.info(f"Successfully retrieved MusicBrainz data for {lookup_title}")
+            else:
+                logger.info(f"No suitable MusicBrainz data found via title/artist lookup for {lookup_title}.")
+        except Exception as e:
+             logger.exception(f"Unexpected error searching MusicBrainz: {e}. Proceeding without it.")
+             musicbrainz_data = None
+    else:
+         logger.warning("Insufficient title/artist info from AcoustID to search MusicBrainz.")
+         musicbrainz_data = None
+         
+    # 4. Get Discogs Data 
+    # Use best available title/artist (Musixmatch if found, else AcoustID)
+    final_lookup_title = musixmatch_metadata.get('title') if musixmatch_metadata else lookup_title
+    final_lookup_artist = musixmatch_metadata.get('artist') if musixmatch_metadata else lookup_artist
+    if final_lookup_title and final_lookup_artist:
+        try:
+            logger.info(f"Searching Discogs for: {final_lookup_title} by {final_lookup_artist}")
+            discogs_data = await discogs_service.get_release_data(title=final_lookup_title, artist=final_lookup_artist)
+            if discogs_data:
+                logger.info(f"Successfully retrieved Discogs data: {discogs_data}")
+            else:
+                logger.info(f"No suitable Discogs data found for {final_lookup_title} by {final_lookup_artist}.")
+        except MetadataAPIError as e: 
+            logger.error(f"Error searching Discogs for data: {e}. Proceeding without it.")
+            discogs_data = None
+        except Exception as e: 
+            logger.exception(f"Unexpected error searching Discogs: {e}. Proceeding without it.")
+            discogs_data = None
+    else:
+        logger.warning("Insufficient title/artist to search Discogs.")
+
+    # 5. Get Wikipedia Summary
+    if final_lookup_title and final_lookup_artist:
+        try:
+            wiki_search_term = f"{final_lookup_title} ({final_lookup_artist} song)"
             wikipedia_summary = await wikipedia_service.get_wikipedia_summary(wiki_search_term)
             if wikipedia_summary:
                  logger.info(f"Successfully retrieved Wikipedia summary for: {wiki_search_term}")
             else:
                  logger.info(f"No Wikipedia summary found for: {wiki_search_term}. Trying title only...")
-                 # Fallback: Try searching just the title + (song)
-                 wiki_search_term_fallback = f"{lookup_title} (song)"
+                 wiki_search_term_fallback = f"{final_lookup_title} (song)"
                  wikipedia_summary = await wikipedia_service.get_wikipedia_summary(wiki_search_term_fallback)
                  if wikipedia_summary:
                      logger.info(f"Successfully retrieved Wikipedia summary on fallback: {wiki_search_term_fallback}")
@@ -331,88 +392,77 @@ async def process_file(file: UploadFile = File(...)) -> Dict[str, Any]:
         except Exception as e:
              logger.exception(f"Unexpected error fetching Wikipedia summary: {e}. Proceeding without it.")
              wikipedia_summary = None
+    else:
+        logger.warning("Insufficient title/artist to search Wikipedia.")
 
-        # 6. Analyze with Gemini 
-        analysis_input = None
-        if musixmatch_metadata:
-            analysis_input = {**musixmatch_metadata}
-            logger.info("Using Musixmatch data for Gemini analysis.")
-        elif lookup_title and lookup_artist: # Use Shazam info if no Musixmatch
-            analysis_input = {"title": lookup_title, "artist": lookup_artist}
-            logger.info("Using only Shazam title/artist for Gemini analysis.")
-        else:
-            # Handle case where even Shazam failed to provide basic info
-            logger.error("Cannot perform Gemini analysis: Insufficient track info.")
-            return { 
-                 "recognized_track": shazam_result, # May be None or partial
-                 "metadata": None,
-                 "musicbrainz_data": None,
-                 "discogs_data": None,
-                 "wikipedia_summary": wikipedia_summary,
-                 "analysis": {"description": "Analysis skipped: Insufficient info.", "keywords": []},
-                 "similar_tracks": []
-             }
-            
+    # --- Analyze with Gemini --- 
+    gemini_analysis: Optional[Dict] = None
+    jamendo_tracks: List[Dict] = []
+    try:
+        # Combine data for Gemini analysis
+        # Prioritize Musixmatch data if available, otherwise use recognized data
+        analysis_input = musixmatch_metadata if musixmatch_metadata else recognized_track
+        if not analysis_input:
+            logger.error("No data available for Gemini analysis after AcoustID and Musixmatch.")
+            raise HTTPException(status_code=500, detail="Failed to gather base data for analysis.")
+
+        # Ensure essential keys exist if using recognized_track directly
+        if analysis_input is recognized_track: # If Musixmatch failed, map recognized fields
+            analysis_input = { 
+                "title": recognized_track.get("title"),
+                "artist": recognized_track.get("subtitle"), # Artist from subtitle
+                # Add other relevant fields? MBID? Score? Tags?
+            }
+            logger.info("Using AcoustID-recognized data as base for Gemini.")
+
+        # Add MusicBrainz tags if available
         if musicbrainz_data and musicbrainz_data.get("tags"):
             analysis_input["musicbrainz_tags"] = musicbrainz_data["tags"]
             logger.info("Including MusicBrainz tags in Gemini prompt.")
-
-        if discogs_data: # ADD Discogs data
+        
+        # Add Discogs data if available
+        if discogs_data:
             if discogs_data.get("styles"):
                  analysis_input["discogs_styles"] = discogs_data["styles"]
+                 logger.info("Including Discogs styles in Gemini prompt.")
             if discogs_data.get("year"):
                  analysis_input["discogs_year"] = discogs_data["year"]
+                 logger.info("Including Discogs year in Gemini prompt.")
+        
+        logger.info(f"Starting Gemini analysis with combined data: {analysis_input.get('title')}...")
+        gemini_analysis = await gemini_service.analyze_song_and_generate_keywords(analysis_input)
+        logger.info(f"Gemini analysis successful. Keywords: {gemini_analysis['keywords']}")
+        keywords = gemini_analysis.get("keywords")
 
-        logger.info(f"Starting Gemini analysis with data: {analysis_input.get('title')}...")
-        try:
-            gemini_analysis = await gemini_service.analyze_song_and_generate_keywords(analysis_input)
-            logger.info(f"Gemini analysis successful. Keywords: {gemini_analysis['keywords']}")
-            keywords = gemini_analysis.get("keywords")
-
-            if not keywords:
-                logger.error("Gemini failed to generate keywords.")
-                return {
-                    "recognized_track": shazam_result,
-                    "metadata": musixmatch_metadata,
-                    "musicbrainz_data": musicbrainz_data,
-                    "discogs_data": discogs_data,
-                    "wikipedia_summary": wikipedia_summary,
-                    "analysis": gemini_analysis, 
-                    "similar_tracks": []
-                }
-        except AIServiceError as e:
-             logger.error(f"Gemini analysis failed: {str(e)}")
+        if not keywords:
+             logger.error("Gemini failed to generate keywords.")
+             # Return partial results even if keywords fail
              return {
-                 "recognized_track": shazam_result,
-                 "metadata": musixmatch_metadata,
+                 "recognized_track": recognized_track, # Return AcoustID result here
+                 "source_track": musixmatch_metadata, 
                  "musicbrainz_data": musicbrainz_data,
                  "discogs_data": discogs_data,
                  "wikipedia_summary": wikipedia_summary,
-                 "analysis": {"description": "AI analysis failed.", "keywords": []}, 
+                 "analysis": gemini_analysis, # Will contain description but empty keywords
                  "similar_tracks": []
              }
 
-        # 7. Find similar tracks on Jamendo
-        logger.info(f"Original Gemini keywords: {keywords}")
+        # --- 6. Find similar tracks on Jamendo --- 
+        jamendo_search_keywords = list(keywords)
+        musixmatch_genres = musixmatch_metadata.get("genres", []) if musixmatch_metadata else []
+        if musixmatch_genres:
+            jamendo_search_keywords = musixmatch_genres + jamendo_search_keywords
+            logger.info(f"Prepending Musixmatch genres. Keywords for Jamendo: {jamendo_search_keywords}")
         
-        # Prepend Musixmatch genres (if available) for Jamendo search priority
-        jamendo_search_keywords = list(keywords) # Create a copy
-        if musixmatch_metadata and musixmatch_metadata.get("genres"):
-             musixmatch_genres = musixmatch_metadata.get("genres", [])
-             jamendo_search_keywords = musixmatch_genres + jamendo_search_keywords
-             logger.info(f"Prepending Musixmatch genres. Keywords for Jamendo: {jamendo_search_keywords}")
-        else:
-             logger.info("No Musixmatch genres found to prepend for Jamendo search.")
-             
         logger.info(f"Searching Jamendo with keywords: {jamendo_search_keywords}")
-        # jamendo_tracks = await jamendo_service.find_similar_tracks_by_keywords(keywords=keywords, limit=10) # OLD
-        jamendo_tracks = await jamendo_service.find_similar_tracks_by_keywords(keywords=jamendo_search_keywords, limit=10) # NEW
+        jamendo_tracks = await jamendo_service.find_similar_tracks_by_keywords(keywords=jamendo_search_keywords, limit=10)
         
         logger.info("File processing complete.")
 
+        # --- Final Response --- 
         return {
-            "recognized_track": shazam_result,
-            "metadata": musixmatch_metadata,
+            "recognized_track": recognized_track, # Result from AcoustID
+            "source_track": musixmatch_metadata, # Result from Musixmatch (enrichment)
             "musicbrainz_data": musicbrainz_data,
             "discogs_data": discogs_data,
             "wikipedia_summary": wikipedia_summary,
@@ -420,16 +470,25 @@ async def process_file(file: UploadFile = File(...)) -> Dict[str, Any]:
             "similar_tracks": jamendo_tracks
         }
 
-    except RecognitionAPIError as e:
-        logger.error(f"Shazam recognition failed: {str(e)}")
-        raise HTTPException(status_code=502, detail=f"Audio recognition service failed: {str(e)}")
-    except HTTPException as http_exc:
+    except AIServiceError as e:
+        logger.error(f"Gemini analysis failed: {str(e)}")
+        # Return partial results if Gemini fails
+        return {
+            "recognized_track": recognized_track,
+            "source_track": musixmatch_metadata,
+            "musicbrainz_data": musicbrainz_data,
+            "discogs_data": discogs_data,
+            "wikipedia_summary": wikipedia_summary,
+            "analysis": {"description": "AI analysis failed.", "keywords": []},
+            "similar_tracks": []
+        }
+    except HTTPException as http_exc: # Re-raise HTTP exceptions (e.g., 404 from AcoustID)
         raise http_exc
     except Exception as e:
-        logger.exception(f"Unexpected error processing file upload: {str(e)}")
+        logger.exception(f"Unexpected error during file processing pipeline: {str(e)}")
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to process the audio file due to an unexpected error."
+            detail=f"An unexpected error occurred during file processing."
         )
 
 # Remove the old /process-link implementation if not needed, or update it similarly

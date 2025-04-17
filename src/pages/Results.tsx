@@ -121,14 +121,12 @@ interface ResultsData {
     updated_time?: string; // Added this based on Musixmatch parser
     // Add other fields from Musixmatch if needed
   } | null;
-  recognized_track?: { // From file upload (Shazam)
-    title: string;
-    subtitle?: string; // Artist is often here
-    key?: string; // Shazam key
-    explicit?: boolean; // Added to satisfy type checker
-    instrumental?: boolean; // Added to satisfy type checker
-    image_url?: string; // Add optional Shazam image URL
-    // Add other fields from Shazam if needed
+  recognized_track?: { // From file upload (AcoustID)
+    title?: string | null;      // Title from AcoustID/MusicBrainz recording
+    subtitle?: string | null;   // Artist from AcoustID/MusicBrainz recording
+    acoustid_id?: string | null;// AcoustID's own track ID for the fingerprint cluster
+    mbid?: string | null;       // MusicBrainz Recording ID associated with the AcoustID
+    score?: number | null;      // AcoustID match confidence score (0.0 to 1.0)
   } | null;
   analysis?: { // From Gemini
     description: string;
@@ -237,8 +235,8 @@ const Results: React.FC = () => {
   // Determine display title/artist *before* the return statement
   const displayTitle = sourceTrackForDisplay?.title || 'Unknown Title';
   const displayArtist = musixmatchDataSource?.artist || recognizedDataSource?.subtitle || 'Unknown Artist';
-  // Determine image URL to use
-  const sourceImageUrl = discogs_data?.image_url || recognizedDataSource?.image_url;
+  // Determine image URL to use - Rely only on Discogs for uploaded files now.
+  const sourceImageUrl = discogs_data?.image_url;
 
   // --- Conditional Rendering Logic ---
 
@@ -348,12 +346,12 @@ const Results: React.FC = () => {
                              {discogs_data?.styles && discogs_data.styles.length > 0 && (
                                   <li><span className="font-medium text-foreground">Styles (Discogs):</span> {discogs_data.styles.join(', ')}</li>
                              )}
-                              {sourceTrackForDisplay?.instrumental !== undefined && (
-                                  <li><span className="font-medium text-foreground">Instrumental:</span> {sourceTrackForDisplay.instrumental ? 'Yes' : 'No'}</li>
+                              {/* Check Musixmatch data specifically for Instrumental/Explicit flags */} 
+                              {musixmatchDataSource?.instrumental !== undefined && (
+                                  <li><span className="font-medium text-foreground">Instrumental:</span> {musixmatchDataSource.instrumental ? 'Yes' : 'No'}</li>
                               )}
-                              {/* Add Explicit Flag Back? */}
-                              {sourceTrackForDisplay?.explicit !== undefined && (
-                                  <li><span className="font-medium text-foreground">Explicit:</span> {sourceTrackForDisplay.explicit ? 'Yes' : 'No'}</li>
+                              {musixmatchDataSource?.explicit !== undefined && (
+                                  <li><span className="font-medium text-foreground">Explicit:</span> {musixmatchDataSource.explicit ? 'Yes' : 'No'}</li>
                               )}
                               {musicbrainz_data?.mbid && (
                                  <li>
