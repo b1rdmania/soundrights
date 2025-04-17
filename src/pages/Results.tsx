@@ -18,16 +18,19 @@ interface AnalyzingDisplayProps {
 const AnalyzingDisplay: React.FC<AnalyzingDisplayProps> = ({ title, artist }) => {
   // Dynamically generate lines using props
   const lines = [
-    `> Booting Analysis Core... OK`,
-    `> Query: ${artist} - ${title}`,
-    `> Engaging Musixmatch API... Match found.`,
+    `> Initializing SoundMatch Analysis Core v3.1... OK`,
+    `> Target Locked: ${artist} - ${title}`,
+    `> Engaging Musixmatch API [matcher.track.get]... Match verified.`,
     `> Searching MusicBrainz Identifier Index...`,
     // Simulate MBID/AcousticBrainz step (might or might not happen)
-    Math.random() > 0.3 ? `> MBID Located. Querying AcousticBrainz... Done.` : `> MBID Lookup Failed/Skipped. Proceeding...`,
-    `> Initializing Gemini Language Model...`,
-    `> Generating Sonic Description & Keyword Matrix...`,
-    `> Cross-Referencing Jamendo Royalty-Free Database...`,
-    `> Finalizing Results...`
+    Math.random() > 0.3 
+      ? `> MBID Located. Querying AcousticBrainz [high-level]... Features acquired (BPM/Key).` 
+      : `> MBID Lookup Failed/Skipped. Proceeding with metadata only...`,
+    `> Initializing Gemini Language Model [gemini-1.5-flash]... Ready.`,
+    `> Generating Sonic Description & Keyword Matrix... AI analysis complete.`,
+    `> Cross-Referencing Jamendo Royalty-Free Database [fuzzytags]...`,
+    `> Compiling Results Vector... DONE`,
+    `> Displaying Output...`
   ];
   const [displayedLines, setDisplayedLines] = useState<string[]>([]);
   const [showCursor, setShowCursor] = useState(true);
@@ -54,7 +57,7 @@ const AnalyzingDisplay: React.FC<AnalyzingDisplayProps> = ({ title, artist }) =>
   }, [lines]);
 
   return (
-    <div className="font-mono text-sm text-muted-foreground bg-card p-4 rounded-md shadow-lg border min-h-[200px]">
+    <div className="font-mono text-sm text-muted-foreground bg-card p-4 rounded-md shadow-lg border min-h-[220px]">
       {displayedLines.map((line, i) => (
         <p key={i}>{line}</p>
       ))}
@@ -318,7 +321,22 @@ const Results: React.FC = () => {
               </div>
             </div>
             
-            {/* --- New External Links Section --- */}
+            {/* --- Technical Details Section --- */}
+            <div className="mb-8">
+                <h2 className="text-2xl font-semibold mb-4">Technical Details</h2>
+                <div className="bg-white rounded-lg p-4 shadow-sm border text-xs text-muted-foreground font-mono">
+                    <h4 className="font-semibold text-sm mb-2 text-foreground">Musixmatch Data:</h4>
+                    {sourceTrack ? (
+                        <pre className="overflow-x-auto bg-gray-50 p-2 rounded text-xs">{JSON.stringify(sourceTrack, null, 2)}</pre>
+                    ) : <p>N/A</p>}
+                    
+                    <h4 className="font-semibold text-sm mt-3 mb-2 text-foreground">AcousticBrainz Data:</h4>
+                    {audioFeatures ? (
+                         <pre className="overflow-x-auto bg-gray-50 p-2 rounded text-xs">{JSON.stringify(audioFeatures, null, 2)}</pre>
+                    ) : <p>N/A</p>}
+                </div>
+            </div>
+            
             <div className="mb-8">
                 <h2 className="text-2xl font-semibold mb-4">Find out more</h2>
                 <div className="bg-white rounded-lg p-4 shadow-sm border flex items-center space-x-4">
