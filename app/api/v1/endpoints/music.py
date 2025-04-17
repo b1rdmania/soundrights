@@ -114,9 +114,26 @@ async def search_and_analyze(title: str = Form(...), artist: str = Form(...)) ->
                  "similar_tracks": []
              }
 
-        # 5. Find similar tracks on Jamendo using keywords
-        logger.info(f"Searching Jamendo with keywords: {keywords}")
-        jamendo_tracks = await jamendo_service.find_similar_tracks_by_keywords(keywords=keywords, limit=10)
+        # --- 4. Find similar tracks on Jamendo --- 
+        logger.info(f"Original Gemini keywords: {keywords}")
+        
+        # Prepend Musixmatch genres to the keywords for Jamendo search priority
+        jamendo_search_keywords = list(keywords) # Create a copy
+        musixmatch_genres = musixmatch_metadata.get("genres", [])
+        if musixmatch_genres: 
+            # Add genres at the beginning of the list
+            jamendo_search_keywords = musixmatch_genres + jamendo_search_keywords 
+            logger.info(f"Prepending Musixmatch genres. Keywords for Jamendo: {jamendo_search_keywords}")
+        else:
+            logger.info("No Musixmatch genres to prepend.")
+        
+        # Limit the total number of keywords if it gets too long? Optional.
+        # MAX_JAMENDO_KEYWORDS = 10 
+        # jamendo_search_keywords = jamendo_search_keywords[:MAX_JAMENDO_KEYWORDS]
+            
+        logger.info(f"Searching Jamendo with keywords: {jamendo_search_keywords}")
+        # jamendo_tracks = await jamendo_service.find_similar_tracks_by_keywords(keywords=keywords, limit=10) # OLD
+        jamendo_tracks = await jamendo_service.find_similar_tracks_by_keywords(keywords=jamendo_search_keywords, limit=10) # NEW
         
         logger.info("Search query processing complete.")
 
@@ -268,8 +285,20 @@ async def process_file(file: UploadFile = File(...)) -> Dict[str, Any]:
              }
 
         # 5. Find similar tracks on Jamendo
-        logger.info(f"Searching Jamendo with keywords: {keywords}")
-        jamendo_tracks = await jamendo_service.find_similar_tracks_by_keywords(keywords=keywords, limit=10)
+        logger.info(f"Original Gemini keywords: {keywords}")
+        
+        # Prepend Musixmatch genres (if available) for Jamendo search priority
+        jamendo_search_keywords = list(keywords) # Create a copy
+        if musixmatch_metadata and musixmatch_metadata.get("genres"):
+             musixmatch_genres = musixmatch_metadata.get("genres", [])
+             jamendo_search_keywords = musixmatch_genres + jamendo_search_keywords
+             logger.info(f"Prepending Musixmatch genres. Keywords for Jamendo: {jamendo_search_keywords}")
+        else:
+             logger.info("No Musixmatch genres found to prepend for Jamendo search.")
+             
+        logger.info(f"Searching Jamendo with keywords: {jamendo_search_keywords}")
+        # jamendo_tracks = await jamendo_service.find_similar_tracks_by_keywords(keywords=keywords, limit=10) # OLD
+        jamendo_tracks = await jamendo_service.find_similar_tracks_by_keywords(keywords=jamendo_search_keywords, limit=10) # NEW
         
         logger.info("File processing complete.")
 
