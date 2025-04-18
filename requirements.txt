@@ -1,5 +1,3 @@
-# Corrected requirements content
-correct_requirements = """annotated-types==0.7.0
 cachetools==5.5.2
 certifi==2025.1.31
 charset-normalizer==3.4.1
@@ -38,4 +36,3 @@ discogs-client
 aiofiles
 musicbrainzngs
 # pyjamendo # Optional Jamendo client
-"""
