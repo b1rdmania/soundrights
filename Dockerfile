@@ -11,10 +11,10 @@ RUN apt-get update && apt-get install -y \
 # Copy requirements first to leverage Docker cache
 COPY requirements.txt .
 
-# Install older setuptools for compatibility with older packages like python-musixmatch
-RUN pip install --no-cache-dir "setuptools<58"
+# Upgrade pip first
+RUN pip install --upgrade pip
 
-# Now install the rest of the requirements
+# Install requirements
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application
