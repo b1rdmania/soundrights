@@ -1,4 +1,5 @@
-annotated-types==0.7.0
+# Corrected requirements content
+correct_requirements = """annotated-types==0.7.0
 cachetools==5.5.2
 certifi==2025.1.31
 charset-normalizer==3.4.1
@@ -35,9 +36,6 @@ uvicorn[standard]==0.30.3
 python-multipart
 discogs-client
 aiofiles
-
-# Music Metadata & Analysis
-# shazamio # REMOVE: Audio recognition via Shazam
-musicbrainzngs # MusicBrainz API client
-python-musixmatch # Musixmatch API client
-pyjamendo # Jamendo API client (if a dedicated library exists, else use httpx)
+musicbrainzngs
+# pyjamendo # Optional Jamendo client
+"""
