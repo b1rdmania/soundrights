@@ -20,6 +20,8 @@ import subprocess
 import aiofiles
 from .dependencies import get_musixmatch_service, get_jamendo_service, get_gemini_service, get_musicbrainz_service, get_discogs_service, get_wikipedia_service
 from app.services.audio_identification.acoustid_service import AcoustIDClient, AcoustIDError
+import json
+import sys
 
 router = APIRouter()
 
@@ -525,6 +527,135 @@ async def process_file(
             status_code=500,
             detail=f"An unexpected error occurred during file processing."
         )
+
+@router.post("/diagnose-upload")
+async def diagnose_upload(file: UploadFile = File(...)) -> Dict[str, Any]:
+    """
+    Diagnostic endpoint to test file uploads and fpcalc functionality.
+    
+    Returns detailed information about the upload, temporary file, and fpcalc status.
+    """
+    diagnostic_info = {
+        "timestamp": str(time.time()),
+        "upload": {},
+        "temp_file": {},
+        "fpcalc": {},
+        "environment": {}
+    }
+    
+    # Check upload information
+    diagnostic_info["upload"] = {
+        "filename": file.filename,
+        "content_type": file.content_type,
+        "size": 0,  # Will update after reading
+    }
+    
+    # Check environment
+    diagnostic_info["environment"] = {
+        "working_directory": os.getcwd(),
+        "temp_dir": tempfile.gettempdir(),
+        "temp_dir_writable": os.access(tempfile.gettempdir(), os.W_OK),
+        "path": os.environ.get("PATH", ""),
+        "python_version": sys.version,
+        "platform": sys.platform
+    }
+    
+    # Create temporary file and check
+    tmp_file_path = None
+    try:
+        # Get file extension
+        file_ext = os.path.splitext(file.filename)[1] or '.tmp'
+        
+        with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as tmp_file:
+            tmp_file_path = tmp_file.name
+            
+            # Read and write content
+            content = await file.read()
+            diagnostic_info["upload"]["size"] = len(content)
+            
+            async with aiofiles.open(tmp_file_path, 'wb') as f:
+                await f.write(content)
+            
+            # Check temp file properties
+            if os.path.exists(tmp_file_path):
+                stat_info = os.stat(tmp_file_path)
+                diagnostic_info["temp_file"] = {
+                    "path": tmp_file_path,
+                    "exists": True,
+                    "size": stat_info.st_size,
+                    "permissions": oct(stat_info.st_mode)[-3:],
+                    "content_preview": str(content[:50]) if content else "Empty"
+                }
+            else:
+                diagnostic_info["temp_file"] = {
+                    "path": tmp_file_path,
+                    "exists": False,
+                    "error": "File was not created"
+                }
+            
+            # Test fpcalc
+            try:
+                # Check if fpcalc exists
+                process = await asyncio.create_subprocess_exec(
+                    'which', 'fpcalc',
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE
+                )
+                stdout, stderr = await process.communicate()
+                
+                if process.returncode == 0 and stdout:
+                    fpcalc_path = stdout.decode().strip()
+                    diagnostic_info["fpcalc"]["found"] = True
+                    diagnostic_info["fpcalc"]["path"] = fpcalc_path
+                else:
+                    diagnostic_info["fpcalc"]["found"] = False
+                    diagnostic_info["fpcalc"]["error"] = "fpcalc not found in PATH"
+                
+                # Try running fpcalc on the temp file
+                if diagnostic_info["fpcalc"].get("found", False):
+                    process = await asyncio.create_subprocess_exec(
+                        'fpcalc', '-json', tmp_file_path,
+                        stdout=asyncio.subprocess.PIPE,
+                        stderr=asyncio.subprocess.PIPE
+                    )
+                    stdout, stderr = await process.communicate()
+                    
+                    if process.returncode == 0:
+                        try:
+                            result = json.loads(stdout.decode())
+                            diagnostic_info["fpcalc"]["execution"] = "success"
+                            diagnostic_info["fpcalc"]["result"] = {
+                                "duration": result.get("duration"),
+                                "fingerprint_length": len(result.get("fingerprint", ""))
+                            }
+                        except json.JSONDecodeError:
+                            diagnostic_info["fpcalc"]["execution"] = "parsing_error"
+                            diagnostic_info["fpcalc"]["stdout"] = stdout.decode()[:200]  # First 200 chars
+                    else:
+                        diagnostic_info["fpcalc"]["execution"] = "failed"
+                        diagnostic_info["fpcalc"]["returncode"] = process.returncode
+                        diagnostic_info["fpcalc"]["stderr"] = stderr.decode()
+                
+            except Exception as e:
+                diagnostic_info["fpcalc"]["execution"] = "exception"
+                diagnostic_info["fpcalc"]["error"] = str(e)
+                diagnostic_info["fpcalc"]["exception_type"] = type(e).__name__
+    
+    except Exception as e:
+        diagnostic_info["error"] = str(e)
+        diagnostic_info["exception_type"] = type(e).__name__
+    
+    finally:
+        # Clean up temp file
+        if tmp_file_path and os.path.exists(tmp_file_path):
+            try:
+                os.unlink(tmp_file_path)
+                diagnostic_info["temp_file"]["cleanup"] = "success"
+            except Exception as e:
+                diagnostic_info["temp_file"]["cleanup"] = "failed"
+                diagnostic_info["temp_file"]["cleanup_error"] = str(e)
+    
+    return diagnostic_info
 
 # Remove the old /process-link implementation if not needed, or update it similarly
 # @router.post("/process-link") ... 
