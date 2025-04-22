@@ -5,7 +5,7 @@ from app.services.ai.gemini_service import gemini_service
 from app.services.metadata.musicbrainz import musicbrainz_client
 from app.services.metadata.discogs_service import discogs_service
 from app.services.metadata.wikipedia_service import wikipedia_service
-from app.services.metadata.acoustid import AcoustIDClient
+from app.services.audio_identification.acoustid_service import acoustid_client, AcoustIDClient
 
 # Simple dependency injections that return service instances
 def get_musixmatch_service():
@@ -26,4 +26,5 @@ def get_discogs_service():
 def get_wikipedia_service():
     return wikipedia_service
 
-acoustid_client: AcoustIDClient = Depends(lambda: acoustid_client) 
+def get_acoustid_client():
+    return acoustid_client 

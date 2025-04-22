@@ -18,7 +18,7 @@ import asyncio
 from fastapi import status
 import subprocess
 import aiofiles
-from .dependencies import get_musixmatch_service, get_jamendo_service, get_gemini_service, get_musicbrainz_service, get_discogs_service, get_wikipedia_service
+from .dependencies import get_musixmatch_service, get_jamendo_service, get_gemini_service, get_musicbrainz_service, get_discogs_service, get_wikipedia_service, get_acoustid_client
 from app.services.audio_identification.acoustid_service import AcoustIDClient, AcoustIDError, acoustid_client
 import json
 import sys
@@ -235,7 +235,7 @@ async def process_file(
     musicbrainz_client: MusicBrainzClient = Depends(get_musicbrainz_service),
     discogs_service: DiscogsService = Depends(get_discogs_service),
     wikipedia_service: WikipediaService = Depends(get_wikipedia_service),
-    acoustid_client: AcoustIDClient = Depends(lambda: acoustid_client)
+    acoustid_client: AcoustIDClient = Depends(get_acoustid_client)
 ) -> Dict[str, Any]:
     """
     Recognize uploaded audio with AcoustID/fpcalc, enrich with Musixmatch/MusicBrainz/Discogs/Wikipedia, 
@@ -535,6 +535,7 @@ async def process_file(
 async def diagnose_upload(
     file: UploadFile = File(...),
     results_limit: int = Query(default=5, description="Maximum number of results to return"),
+    acoustid_client: AcoustIDClient = Depends(get_acoustid_client),
 ):
     """
     Diagnostic endpoint to test file uploads and AcoustID processing.
