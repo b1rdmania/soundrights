@@ -106,13 +106,12 @@ const UploadForm: React.FC<UploadFormProps> = ({ onUpload }) => {
         
         onUpload(response.data);
       } else if (link) {
-        // Process link
-        const formData = new FormData();
-        formData.append('url', link);
+        // Process YouTube link
+        const requestData = { url: link };
         
-        const response = await api.post('/music/process-link', formData, {
+        const response = await api.post('/music/process-link', requestData, {
           headers: {
-            'Content-Type': 'multipart/form-data',
+            'Content-Type': 'application/json',
           },
         });
         
@@ -138,7 +137,7 @@ const UploadForm: React.FC<UploadFormProps> = ({ onUpload }) => {
         
         onUpload(response.data);
       } else {
-        toast.error('Please provide Song Title & Artist, upload a file, or paste a link');
+        toast.error('Please provide Song Title & Artist, upload a file, or paste a YouTube link');
         setIsLoading(false);
         return;
       }
@@ -168,7 +167,7 @@ const UploadForm: React.FC<UploadFormProps> = ({ onUpload }) => {
       <div className="mb-8">
         <h2 className="text-2xl font-semibold mb-2">Find Similar Music</h2>
         <p className="text-muted-foreground">
-          Search for a song, upload a file, or paste a link to find similar copyright-free music.
+          Search for a song, upload a file, or paste a YouTube link to find similar copyright-free music.
         </p>
       </div>
       
@@ -192,7 +191,7 @@ const UploadForm: React.FC<UploadFormProps> = ({ onUpload }) => {
           onClick={() => handleMethodChange('link')}
         >
           <LinkIcon className="inline-block mr-2 h-4 w-4" />
-          Paste Link
+          YouTube Link
         </button>
       </div>
       
@@ -280,7 +279,7 @@ const UploadForm: React.FC<UploadFormProps> = ({ onUpload }) => {
         {selectedMethod === 'link' && (
           <div className="space-y-2">
             <label htmlFor="link" className="block text-sm font-medium">
-              Paste your music link
+              Paste your YouTube video link
             </label>
             <input
               id="link"
@@ -288,7 +287,7 @@ const UploadForm: React.FC<UploadFormProps> = ({ onUpload }) => {
               type="text"
               value={link}
               onChange={handleLinkChange}
-              placeholder="https://example.com/music"
+              placeholder="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
               className="w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               required={selectedMethod === 'link'}
             />

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends, Query
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends, Query, Body
 from typing import Dict, Any, List, Optional
 import requests
 from app.core.config import settings
@@ -10,7 +10,8 @@ from app.services.recognition.shazam import zyla_shazam_client
 from app.services.ai.gemini_service import gemini_service, GeminiService
 from app.services.metadata.discogs_service import discogs_service, DiscogsService
 from app.services.metadata.wikipedia_service import wikipedia_service, WikipediaService
-from app.core.exceptions import RecognitionAPIError, AIServiceError, MusixmatchAPIError, MetadataAPIError
+from app.services.youtube.client import youtube_client
+from app.core.exceptions import RecognitionAPIError, AIServiceError, MusixmatchAPIError, MetadataAPIError, InvalidURLError
 import tempfile
 import os
 import time
@@ -25,6 +26,8 @@ import sys
 import traceback
 from pathlib import Path
 from app.utils.id3_extractor import extract_id3_tags
+
+from pydantic import BaseModel
 
 router = APIRouter()
 
@@ -681,6 +684,256 @@ async def diagnose_upload(
             "error_type": type(e).__name__,
             "traceback": traceback.format_exc()
         }
+
+# Define request model for YouTube link processing
+class YouTubeLinkRequest(BaseModel):
+    url: str
+
+@router.post("/process-link")
+async def process_link(
+    request: YouTubeLinkRequest,
+    musixmatch_service: MusixmatchService = Depends(get_musixmatch_service),
+    jamendo_service: JamendoService = Depends(get_jamendo_service),
+    gemini_service: GeminiService = Depends(get_gemini_service),
+    musicbrainz_client: MusicBrainzClient = Depends(get_musicbrainz_service),
+    discogs_service: DiscogsService = Depends(get_discogs_service),
+    wikipedia_service: WikipediaService = Depends(get_wikipedia_service)
+) -> Dict[str, Any]:
+    """
+    Process a YouTube link to get song info, then search Musixmatch, analyze with Gemini,
+    and find similar tracks on Jamendo.
+    
+    Args:
+        request: YouTubeLinkRequest containing a YouTube URL
+        
+    Returns:
+        Dictionary containing search result, analysis, and similar tracks
+    """
+    try:
+        logger.info(f"Processing YouTube link: {request.url}")
+        
+        # Extract video ID and get video info from YouTube
+        video_id = youtube_client.extract_video_id(request.url)
+        video_info = youtube_client.get_video_info(video_id)
+        
+        video_title = video_info['title']
+        channel_name = video_info['channel']
+        
+        logger.info(f"YouTube video title: {video_title}, Channel: {channel_name}")
+        
+        # Parse video title to extract artist and song name
+        # Common formats:
+        # - "Artist - Song Name"
+        # - "Artist - Song Name (Official Video)"
+        # - "Artist "Song Name" (Official Video)"
+        
+        artist = None
+        title = None
+        
+        # First try Artist - Title format
+        if " - " in video_title:
+            parts = video_title.split(" - ", 1)
+            artist = parts[0].strip()
+            title = parts[1].strip()
+            
+            # Clean up title by removing common suffixes
+            for suffix in ["(Official Video)", "(Official Music Video)", "(Official Lyric Video)", 
+                          "(Lyrics)", "(Audio)", "(Visualizer)", "[Official Video]"]:
+                if suffix.lower() in title.lower():
+                    title = title.lower().replace(suffix.lower(), "").strip()
+        else:
+            # If no dash, use channel name as artist and full title as song name
+            artist = channel_name
+            title = video_title
+            
+            # Try to clean up the title if it appears to have the artist name in it
+            if artist.lower() in title.lower():
+                title = title.lower().replace(artist.lower(), "").strip()
+                # Remove any leading punctuation
+                title = title.lstrip(" -\"'[]():")
+        
+        logger.info(f"Parsed artist: {artist}, title: {title}")
+        
+        # If we couldn't parse a usable artist/title, return an error
+        if not artist or not title:
+            raise HTTPException(
+                status_code=400,
+                detail="Could not extract artist and song information from YouTube title"
+            )
+        
+        # Initialize variables
+        musixmatch_metadata: Optional[Dict] = None
+        musicbrainz_data: Optional[Dict] = None
+        discogs_data: Optional[Dict] = None
+        wikipedia_summary: Optional[str] = None
+        gemini_analysis: Optional[Dict] = None
+        jamendo_tracks: List[Dict] = []
+
+        # --- Try Musixmatch but continue without it if it fails ---
+        try:
+            # Try searching Musixmatch using the extracted artist/title
+            logger.info(f"Searching Musixmatch for title: '{title}', artist: '{artist}'")
+            musixmatch_metadata = await musixmatch_service.get_track_metadata(title=title, artist=artist)
+            logger.info(f"Musixmatch search succeeded for: {title} by {artist}")
+        except MusixmatchAPIError as e:
+            logger.warning(f"Musixmatch search failed: {e}. Trying fallback search...")
+            # Fallback: Try using the general track.search endpoint
+            try:
+                fallback_query = f"{title} {artist}"
+                musixmatch_metadata = await musixmatch_service.search_track_by_query(fallback_query)
+                if musixmatch_metadata:
+                    logger.info(f"Musixmatch fallback search succeeded for query: {fallback_query}")
+                else:
+                    logger.warning(f"Musixmatch fallback search found no track for: {fallback_query}")
+                    # Continue without Musixmatch data
+                    musixmatch_metadata = None
+            except Exception as fallback_e:
+                # If fallback search also fails, log and continue without Musixmatch
+                logger.error(f"Musixmatch fallback search also failed: {fallback_e}")
+                musixmatch_metadata = None
+        except Exception as e:
+            # Any other Musixmatch error, just log and continue
+            logger.error(f"Unexpected Musixmatch error: {e}")
+            musixmatch_metadata = None
+            
+        # Create base metadata from YouTube if Musixmatch failed
+        if not musixmatch_metadata:
+            logger.info("Creating basic metadata from YouTube info")
+            musixmatch_metadata = {
+                "title": title,
+                "artist": artist,
+                "source": "youtube",
+                "video_id": video_id,
+                "thumbnail": video_info.get('thumbnail')
+            }
+        
+        # Determine best title/artist from all available sources
+        lookup_title = musixmatch_metadata.get('title', title)
+        lookup_artist = musixmatch_metadata.get('artist', artist)
+        
+        # --- 2. Get MusicBrainz Data (Tags, MBID) --- 
+        try:
+            musicbrainz_data = await musicbrainz_client.get_musicbrainz_data(title=lookup_title, artist=lookup_artist)
+            if musicbrainz_data:
+                logger.info(f"Successfully retrieved MusicBrainz data")
+            else:
+                logger.info(f"No suitable MusicBrainz data found for {lookup_title} by {lookup_artist}.")
+        except Exception as e: 
+             logger.exception(f"Unexpected error searching MusicBrainz: {e}. Proceeding without it.")
+             musicbrainz_data = None
+
+        # --- 3. Get Discogs Data --- 
+        try:
+            discogs_data = await discogs_service.get_release_data(title=lookup_title, artist=lookup_artist)
+            if discogs_data:
+                logger.info(f"Successfully retrieved Discogs data")
+            else:
+                logger.info(f"No suitable Discogs data found for {lookup_title} by {lookup_artist}.")
+        except Exception as e: 
+             logger.exception(f"Unexpected error searching Discogs: {e}. Proceeding without it.")
+             discogs_data = None
+
+        # --- 4. Get Wikipedia Summary --- 
+        try:
+            wiki_search_term = f"{lookup_title} ({lookup_artist} song)"
+            wikipedia_summary = await wikipedia_service.get_wikipedia_summary(wiki_search_term)
+            if not wikipedia_summary:
+                 logger.info(f"No Wikipedia summary found for: {wiki_search_term}. Trying title only...")
+                 wiki_search_term_fallback = f"{lookup_title} (song)"
+                 wikipedia_summary = await wikipedia_service.get_wikipedia_summary(wiki_search_term_fallback)
+        except Exception as e:
+             logger.exception(f"Unexpected error fetching Wikipedia summary: {e}. Proceeding without it.")
+             wikipedia_summary = None
+
+        # --- Analyze with Gemini --- 
+        try:
+            # Combine data for Gemini analysis - use all available metadata
+            analysis_input = {**musixmatch_metadata} # Start with Musixmatch data
+            if musicbrainz_data and musicbrainz_data.get("tags"):
+                analysis_input["musicbrainz_tags"] = musicbrainz_data["tags"]
+            
+            if discogs_data:
+                if discogs_data.get("styles"):
+                     analysis_input["discogs_styles"] = discogs_data["styles"]
+                if discogs_data.get("year"):
+                     analysis_input["discogs_year"] = discogs_data["year"]
+            
+            # Add YouTube-specific info that might help Gemini
+            analysis_input["youtube_title"] = video_title
+            analysis_input["youtube_channel"] = channel_name
+            
+            logger.info(f"Starting Gemini analysis with combined data: {analysis_input.get('title')}...")
+            gemini_analysis = await gemini_service.analyze_song_and_generate_keywords(analysis_input)
+            logger.info(f"Gemini analysis successful. Keywords: {gemini_analysis['keywords']}")
+            keywords = gemini_analysis.get("keywords", [])
+
+            # If Gemini doesn't return keywords, create some basic ones
+            if not keywords:
+                 logger.warning("Gemini failed to generate keywords. Using fallback keywords.")
+                 # Generate some basic keywords from what we know
+                 keywords = []
+                 if lookup_artist:
+                     keywords.append(lookup_artist)
+                 if discogs_data and discogs_data.get("styles"):
+                     keywords.extend(discogs_data["styles"])
+                 if discogs_data and discogs_data.get("genres"):
+                     keywords.extend(discogs_data["genres"])
+                 if musicbrainz_data and musicbrainz_data.get("tags"):
+                     keywords.extend(musicbrainz_data["tags"][:5])  # Add top 5 MusicBrainz tags
+                     
+                 # Add some basic generic keywords if we still have none
+                 if not keywords:
+                     logger.warning("No keywords found from any source. Using generic keywords.")
+                     keywords = ["music", "song", channel_name]
+
+            # --- 5. Find similar tracks on Jamendo --- 
+            jamendo_search_keywords = list(keywords)
+            musixmatch_genres = musixmatch_metadata.get("genres", [])
+            if musixmatch_genres: 
+                # Add genres at the beginning of the list
+                jamendo_search_keywords = musixmatch_genres + jamendo_search_keywords
+                
+            logger.info(f"Searching Jamendo with keywords: {jamendo_search_keywords}")
+            jamendo_tracks = await jamendo_service.find_similar_tracks_by_keywords(keywords=jamendo_search_keywords, limit=10)
+            
+            logger.info("YouTube link processing complete.")
+
+            return {
+                "source_url": request.url,
+                "video_info": video_info,
+                "parsed_info": {"title": title, "artist": artist},
+                "source_track": musixmatch_metadata, 
+                "musicbrainz_data": musicbrainz_data,
+                "discogs_data": discogs_data,
+                "wikipedia_summary": wikipedia_summary,
+                "analysis": gemini_analysis, 
+                "similar_tracks": jamendo_tracks
+            }
+
+        except AIServiceError as e:
+            logger.error(f"Gemini analysis failed: {str(e)}")
+            # Continue without Gemini analysis - we still have YouTube & other metadata
+            return {
+                "source_url": request.url,
+                "video_info": video_info,
+                "parsed_info": {"title": title, "artist": artist},
+                "source_track": musixmatch_metadata, 
+                "musicbrainz_data": musicbrainz_data,
+                "discogs_data": discogs_data,
+                "wikipedia_summary": wikipedia_summary,
+                "analysis": {"description": "AI analysis failed.", "keywords": []}, 
+                "similar_tracks": []
+            }
+    
+    except InvalidURLError as e:
+        logger.error(f"Invalid YouTube URL: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Invalid YouTube URL: {str(e)}")
+    except Exception as e:
+        logger.exception(f"Error processing YouTube link: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"An unexpected error occurred while processing the YouTube link: {str(e)}"
+        )
 
 # Remove the old /process-link implementation if not needed, or update it similarly
 # @router.post("/process-link") ... 

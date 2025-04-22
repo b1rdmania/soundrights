@@ -11,7 +11,7 @@ SoundMatch AI aims to be an intelligent platform that helps content creators, de
 Users can:
 - **Search by song/artist:** Enter a known song, and the app will find similar royalty-free alternatives.
 - **Upload an MP3:** Analyze an existing audio file to find similar royalty-free tracks.
-- **Paste a link:** Analyze a music link (e.g., Spotify, YouTube - *future feature*) to find similar royalty-free tracks.
+- **Paste a link:** Analyze a YouTube link to find similar royalty-free tracks.
 
 The core idea is to leverage metadata analysis (using MusicBrainz) and similarity searching (using Jamendo) to provide relevant and usable music recommendations.
 
