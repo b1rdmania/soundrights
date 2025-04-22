@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends, Query
 from typing import Dict, Any, List, Optional
 import requests
 from app.core.config import settings
@@ -19,9 +19,11 @@ from fastapi import status
 import subprocess
 import aiofiles
 from .dependencies import get_musixmatch_service, get_jamendo_service, get_gemini_service, get_musicbrainz_service, get_discogs_service, get_wikipedia_service
-from app.services.audio_identification.acoustid_service import AcoustIDClient, AcoustIDError
+from app.services.audio_identification.acoustid_service import AcoustIDClient, AcoustIDError, acoustid_client
 import json
 import sys
+import traceback
+from pathlib import Path
 
 router = APIRouter()
 
@@ -232,7 +234,8 @@ async def process_file(
     gemini_service: GeminiService = Depends(get_gemini_service),
     musicbrainz_client: MusicBrainzClient = Depends(get_musicbrainz_service),
     discogs_service: DiscogsService = Depends(get_discogs_service),
-    wikipedia_service: WikipediaService = Depends(get_wikipedia_service)
+    wikipedia_service: WikipediaService = Depends(get_wikipedia_service),
+    acoustid_client: AcoustIDClient = Depends(lambda: acoustid_client)
 ) -> Dict[str, Any]:
     """
     Recognize uploaded audio with AcoustID/fpcalc, enrich with Musixmatch/MusicBrainz/Discogs/Wikipedia, 
@@ -529,133 +532,83 @@ async def process_file(
         )
 
 @router.post("/diagnose-upload")
-async def diagnose_upload(file: UploadFile = File(...)) -> Dict[str, Any]:
+async def diagnose_upload(
+    file: UploadFile = File(...),
+    results_limit: int = Query(default=5, description="Maximum number of results to return"),
+):
     """
-    Diagnostic endpoint to test file uploads and fpcalc functionality.
-    
-    Returns detailed information about the upload, temporary file, and fpcalc status.
+    Diagnostic endpoint to test file uploads and AcoustID processing.
     """
-    diagnostic_info = {
-        "timestamp": str(time.time()),
-        "upload": {},
-        "temp_file": {},
-        "fpcalc": {},
-        "environment": {}
-    }
-    
-    # Check upload information
-    diagnostic_info["upload"] = {
-        "filename": file.filename,
-        "content_type": file.content_type,
-        "size": 0,  # Will update after reading
-    }
-    
-    # Check environment
-    diagnostic_info["environment"] = {
-        "working_directory": os.getcwd(),
-        "temp_dir": tempfile.gettempdir(),
-        "temp_dir_writable": os.access(tempfile.gettempdir(), os.W_OK),
-        "path": os.environ.get("PATH", ""),
-        "python_version": sys.version,
-        "platform": sys.platform
-    }
-    
-    # Create temporary file and check
-    tmp_file_path = None
     try:
-        # Get file extension
-        file_ext = os.path.splitext(file.filename)[1] or '.tmp'
+        # Test file upload
+        content = await file.read()
+        file_size = len(content)
+        await file.seek(0)
         
-        with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as tmp_file:
-            tmp_file_path = tmp_file.name
-            
-            # Read and write content
-            content = await file.read()
-            diagnostic_info["upload"]["size"] = len(content)
-            
-            async with aiofiles.open(tmp_file_path, 'wb') as f:
-                await f.write(content)
-            
-            # Check temp file properties
-            if os.path.exists(tmp_file_path):
-                stat_info = os.stat(tmp_file_path)
-                diagnostic_info["temp_file"] = {
-                    "path": tmp_file_path,
-                    "exists": True,
-                    "size": stat_info.st_size,
-                    "permissions": oct(stat_info.st_mode)[-3:],
-                    "content_preview": str(content[:50]) if content else "Empty"
-                }
-            else:
-                diagnostic_info["temp_file"] = {
-                    "path": tmp_file_path,
-                    "exists": False,
-                    "error": "File was not created"
-                }
-            
-            # Test fpcalc
-            try:
-                # Check if fpcalc exists
-                process = await asyncio.create_subprocess_exec(
-                    'which', 'fpcalc',
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE
-                )
-                stdout, stderr = await process.communicate()
-                
-                if process.returncode == 0 and stdout:
-                    fpcalc_path = stdout.decode().strip()
-                    diagnostic_info["fpcalc"]["found"] = True
-                    diagnostic_info["fpcalc"]["path"] = fpcalc_path
-                else:
-                    diagnostic_info["fpcalc"]["found"] = False
-                    diagnostic_info["fpcalc"]["error"] = "fpcalc not found in PATH"
-                
-                # Try running fpcalc on the temp file
-                if diagnostic_info["fpcalc"].get("found", False):
-                    process = await asyncio.create_subprocess_exec(
-                        'fpcalc', '-json', tmp_file_path,
-                        stdout=asyncio.subprocess.PIPE,
-                        stderr=asyncio.subprocess.PIPE
-                    )
-                    stdout, stderr = await process.communicate()
-                    
-                    if process.returncode == 0:
-                        try:
-                            result = json.loads(stdout.decode())
-                            diagnostic_info["fpcalc"]["execution"] = "success"
-                            diagnostic_info["fpcalc"]["result"] = {
-                                "duration": result.get("duration"),
-                                "fingerprint_length": len(result.get("fingerprint", ""))
-                            }
-                        except json.JSONDecodeError:
-                            diagnostic_info["fpcalc"]["execution"] = "parsing_error"
-                            diagnostic_info["fpcalc"]["stdout"] = stdout.decode()[:200]  # First 200 chars
-                    else:
-                        diagnostic_info["fpcalc"]["execution"] = "failed"
-                        diagnostic_info["fpcalc"]["returncode"] = process.returncode
-                        diagnostic_info["fpcalc"]["stderr"] = stderr.decode()
-                
-            except Exception as e:
-                diagnostic_info["fpcalc"]["execution"] = "exception"
-                diagnostic_info["fpcalc"]["error"] = str(e)
-                diagnostic_info["fpcalc"]["exception_type"] = type(e).__name__
-    
+        # Create a temporary file
+        suffix = Path(file.filename).suffix
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp_file:
+            temp_file.write(content)
+            temp_path = temp_file.name
+        
+        # Test if fpcalc is available by running a direct subprocess call
+        try:
+            fpcalc_result = subprocess.run(
+                ["fpcalc", "-json", temp_path],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            fpcalc_output = fpcalc_result.stdout
+            fpcalc_error = fpcalc_result.stderr
+            fpcalc_returncode = fpcalc_result.returncode
+        except Exception as e:
+            fpcalc_output = None
+            fpcalc_error = str(e)
+            fpcalc_returncode = -1
+        
+        # Test AcoustID client
+        acoustid_result = None
+        acoustid_error = None
+        try:
+            if fpcalc_returncode == 0:
+                fingerprint_data = json.loads(fpcalc_output)
+                duration = fingerprint_data.get("duration")
+                fingerprint = fingerprint_data.get("fingerprint")
+                if duration and fingerprint:
+                    acoustid_result = await acoustid_client.lookup_fingerprint(fingerprint, duration)
+        except Exception as e:
+            acoustid_error = str(e)
+        
+        # Clean up
+        os.unlink(temp_path)
+        
+        return {
+            "upload_success": True,
+            "file_info": {
+                "filename": file.filename,
+                "content_type": file.content_type,
+                "size_bytes": file_size
+            },
+            "fpcalc_test": {
+                "available": fpcalc_returncode == 0,
+                "return_code": fpcalc_returncode,
+                "error": fpcalc_error if fpcalc_error else None,
+                "output_sample": fpcalc_output[:500] if fpcalc_output else None
+            },
+            "acoustid_test": {
+                "success": acoustid_result is not None,
+                "error": acoustid_error,
+                "result_sample": str(acoustid_result)[:500] if acoustid_result else None
+            }
+        }
     except Exception as e:
-        diagnostic_info["error"] = str(e)
-        diagnostic_info["exception_type"] = type(e).__name__
-    
-    finally:
-        # Clean up temp file
-        if tmp_file_path and os.path.exists(tmp_file_path):
-            try:
-                os.unlink(tmp_file_path)
-                diagnostic_info["temp_file"]["cleanup"] = "success"
-            except Exception as e:
-                diagnostic_info["temp_file"]["cleanup"] = "failed"
-                diagnostic_info["temp_file"]["cleanup_error"] = str(e)
-    
-    return diagnostic_info
+        return {
+            "upload_success": False,
+            "error": str(e),
+            "error_type": type(e).__name__,
+            "traceback": traceback.format_exc()
+        }
 
 # Remove the old /process-link implementation if not needed, or update it similarly
 # @router.post("/process-link") ... 
