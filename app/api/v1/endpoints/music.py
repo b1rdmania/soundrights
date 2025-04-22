@@ -319,8 +319,19 @@ async def process_file(
                         else:
                             logger.warning("AcoustID result found, but no recording metadata available.")
                             logger.warning(f"Available keys in result: {acoustid_result.keys()}")
-                            # Fallback? Could use just the AcoustID? For now, treat as not found.
-                            recognized_track = None 
+                            
+                            # Create a recognized track with just the AcoustID ID
+                            if acoustid_result.get('id'):
+                                recognized_track = {
+                                    "title": f"Unknown Track (AcoustID: {acoustid_result.get('id')[:8]}...)",
+                                    "subtitle": "Unknown Artist",
+                                    "acoustid_id": acoustid_result.get('id'),
+                                    "score": acoustid_result.get('score')
+                                }
+                                logger.info(f"Created fallback recognized track: {recognized_track}")
+                            else:
+                                # Still no usable data
+                                recognized_track = None
                     else:
                         logger.warning(f"AcoustID did not recognize the track or score too low ({acoustid_result.get('score') if acoustid_result else 'N/A'}).")
                         recognized_track = None
