@@ -111,10 +111,20 @@ class AcoustIDClient:
             logger.warning(f"Could not get fingerprint/duration for {file_path}")
             return None
 
+        return await self.lookup_by_fingerprint(
+            fpcalc_result['fingerprint'], 
+            fpcalc_result['duration'],
+            metadata
+        )
+
+    async def lookup_by_fingerprint(self, fingerprint: str, duration: float, metadata: Optional[list[str]] = None) -> Optional[Dict[str, Any]]:
+        """Looks up a fingerprint via AcoustID API using pre-calculated fingerprint and duration."""
+        logger.info(f"Starting lookup for pre-calculated fingerprint, duration: {duration}")
+        
         params = {
             **self.base_params,
-            "duration": str(int(fpcalc_result['duration'])), # Duration must be an integer string
-            "fingerprint": fpcalc_result['fingerprint'],
+            "duration": str(int(duration)), # Duration must be an integer string
+            "fingerprint": fingerprint,
         }
         if metadata:
             # e.g., ['recordings', 'releasegroups', 'compress']
@@ -123,7 +133,7 @@ class AcoustIDClient:
 
         async with httpx.AsyncClient() as client:
             try:
-                logger.info(f"Querying AcoustID API for fingerprint of {file_path}...")
+                logger.info(f"Querying AcoustID API for pre-calculated fingerprint...")
                 # Log request details (excluding the full fingerprint for brevity)
                 debug_params = {k: (v[:20] + '...' if k == 'fingerprint' and len(v) > 20 else v) for k, v in params.items()}
                 logger.info(f"Request parameters: {debug_params}")
@@ -137,7 +147,7 @@ class AcoustIDClient:
                 if data.get("status") == "ok" and data.get("results"):
                     # Return the first result (usually the highest score)
                     best_result = max(data["results"], key=lambda x: x.get('score', 0), default=None)
-                    logger.info(f"AcoustID lookup successful for {file_path}. Score: {best_result.get('score') if best_result else 'N/A'}")
+                    logger.info(f"AcoustID lookup successful. Score: {best_result.get('score') if best_result else 'N/A'}")
                     
                     # Add more detailed logging about the result
                     if best_result:
@@ -150,7 +160,7 @@ class AcoustIDClient:
                     return best_result 
                 else:
                     error_message = data.get("error", {}).get("message", "Unknown error")
-                    logger.warning(f"AcoustID lookup failed for {file_path}. Status: {data.get('status')}, Error: {error_message}")
+                    logger.warning(f"AcoustID lookup failed. Status: {data.get('status')}, Error: {error_message}")
                     # Log the full response for debugging
                     logger.warning(f"Full API response: {data}")
                     return None

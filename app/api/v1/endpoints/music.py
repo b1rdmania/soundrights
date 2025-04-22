@@ -577,8 +577,8 @@ async def diagnose_upload(
                 duration = fingerprint_data.get("duration")
                 fingerprint = fingerprint_data.get("fingerprint")
                 if duration and fingerprint:
-                    # Pass both fingerprint and duration to the API
-                    acoustid_result = await acoustid_client.lookup_fingerprint(fingerprint, duration)
+                    # Pass both fingerprint and duration to the API using the new method
+                    acoustid_result = await acoustid_client.lookup_by_fingerprint(fingerprint, duration)
         except Exception as e:
             acoustid_error = str(e)
         
