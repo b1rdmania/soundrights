@@ -294,16 +294,19 @@ async def process_file(
                 recognized_track: Optional[Dict] = None # This will hold the mapped result
                 try:
                     # Request recordings and release groups for metadata
+                    logger.info(f"About to call AcoustID lookup with file: {tmp_file_path}")
                     acoustid_result = await acoustid_client.lookup_fingerprint(
                         tmp_file_path, 
                         metadata=['recordings', 'releasegroups', 'compress']
                     )
+                    logger.info(f"AcoustID result details: {acoustid_result}")
 
                     if acoustid_result and acoustid_result.get('score', 0) > 0.5: # Check score threshold
                         logger.info(f"AcoustID recognized track with score: {acoustid_result['score']}")
                         # Try to extract metadata from the first recording
                         if acoustid_result.get('recordings'):
                             recording = acoustid_result['recordings'][0]
+                            logger.info(f"Recording details: {recording}")
                             recognized_track = {
                                 "title": recording.get('title'),
                                 "subtitle": recording.get('artists', [{}])[0].get('name'), # Use first artist name as subtitle
@@ -315,6 +318,7 @@ async def process_file(
                             logger.info(f"Mapped AcoustID result: {recognized_track}")
                         else:
                             logger.warning("AcoustID result found, but no recording metadata available.")
+                            logger.warning(f"Available keys in result: {acoustid_result.keys()}")
                             # Fallback? Could use just the AcoustID? For now, treat as not found.
                             recognized_track = None 
                     else:
