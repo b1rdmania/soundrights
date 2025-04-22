@@ -15,6 +15,7 @@ grpcio-status==1.71.0
 httplib2==0.22.0
 httpx
 idna==3.10
+mutagen==1.47.0
 proto-plus==1.26.1
 protobuf==5.29.4
 pyasn1==0.6.1

@@ -24,6 +24,7 @@ import json
 import sys
 import traceback
 from pathlib import Path
+from app.utils.id3_extractor import extract_id3_tags
 
 router = APIRouter()
 
@@ -238,8 +239,13 @@ async def process_file(
     acoustid_client: AcoustIDClient = Depends(get_acoustid_client)
 ) -> Dict[str, Any]:
     """
-    Recognize uploaded audio with AcoustID/fpcalc, enrich with Musixmatch/MusicBrainz/Discogs/Wikipedia, 
-    analyze with Gemini, find similar tracks on Jamendo.
+    Process an uploaded audio file.
+    1. Fingerprint with AcoustID
+    2. Enrich with metadata from Musixmatch (lyrics), MusicBrainz, Discogs, Wikipedia
+    3. Generate keywords and analysis with Gemini
+    4. Find similar tracks on Jamendo
+    
+    If AcoustID recognition fails, ID3 tags are used as fallback.
     """
     if not file.filename:
         raise HTTPException(status_code=400, detail="Filename missing from upload")
@@ -320,18 +326,50 @@ async def process_file(
                             logger.warning("AcoustID result found, but no recording metadata available.")
                             logger.warning(f"Available keys in result: {acoustid_result.keys()}")
                             
-                            # Create a recognized track with just the AcoustID ID
-                            if acoustid_result.get('id'):
-                                recognized_track = {
-                                    "title": f"Unknown Track (AcoustID: {acoustid_result.get('id')[:8]}...)",
-                                    "subtitle": "Unknown Artist",
-                                    "acoustid_id": acoustid_result.get('id'),
-                                    "score": acoustid_result.get('score')
-                                }
-                                logger.info(f"Created fallback recognized track: {recognized_track}")
-                            else:
-                                # Still no usable data
-                                recognized_track = None
+                            # Try to extract ID3 tags as fallback
+                            try:
+                                logger.info(f"Attempting to extract ID3 tags from {tmp_file_path}")
+                                id3_title, id3_artist, additional_metadata = extract_id3_tags(tmp_file_path)
+                                
+                                # Create a recognized track from ID3 tags
+                                if id3_title or id3_artist:
+                                    recognized_track = {
+                                        "title": id3_title or "Unknown Track",
+                                        "subtitle": id3_artist or "Unknown Artist",
+                                        "source": "id3_tags",
+                                        "acoustid_id": acoustid_result.get('id'),  # Still include the AcoustID if we have it
+                                        "score": acoustid_result.get('score')
+                                    }
+                                    
+                                    # Add any additional metadata extracted from ID3
+                                    if additional_metadata:
+                                        recognized_track["additional_metadata"] = additional_metadata
+                                        
+                                    logger.info(f"Created recognized track from ID3 tags: {recognized_track}")
+                                else:
+                                    # If no ID3 tags found, fall back to AcoustID with minimal info
+                                    if acoustid_result.get('id'):
+                                        recognized_track = {
+                                            "title": f"Unknown Track (AcoustID: {acoustid_result.get('id')[:8]}...)",
+                                            "subtitle": "Unknown Artist",
+                                            "acoustid_id": acoustid_result.get('id'),
+                                            "score": acoustid_result.get('score')
+                                        }
+                                        logger.info(f"Created fallback recognized track: {recognized_track}")
+                                    else:
+                                        # Still no usable data
+                                        recognized_track = None
+                            except Exception as e:
+                                logger.exception(f"Error extracting ID3 tags: {e}")
+                                if acoustid_result.get('id'):
+                                    recognized_track = {
+                                        "title": f"Unknown Track (AcoustID: {acoustid_result.get('id')[:8]}...)",
+                                        "subtitle": "Unknown Artist",
+                                        "acoustid_id": acoustid_result.get('id'),
+                                        "score": acoustid_result.get('score')
+                                    }
+                                else:
+                                    recognized_track = None
                     else:
                         logger.warning(f"AcoustID did not recognize the track or score too low ({acoustid_result.get('score') if acoustid_result else 'N/A'}).")
                         recognized_track = None
@@ -360,7 +398,7 @@ async def process_file(
     # --- Check if recognition was successful --- 
     if not recognized_track:
         logger.warning("Recognition failed: No track recognized. Returning 404 error.")
-        raise HTTPException(status_code=404, detail="Could not recognize track using AcoustID.")
+        raise HTTPException(status_code=404, detail="Could not recognize track using AcoustID or extract ID3 tags.")
 
     # --- Metadata Fetching (Musixmatch, MusicBrainz, Discogs, Wikipedia) --- 
     # Use recognized title/artist for lookups
@@ -554,6 +592,7 @@ async def diagnose_upload(
 ):
     """
     Diagnostic endpoint to test file uploads and AcoustID processing.
+    Also attempts to extract ID3 tags as a fallback option.
     """
     try:
         # Test file upload
@@ -596,6 +635,21 @@ async def diagnose_upload(
                     acoustid_result = await acoustid_client.lookup_by_fingerprint(fingerprint, duration)
         except Exception as e:
             acoustid_error = str(e)
+            
+        # Extract ID3 tags for comparison/fallback
+        id3_data = {"available": False, "title": None, "artist": None, "additional": None}
+        try:
+            id3_title, id3_artist, id3_additional = extract_id3_tags(temp_path)
+            id3_data = {
+                "available": bool(id3_title or id3_artist),
+                "title": id3_title,
+                "artist": id3_artist,
+                "additional": id3_additional
+            }
+            logger.info(f"ID3 extraction results: {id3_data}")
+        except Exception as e:
+            logger.error(f"Error extracting ID3 tags: {e}")
+            id3_data["error"] = str(e)
         
         # Clean up
         os.unlink(temp_path)
@@ -617,7 +671,8 @@ async def diagnose_upload(
                 "success": acoustid_result is not None,
                 "error": acoustid_error,
                 "result_sample": str(acoustid_result)[:500] if acoustid_result else None
-            }
+            },
+            "id3_test": id3_data
         }
     except Exception as e:
         return {
