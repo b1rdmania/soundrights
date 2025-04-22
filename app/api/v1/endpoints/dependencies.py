@@ -28,4 +28,8 @@ def get_wikipedia_service():
 
 def get_acoustid_client() -> AcoustIDClient:
     """Get AcoustID client instance."""
+    from app.services.audio_identification.acoustid_service import acoustid_client, AcoustIDClient
+    # Create client if it doesn't exist (for deployment environment)
+    if acoustid_client is None:
+        return AcoustIDClient()
     return acoustid_client 
