@@ -9,6 +9,7 @@ RUN sed -i 's/ main/ main contrib non-free/g' /etc/apt/sources.list.d/debian.sou
     build-essential \
     libpq-dev \
     libchromaprint-tools \
+    ffmpeg \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
