@@ -240,70 +240,106 @@ async def process_file(
         raise HTTPException(status_code=400, detail="Filename missing from upload")
 
     logger.info(f"Processing uploaded file: {file.filename}")
+    content_type = file.content_type or "unknown"
+    logger.info(f"File content type: {content_type}")
 
     # --- Save uploaded file temporarily for fpcalc --- 
     # Create a temporary file to store the uploaded audio data
     # Use NamedTemporaryFile to ensure it has a path accessible by fpcalc
     # Keep the file open until fpcalc is done
-    with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(file.filename)[1] or '.tmp') as tmp_file:
-        try:
-            async with aiofiles.open(tmp_file.name, 'wb') as f:
-                content = await file.read()
-                await f.write(content)
+    tmp_file_path = None
+    try:
+        # Get file extension from the uploaded file, defaulting to .tmp if not present
+        file_ext = os.path.splitext(file.filename)[1] or '.tmp'
+        logger.info(f"Using file extension: {file_ext}")
+        
+        # Create temp file with the correct extension
+        with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as tmp_file:
             tmp_file_path = tmp_file.name
-            logger.info(f"Saved uploaded file temporarily to: {tmp_file_path}")
-
-            # --- 1. Recognize with AcoustID --- 
-            acoustid_result: Optional[Dict] = None
-            recognized_track: Optional[Dict] = None # This will hold the mapped result
+            logger.info(f"Created temporary file at: {tmp_file_path}")
+            
             try:
-                logger.info(f"Starting AcoustID recognition for {tmp_file_path}...")
-                # Request recordings and release groups for metadata
-                acoustid_result = await acoustid_client.lookup_fingerprint(
-                    tmp_file_path, 
-                    metadata=['recordings', 'releasegroups', 'compress']
-                )
-
-                if acoustid_result and acoustid_result.get('score', 0) > 0.5: # Check score threshold
-                    logger.info(f"AcoustID recognized track with score: {acoustid_result['score']}")
-                    # Try to extract metadata from the first recording
-                    if acoustid_result.get('recordings'):
-                        recording = acoustid_result['recordings'][0]
-                        recognized_track = {
-                            "title": recording.get('title'),
-                            "subtitle": recording.get('artists', [{}])[0].get('name'), # Use first artist name as subtitle
-                            "acoustid_id": acoustid_result.get('id'), # Store AcoustID track ID
-                            "mbid": recording.get('id'), # Store MusicBrainz Recording ID
-                            "score": acoustid_result.get('score')
-                            # Add other fields if needed (e.g., release group title as album?)
-                        }
-                        logger.info(f"Mapped AcoustID result: {recognized_track}")
-                    else:
-                        logger.warning("AcoustID result found, but no recording metadata available.")
-                        # Fallback? Could use just the AcoustID? For now, treat as not found.
-                        recognized_track = None 
+                # Read and write the file content
+                logger.info("Reading uploaded file content")
+                content = await file.read()
+                logger.info(f"Read {len(content)} bytes from uploaded file")
+                
+                # Log a digest of the content for debugging
+                content_sample = content[:50]
+                logger.info(f"Content sample (first 50 bytes): {content_sample}")
+                
+                # Write to the temp file
+                async with aiofiles.open(tmp_file_path, 'wb') as f:
+                    await f.write(content)
+                
+                # Verify the temp file was written correctly
+                if os.path.exists(tmp_file_path):
+                    file_size = os.path.getsize(tmp_file_path)
+                    logger.info(f"Successfully wrote {file_size} bytes to temporary file")
+                    # Check file permissions
+                    logger.info(f"Temporary file permissions: {oct(os.stat(tmp_file_path).st_mode)[-3:]}")
                 else:
-                    logger.warning(f"AcoustID did not recognize the track or score too low ({acoustid_result.get('score') if acoustid_result else 'N/A'}).")
+                    logger.error("Temporary file was not created successfully")
+                    raise HTTPException(status_code=500, detail="Failed to create temporary file")
+                
+                logger.info(f"Starting AcoustID recognition for {tmp_file_path}...")
+                
+                # --- 1. Recognize with AcoustID --- 
+                acoustid_result: Optional[Dict] = None
+                recognized_track: Optional[Dict] = None # This will hold the mapped result
+                try:
+                    # Request recordings and release groups for metadata
+                    acoustid_result = await acoustid_client.lookup_fingerprint(
+                        tmp_file_path, 
+                        metadata=['recordings', 'releasegroups', 'compress']
+                    )
+
+                    if acoustid_result and acoustid_result.get('score', 0) > 0.5: # Check score threshold
+                        logger.info(f"AcoustID recognized track with score: {acoustid_result['score']}")
+                        # Try to extract metadata from the first recording
+                        if acoustid_result.get('recordings'):
+                            recording = acoustid_result['recordings'][0]
+                            recognized_track = {
+                                "title": recording.get('title'),
+                                "subtitle": recording.get('artists', [{}])[0].get('name'), # Use first artist name as subtitle
+                                "acoustid_id": acoustid_result.get('id'), # Store AcoustID track ID
+                                "mbid": recording.get('id'), # Store MusicBrainz Recording ID
+                                "score": acoustid_result.get('score')
+                                # Add other fields if needed (e.g., release group title as album?)
+                            }
+                            logger.info(f"Mapped AcoustID result: {recognized_track}")
+                        else:
+                            logger.warning("AcoustID result found, but no recording metadata available.")
+                            # Fallback? Could use just the AcoustID? For now, treat as not found.
+                            recognized_track = None 
+                    else:
+                        logger.warning(f"AcoustID did not recognize the track or score too low ({acoustid_result.get('score') if acoustid_result else 'N/A'}).")
+                        recognized_track = None
+
+                except AcoustIDError as e:
+                    logger.error(f"AcoustID processing failed: {e}")
+                    recognized_track = None # Treat as not found on error
+                except Exception as e:
+                    logger.exception(f"Unexpected error during AcoustID processing: {e}")
+                    logger.error(f"Exception type: {type(e).__name__}")
                     recognized_track = None
 
-            except AcoustIDError as e:
-                logger.error(f"AcoustID processing failed: {e}")
-                recognized_track = None # Treat as not found on error
             except Exception as e:
-                 logger.exception(f"Unexpected error during AcoustID processing: {e}")
-                 recognized_track = None
-
-        finally:
-            # --- Clean up temporary file --- 
-            if os.path.exists(tmp_file_path):
-                try:
-                    os.unlink(tmp_file_path)
-                    logger.info(f"Cleaned up temporary file: {tmp_file_path}")
-                except OSError as e:
-                    logger.error(f"Error deleting temporary file {tmp_file_path}: {e}")
+                logger.exception(f"Error processing uploaded file: {e}")
+                raise HTTPException(status_code=500, detail=f"Error processing uploaded file: {str(e)}")
+                
+    finally:
+        # --- Clean up temporary file --- 
+        if tmp_file_path and os.path.exists(tmp_file_path):
+            try:
+                os.unlink(tmp_file_path)
+                logger.info(f"Cleaned up temporary file: {tmp_file_path}")
+            except OSError as e:
+                logger.error(f"Error deleting temporary file {tmp_file_path}: {e}")
 
     # --- Check if recognition was successful --- 
     if not recognized_track:
+        logger.warning("Recognition failed: No track recognized. Returning 404 error.")
         raise HTTPException(status_code=404, detail="Could not recognize track using AcoustID.")
 
     # --- Metadata Fetching (Musixmatch, MusicBrainz, Discogs, Wikipedia) --- 
