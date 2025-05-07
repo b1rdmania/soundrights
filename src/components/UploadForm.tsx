@@ -1,30 +1,29 @@
 
 import React, { useState, useRef } from 'react';
-import { Upload, Link as LinkIcon, Search } from 'lucide-react';
+import { Upload, Search, Loader } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 
-type InputMethod = 'file' | 'link' | 'search';
+type InputMethod = 'file' | 'search';
 
 interface UploadFormProps {
   onUpload: (data: any) => void;
 }
 
 const UploadForm: React.FC<UploadFormProps> = ({ onUpload }) => {
-  const [selectedMethod, setSelectedMethod] = useState<InputMethod>('search');
+  const [selectedMethod, setSelectedMethod] = useState<InputMethod>('file');
   const [file, setFile] = useState<File | null>(null);
-  const [link, setLink] = useState('');
   const [songTitle, setSongTitle] = useState('');
   const [artistName, setArtistName] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [analysisStage, setAnalysisStage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const handleMethodChange = (method: InputMethod) => {
     setSelectedMethod(method);
     setFile(null);
-    setLink('');
     setSongTitle('');
     setArtistName('');
   };
@@ -38,10 +37,6 @@ const UploadForm: React.FC<UploadFormProps> = ({ onUpload }) => {
         toast.error("Invalid file type. Please upload an MP3 file.");
       }
     }
-  };
-  
-  const handleLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setLink(e.target.value);
   };
 
   const handleSongTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,28 +80,43 @@ const UploadForm: React.FC<UploadFormProps> = ({ onUpload }) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Mock successful submission
+    // Mock AI analysis progression
+    setAnalysisStage("Analyzing audio waveforms...");
+    
     setTimeout(() => {
-      setIsLoading(false);
-      toast.success("Demo submission successful!");
+      setAnalysisStage("Identifying instrumentation and mood...");
       
-      // Pass mock data to parent component
-      onUpload({
-        title: songTitle || "Demo Track",
-        artist: artistName || "Unknown Artist",
-        filename: file?.name || "demo-track.mp3",
-        source: selectedMethod,
-        timestamp: new Date().toISOString()
-      });
-    }, 1500);
+      setTimeout(() => {
+        setAnalysisStage("Generating metadata and keywords...");
+        
+        setTimeout(() => {
+          setAnalysisStage("Finalizing results...");
+          
+          setTimeout(() => {
+            setIsLoading(false);
+            setAnalysisStage(null);
+            toast.success("AI analysis completed successfully!");
+            
+            // Pass mock data to parent component
+            onUpload({
+              title: songTitle || "Demo Track",
+              artist: artistName || "Unknown Artist",
+              filename: file?.name || "demo-track.mp3",
+              source: selectedMethod,
+              timestamp: new Date().toISOString()
+            });
+          }, 500);
+        }, 1000);
+      }, 1000);
+    }, 1000);
   };
   
   return (
     <div className="w-full max-w-2xl mx-auto p-6 md:p-8 bg-white rounded-2xl shadow-lg border">
       <div className="mb-8">
-        <h2 className="text-2xl font-semibold mb-2">Find Similar Music</h2>
+        <h2 className="text-2xl font-semibold mb-2">Register Your Sound IP</h2>
         <p className="text-muted-foreground">
-          Search for a song, upload a file, or paste a YouTube link to find similar copyright-free music.
+          Upload an audio file or search for a song to generate AI-powered metadata for your IP registration.
         </p>
       </div>
       
@@ -124,13 +134,6 @@ const UploadForm: React.FC<UploadFormProps> = ({ onUpload }) => {
         >
           <Upload className="inline-block mr-2 h-4 w-4" />
           Upload MP3
-        </button>
-        <button
-          className={`pb-2 px-4 transition-colors ${selectedMethod === 'link' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground hover:text-foreground'}`}
-          onClick={() => handleMethodChange('link')}
-        >
-          <LinkIcon className="inline-block mr-2 h-4 w-4" />
-          YouTube Link
         </button>
       </div>
       
@@ -206,37 +209,27 @@ const UploadForm: React.FC<UploadFormProps> = ({ onUpload }) => {
           </div>
         )}
         
-        {selectedMethod === 'link' && (
-          <div className="space-y-2">
-            <label htmlFor="link" className="block text-sm font-medium">
-              Paste your YouTube video link
-            </label>
-            <Input
-              id="link"
-              name="link"
-              value={link}
-              onChange={handleLinkChange}
-              placeholder="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-            />
+        {isLoading ? (
+          <div className="bg-secondary/20 rounded-lg p-6 text-center">
+            <div className="flex justify-center mb-4">
+              <Loader className="h-8 w-8 animate-spin text-primary" />
+            </div>
+            <h3 className="text-lg font-medium mb-2">AI Analysis in Progress</h3>
+            <p className="text-muted-foreground mb-4">Our AI is listening... generating insights for your track!</p>
+            
+            <div className="w-full bg-background rounded-full h-2.5">
+              <div className="bg-primary h-2.5 rounded-full animate-pulse w-3/4"></div>
+            </div>
+            <p className="text-sm text-muted-foreground mt-2">{analysisStage}</p>
           </div>
+        ) : (
+          <button
+            type="submit"
+            className="w-full py-3 px-4 rounded-lg text-white font-medium transition-colors bg-primary hover:bg-primary-dark"
+          >
+            Generate AI Metadata
+          </button>
         )}
-        
-        <button
-          type="submit"
-          disabled={isLoading}
-          className={`w-full py-3 px-4 rounded-lg text-white font-medium transition-colors ${
-            isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-primary hover:bg-primary-dark'
-          }`}
-        >
-          {isLoading ? (
-            <>
-              <div className="inline-block mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
-              Processing...
-            </>
-          ) : (
-            'Find Similar Tracks'
-          )}
-        </button>
       </form>
     </div>
   );
