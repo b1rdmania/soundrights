@@ -231,7 +231,7 @@ const WhitePaper = () => {
 
                 <section className="mb-8">
                   <div onClick={() => toggleSection(4)} className="flex items-center cursor-pointer group">
-                    <Layers className="h-5 w-5 mr-2 text-primary" />
+                    <LayersIcon className="h-5 w-5 mr-2 text-primary" />
                     <h2 className="text-2xl font-bold mb-0 group-hover:text-primary transition-colors">5. Technology Stack</h2>
                     <div className={`ml-auto transform transition-transform ${selectedSection === 4 ? 'rotate-180' : ''}`}>
                       <ArrowDown size={16} />
@@ -437,5 +437,17 @@ const Coins = ({ className }: { className?: string }) => {
   );
 };
 
-export default WhitePaper;
+// Custom Layers icon component
+const LayersIcon = ({ className }: { className?: string }) => {
+  return (
+    <span className={className}>
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+        <polyline points="2 17 12 22 22 17"/>
+        <polyline points="2 12 12 17 22 12"/>
+      </svg>
+    </span>
+  );
+};
 
+export default WhitePaper;
