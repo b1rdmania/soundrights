@@ -11,10 +11,11 @@ const Upload = () => {
 
   const handleUpload = (data: any) => {
     // Handle the uploaded data
-    toast.success("Upload processed successfully!");
+    toast.success("Audio analyzed successfully!");
+    console.log("Upload data received:", data);
+    
     // You could navigate to a results page with the data
     // navigate('/results', { state: { resultData: data } });
-    console.log("Upload data received:", data);
   };
 
   return (
@@ -30,6 +31,15 @@ const Upload = () => {
                 Welcome to the SoundRights MVP Demo! Connect your wallet (configured for Story Testnet) 
                 to register your sound IP or upload a file to verify its license. 
                 All interactions occur on the Story Protocol Testnet.
+              </p>
+            </div>
+            
+            <div className="bg-green-50 border border-green-200 rounded-md p-4 mb-8">
+              <h3 className="font-medium text-green-700 mb-1">AI-Powered Metadata Generation</h3>
+              <p className="text-sm text-green-600">
+                When you upload an audio file, our Google Gemini AI will analyze it to create rich metadata 
+                including tags, description, and more. You can review and edit these AI suggestions 
+                before registering your sound IP on-chain.
               </p>
             </div>
             
