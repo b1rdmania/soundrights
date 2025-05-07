@@ -1,8 +1,6 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
 import UploadForm from '@/components/UploadForm';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -79,8 +77,6 @@ const Upload = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar />
-      
       <main className="flex-grow pt-24 pb-16">
         <div className="container px-4 md:px-6">
           <div className="max-w-4xl mx-auto">
@@ -184,8 +180,6 @@ const Upload = () => {
           </div>
         </div>
       </main>
-      
-      <Footer />
     </div>
   );
 };

@@ -1,7 +1,5 @@
 
-import React from 'react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+import React, { useState } from 'react';
 import { Separator } from '@/components/ui/separator';
 import AudioPlayer from '@/components/AudioPlayer';
 import OverviewSection from '@/components/invest/OverviewSection';
@@ -14,7 +12,6 @@ import { Toaster } from '@/components/ui/toaster';
 const Invest = () => {
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar />
       <main className="flex-grow pt-28 pb-16">
         <div className="container px-4 md:px-6 max-w-5xl mx-auto">
           <div className="mb-8 animate-slide-up">
@@ -39,7 +36,6 @@ const Invest = () => {
           <NextStepsSection />
         </div>
       </main>
-      <Footer />
       <Toaster />
     </div>
   );

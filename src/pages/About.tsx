@@ -1,13 +1,9 @@
 
 import React from 'react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
 
 const About = () => {
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar />
-      
       <main className="flex-grow pt-28 pb-16">
         <div className="container px-4 md:px-6">
           <div className="max-w-3xl mx-auto">
@@ -74,8 +70,6 @@ const About = () => {
           </div>
         </div>
       </main>
-      
-      <Footer />
     </div>
   );
 };
