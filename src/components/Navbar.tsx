@@ -63,12 +63,12 @@ const Navbar = () => {
       <div className="container flex items-center justify-between h-16 px-4 md:px-6">
         <Link 
           to="/" 
-          className="flex items-center space-x-2 text-xl font-semibold group"
+          className="flex items-center space-x-2 text-xl font-semibold"
         >
-          <span className="bg-primary rounded-md p-1.5 text-primary-foreground group-hover:rotate-[5deg] transition-transform duration-300">
+          <span className="bg-primary rounded-md p-1.5 text-primary-foreground">
             🎵
           </span>
-          <span className="group-hover:text-primary transition-colors duration-300">SoundRights</span>
+          <span>SoundRights</span>
         </Link>
         
         {!isMobile ? (
@@ -78,7 +78,7 @@ const Navbar = () => {
                 key={link.path}
                 to={link.path}
                 className={cn(
-                  "text-sm font-medium transition-all hover:text-primary flex items-center gap-2 group relative",
+                  "text-sm font-medium transition-all hover:text-primary flex items-center gap-2 relative",
                   isActive(link.path) 
                     ? "text-primary" 
                     : "text-muted-foreground"
