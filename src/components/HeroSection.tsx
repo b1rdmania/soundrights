@@ -1,78 +1,37 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Music } from 'lucide-react';
 
 const HeroSection = () => {
-  const [musicNotes, setMusicNotes] = useState<Array<{ id: number; left: string; delay: string; emoji: string }>>([]);
-  
-  useEffect(() => {
-    // Create initial floating music notes
-    const initialNotes = Array.from({ length: 8 }, (_, i) => ({
-      id: i,
-      left: `${Math.random() * 90 + 5}%`,
-      delay: `${Math.random() * 5}s`,
-      emoji: ['🎵', '🎶', '🎼', '🎧', '🎸'][Math.floor(Math.random() * 5)]
-    }));
-    setMusicNotes(initialNotes);
-    
-    // Add new notes periodically
-    const interval = setInterval(() => {
-      setMusicNotes(prev => [
-        ...prev.slice(-12), // Keep only the last 12 notes
-        {
-          id: Date.now(),
-          left: `${Math.random() * 90 + 5}%`,
-          delay: '0s',
-          emoji: ['🎵', '🎶', '🎼', '🎧', '🎸'][Math.floor(Math.random() * 5)]
-        }
-      ]);
-    }, 3000);
-    
-    return () => clearInterval(interval);
-  }, []);
-  
   return (
     <section className="relative pt-28 pb-20 overflow-hidden">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-secondary/50 to-background pointer-events-none" />
       
-      {/* Animated background circles */}
+      {/* Static background circles */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute top-[10%] left-[5%] w-64 h-64 rounded-full bg-primary/5 animate-float" style={{ animationDelay: '0s' }} />
-        <div className="absolute top-[40%] right-[10%] w-96 h-96 rounded-full bg-primary/5 animate-float" style={{ animationDelay: '1s' }} />
-        <div className="absolute bottom-[10%] left-[30%] w-48 h-48 rounded-full bg-primary/5 animate-float" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-[10%] left-[5%] w-64 h-64 rounded-full bg-primary/5" />
+        <div className="absolute top-[40%] right-[10%] w-96 h-96 rounded-full bg-primary/5" />
+        <div className="absolute bottom-[10%] left-[30%] w-48 h-48 rounded-full bg-primary/5" />
       </div>
       
-      {/* Floating music notes */}
-      {musicNotes.map(note => (
-        <div
-          key={note.id}
-          className="absolute bottom-0 text-primary/30 animate-float-up"
-          style={{
-            left: note.left,
-            animationDelay: note.delay,
-            fontSize: `${Math.random() * 16 + 12}px`
-          }}
-        >
-          {note.emoji}
-        </div>
-      ))}
+      {/* Static, bigger, more transparent musical notes */}
+      <div className="absolute top-[15%] left-[10%] text-[40px] text-primary/10">🎵</div>
+      <div className="absolute bottom-[20%] right-[15%] text-[48px] text-primary/10">🎶</div>
+      <div className="absolute top-[40%] left-[25%] text-[36px] text-primary/10">🎼</div>
+      <div className="absolute bottom-[40%] right-[25%] text-[42px] text-primary/10">🎧</div>
       
       <div className="container relative px-4 md:px-6">
-        <div className="max-w-3xl mx-auto text-center space-y-8 animate-slide-up">
+        <div className="max-w-3xl mx-auto text-center space-y-8">
           <div className="inline-block px-3 py-1 rounded-full bg-secondary text-xs font-medium text-secondary-foreground mb-4 shadow-inner">
             Built on Story Protocol
           </div>
           
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-balance relative">
-            <span className="absolute -top-8 -left-4 text-3xl animate-float" style={{ animationDuration: '3s', animationDelay: '1s' }}>
-              🎵
-            </span>
+            <span className="absolute -top-8 -left-4 text-[36px] text-primary/20">🎵</span>
             SoundRights: Own Your Sound
-            <span className="absolute -bottom-6 -right-4 text-3xl animate-float" style={{ animationDuration: '4s', animationDelay: '2s' }}>
-              🎶
-            </span>
+            <span className="absolute -bottom-6 -right-4 text-[36px] text-primary/20">🎶</span>
             <div className="text-2xl md:text-3xl lg:text-4xl mt-2">Secure Your Licenses On-Chain</div>
           </h1>
           

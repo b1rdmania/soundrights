@@ -49,24 +49,17 @@ const Navbar = () => {
           : "bg-transparent"
       )}
     >
-      {/* Musical note decorations */}
-      <div className="absolute left-[10%] top-4 text-primary/20 animate-float" style={{ animationDuration: '3s', fontSize: '24px' }}>
-        🎵
-      </div>
-      <div className="absolute right-[15%] top-8 text-primary/20 animate-float" style={{ animationDuration: '5s', fontSize: '20px' }}>
-        🎼
-      </div>
-      <div className="absolute left-[25%] top-12 text-primary/20 animate-float" style={{ animationDuration: '4s', fontSize: '16px' }}>
-        🎶
-      </div>
-      
       <div className="container flex items-center justify-between h-16 px-4 md:px-6">
         <Link 
           to="/" 
           className="flex items-center space-x-2 text-xl font-semibold"
         >
           <span className="bg-primary rounded-md p-1.5 text-primary-foreground">
-            🎵
+            <img 
+              src="/lovable-uploads/c79eecdb-b679-494a-97c5-b9bf84dbf7f0.png" 
+              alt="SoundRights Logo" 
+              className="w-6 h-6" 
+            />
           </span>
           <span>SoundRights</span>
         </Link>
