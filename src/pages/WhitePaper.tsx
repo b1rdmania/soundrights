@@ -24,7 +24,8 @@ const WhitePaper = () => {
             <div className="relative overflow-hidden rounded-xl mb-12 shadow-2xl transition-all">
               <div className="absolute inset-0 bg-gradient-to-br from-white via-gray-50 to-gray-100"></div>
               
-              <div className="relative z-10 p-8 md:p-12 text-center border-[12px] border-white rounded-xl bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0iZXZlbm9kZCI+CiAgICAgICAgPGcgZmlsbD0iI2YxZjFmMSIgZmlsbC1vcGFjaXR5PSIwLjQiPgogICAgICAgICAgICA8cGF0aCBkPSJNMzYgMzRoLTJ2LTJoMnYyem0wLTRoLTJ2LTJoMnYyem0wLTRoLTJWOGg4djhoLTJ2LTZoLTR2MnptLTE4IDRoLTJ2LTJoMnYyem0wLTRoLTJ2LTJoMnYyem0wLTRoLTJWOGg4djhoLTJ2LTZoLTR2MnoiLz4KICAgICAgICA8L2c+CiAgICA8L2c+Cjwvc3ZnPg==')]" 
+              <div 
+                className="relative z-10 p-8 md:p-12 text-center border-[12px] border-white rounded-xl bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0iZXZlbm9kZCI+CiAgICAgICAgPGcgZmlsbD0iI2YxZjFmMSIgZmlsbC1vcGFjaXR5PSIwLjQiPgogICAgICAgICAgICA8cGF0aCBkPSJNMzYgMzRoLTJ2LTJoMnYyem0wLTRoLTJ2LTJoMnYyem0wLTRoLTJWOGg4djhoLTJ2LTZoLTR2MnptLTE4IDRoLTJ2LTJoMnYyem0wLTRoLTJ2LTJoMnYyem0wLTRoLTJWOGg4djhoLTJ2LTZoLTR2MnoiLz4KICAgICAgICA8L2c+CiAgICA8L2c+Cjwvc3ZnPg==')]" 
                 style={{ boxShadow: 'inset 0 0 50px rgba(0,0,0,0.05), 0 15px 25px -10px rgba(0,0,0,0.1)' }}>
                 <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-6 rounded-lg">
                   <h1 className="text-5xl font-bold mb-4 bg-gradient-to-br from-primary to-primary/70 bg-clip-text text-transparent">SoundRightsAI</h1>
@@ -68,14 +69,15 @@ const WhitePaper = () => {
             </div>
             
             {/* Paper Content with skeuomorphic note paper effect */}
-            <div className="relative bg-white rounded-lg shadow-xl overflow-hidden transition-all" 
-                style={{ 
-                  backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)), repeating-linear-gradient(transparent, transparent 31px, rgba(200,200,200,0.3) 31px, rgba(200,200,200,0.3) 32px)',
-                  boxShadow: '0 5px 15px -3px rgba(0, 0, 0, 0.15), 0 4px 6px -2px rgba(0, 0, 0, 0.05), inset 0 0 75px rgba(255, 255, 255, 0.3)',
-                  padding: '24px 32px',
-                  backgroundPositionY: '7px'
-                }}
-                className="prose prose-stone prose-headings:font-bold prose-headings:text-primary prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl prose-p:text-muted-foreground prose-li:text-muted-foreground max-w-none">
+            <div 
+              className="relative bg-white rounded-lg shadow-xl overflow-hidden transition-all prose prose-stone prose-headings:font-bold prose-headings:text-primary prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl prose-p:text-muted-foreground prose-li:text-muted-foreground max-w-none" 
+              style={{ 
+                backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)), repeating-linear-gradient(transparent, transparent 31px, rgba(200,200,200,0.3) 31px, rgba(200,200,200,0.3) 32px)',
+                boxShadow: '0 5px 15px -3px rgba(0, 0, 0, 0.15), 0 4px 6px -2px rgba(0, 0, 0, 0.05), inset 0 0 75px rgba(255, 255, 255, 0.3)',
+                padding: '24px 32px',
+                backgroundPositionY: '7px'
+              }}
+            >
               
               {/* Decorative elements */}
               <div className="absolute top-0 left-0 w-16 h-16 bg-gradient-to-br from-primary/10 to-transparent rounded-br-lg"></div>
