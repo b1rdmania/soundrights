@@ -1,7 +1,4 @@
-
 import React, { useState } from 'react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
 import { ArrowDown, FileText, Database, Shield, Link, Award, TrendingUp, FileCode, FileAudio, Key, Rocket } from 'lucide-react';
 import { Link as RouterLink } from 'react-router-dom';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -15,8 +12,6 @@ const WhitePaper = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar />
-      
       <main className="flex-grow pt-28 pb-16">
         <div className="container px-4 md:px-6">
           <div className="max-w-5xl mx-auto">
@@ -405,8 +400,6 @@ const WhitePaper = () => {
           </div>
         </div>
       </main>
-      
-      <Footer />
     </div>
   );
 };
