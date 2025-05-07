@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils";
@@ -34,7 +35,6 @@ const Navbar = () => {
     { path: '/', label: 'Home' },
     { path: '/upload', label: 'Try It' },
     { path: '/whitepaper', label: 'White Paper', icon: <FileText size={16} className="mr-1" /> },
-    { path: '/invest', label: 'Invest', icon: <TrendingUp size={16} className="mr-1" /> },
     { path: '/about', label: 'About' },
   ];
 
@@ -52,8 +52,8 @@ const Navbar = () => {
           to="/" 
           className="flex items-center space-x-2 text-xl font-semibold"
         >
-          <span className="bg-primary rounded-md p-1.5 text-primary-foreground">SM</span>
-          <span>SoundMatch</span>
+          <span className="bg-primary rounded-md p-1.5 text-primary-foreground">SR</span>
+          <span>SoundRights</span>
         </Link>
         
         {!isMobile ? (
@@ -96,7 +96,6 @@ const Navbar = () => {
               <SheetTitle>Menu</SheetTitle>
             </SheetHeader>
             <nav className="grid gap-4 py-4">
-              <NavLink to="/" className={({ isActive }) => cn("flex items-center gap-2 text-lg font-semibold", isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground")} onClick={() => setIsMenuOpen(false)}>Try SoundMatch</NavLink>
               {navLinks.map((link) => (
                 <NavLink
                   key={link.path}

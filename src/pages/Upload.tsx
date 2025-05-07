@@ -1,32 +1,33 @@
+
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import UploadForm from '@/components/UploadForm';
 
 const Upload = () => {
-  const navigate = useNavigate();
-
-  const handleUpload = (data: any) => {
-    // Navigate to results page with the data
-    navigate('/results', { state: { results: data } });
-  };
-
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <main className="flex-grow pt-28 pb-16 bg-gradient-to-b from-secondary/30 to-background">
+      
+      <main className="flex-grow pt-28 pb-16">
         <div className="container px-4 md:px-6">
-          <div className="max-w-3xl mx-auto text-center mb-10 animate-slide-up">
-            <h1 className="text-3xl font-bold tracking-tight mb-3">Find Your Perfect Sound</h1>
-            <p className="text-muted-foreground text-lg">
-              Upload a song or paste a link to discover similar copyright-free music.
-            </p>
+          <div className="max-w-3xl mx-auto text-center">
+            <h1 className="text-4xl font-bold mb-6">SoundRights: Interactive Demo</h1>
+            <div className="bg-primary/10 border border-primary/20 text-primary p-4 rounded-md mb-8 text-sm">
+              <p>
+                Welcome to the SoundRights MVP Demo! Connect your wallet (configured for Story Testnet) 
+                to register your sound IP or upload a file to verify its license. 
+                All interactions occur on the Story Protocol Testnet.
+              </p>
+            </div>
+            
+            <div className="bg-card border rounded-lg shadow-sm p-6">
+              <UploadForm />
+            </div>
           </div>
-          
-          <UploadForm onUpload={handleUpload} />
         </div>
       </main>
+      
       <Footer />
     </div>
   );

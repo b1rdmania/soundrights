@@ -1,20 +1,28 @@
 
 import React from 'react';
-import HeroSection from '@/components/HeroSection';
-import HowItWorks from '@/components/HowItWorks';
-import UseCases from '@/components/UseCases';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import HeroSection from '@/components/HeroSection';
+import ProblemSection from '@/components/ProblemSection';
+import SolutionSection from '@/components/SolutionSection';
+import FeaturesSection from '@/components/FeaturesSection';
+import StoryProtocolSection from '@/components/StoryProtocolSection';
+import CtaSection from '@/components/CtaSection';
 
 const Index = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
+      
       <main className="flex-grow">
         <HeroSection />
-        <HowItWorks />
-        <UseCases />
+        <ProblemSection />
+        <SolutionSection />
+        <FeaturesSection />
+        <StoryProtocolSection />
+        <CtaSection />
       </main>
+      
       <Footer />
     </div>
   );

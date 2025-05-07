@@ -11,11 +11,11 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="space-y-3">
             <Link to="/" className="flex items-center space-x-2 text-xl font-semibold">
-              <span className="bg-primary rounded-md p-1 text-xs text-primary-foreground">SM</span>
-              <span>SoundMatch</span>
+              <span className="bg-primary rounded-md p-1 text-xs text-primary-foreground">SR</span>
+              <span>SoundRights</span>
             </Link>
             <p className="text-sm text-muted-foreground">
-              Find copyright-free music that sounds like your favorite songs.
+              Own Your Sound. Secure Your Licenses On-Chain.
             </p>
           </div>
           
@@ -30,6 +30,11 @@ const Footer = () => {
               <li>
                 <Link to="/upload" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                   Try It Now
+                </Link>
+              </li>
+              <li>
+                <Link to="/whitepaper" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  White Paper
                 </Link>
               </li>
               <li>
@@ -59,7 +64,7 @@ const Footer = () => {
         
         <div className="mt-8 pt-4 border-t">
           <p className="text-xs text-center text-muted-foreground">
-            © {currentYear} SoundMatch AI. All rights reserved.
+            © {currentYear} SoundRights. Built on <a href="https://story.xyz" className="text-primary hover:underline">Story Protocol</a>. All rights reserved.
           </p>
         </div>
       </div>

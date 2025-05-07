@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Fingerprint } from 'lucide-react';
 
 const HeroSection = () => {
   return (
@@ -19,15 +19,15 @@ const HeroSection = () => {
       <div className="container relative px-4 md:px-6">
         <div className="max-w-3xl mx-auto text-center space-y-8 animate-slide-up">
           <div className="inline-block px-3 py-1 rounded-full bg-secondary text-xs font-medium text-secondary-foreground mb-4">
-            AI-Powered Music Recommendations
+            Built on Story Protocol
           </div>
           
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-balance">
-            Find Copyright-Free Music That Sounds Like Your Favorite Songs
+            SoundRights: Own Your Sound. Secure Your Licenses On-Chain.
           </h1>
           
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto text-balance">
-            Upload a song, paste a YouTube link, and our AI will find similar copyright-free tracks for your projects.
+            Empowering audio creators with transparent IP registration and programmable licensing, built on Story Protocol.
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
@@ -35,15 +35,15 @@ const HeroSection = () => {
               to="/upload"
               className="inline-flex items-center justify-center px-6 py-3 rounded-full text-base font-medium bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-all duration-300 hover:scale-105 gap-2 w-full sm:w-auto"
             >
-              Try It Now
+              Try the Demo
               <ArrowRight className="w-4 h-4" />
             </Link>
             
             <Link
-              to="/about"
+              to="/whitepaper"
               className="inline-flex items-center justify-center px-6 py-3 rounded-full text-base font-medium bg-secondary hover:bg-secondary/80 transition-colors gap-2 w-full sm:w-auto"
             >
-              Learn More
+              Read Our White Paper
             </Link>
           </div>
         </div>
