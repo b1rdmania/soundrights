@@ -12,6 +12,7 @@ export default defineConfig(({ mode }) => ({
     strictPort: true,
     open: true,
     cors: true,
+    allowedHosts: ["2e8370d3-b660-4738-bd39-8e1a61f42791.lovableproject.com"],
   },
   plugins: [
     react(),
