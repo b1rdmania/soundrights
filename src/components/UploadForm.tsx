@@ -1,40 +1,48 @@
 
 import React, { useState, useRef } from 'react';
-import { Upload, Search, Loader } from 'lucide-react';
+import { Upload, Loader, Tag, FileAudio, Check } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useForm } from 'react-hook-form';
 
-type InputMethod = 'file' | 'search';
+type InputMethod = 'file';
+type Mode = 'register' | 'verify';
 
 interface UploadFormProps {
   onUpload: (data: any) => void;
+  mode: Mode;
+  isWalletConnected: boolean;
 }
 
-const UploadForm: React.FC<UploadFormProps> = ({ onUpload }) => {
-  const [selectedMethod, setSelectedMethod] = useState<InputMethod>('file');
+const UploadForm: React.FC<UploadFormProps> = ({ onUpload, mode, isWalletConnected }) => {
   const [file, setFile] = useState<File | null>(null);
   const [songTitle, setSongTitle] = useState('');
   const [artistName, setArtistName] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [analysisStage, setAnalysisStage] = useState<string | null>(null);
+  const [selectedLicense, setSelectedLicense] = useState('non-commercial');
+  const [aiMetadata, setAiMetadata] = useState<{
+    description: string;
+    tags: string[];
+    mood: string;
+    instrumentation: string;
+  } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
-  const handleMethodChange = (method: InputMethod) => {
-    setSelectedMethod(method);
-    setFile(null);
-    setSongTitle('');
-    setArtistName('');
-  };
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
-      if (selectedFile.type === 'audio/mpeg' || selectedFile.type === 'audio/mp3') {
+      if (selectedFile.type === 'audio/mpeg' || selectedFile.type === 'audio/mp3' || selectedFile.type === 'audio/wav') {
         setFile(selectedFile);
       } else {
-        toast.error("Invalid file type. Please upload an MP3 file.");
+        toast.error("Invalid file type. Please upload an MP3 or WAV file.");
       }
     }
   };
@@ -62,10 +70,10 @@ const UploadForm: React.FC<UploadFormProps> = ({ onUpload }) => {
     
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const droppedFile = e.dataTransfer.files[0];
-      if (droppedFile.type === 'audio/mpeg' || droppedFile.type === 'audio/mp3') {
+      if (droppedFile.type === 'audio/mpeg' || droppedFile.type === 'audio/mp3' || droppedFile.type === 'audio/wav') {
         setFile(droppedFile);
       } else {
-        toast.error("Invalid file type. Please upload an MP3 file.");
+        toast.error("Invalid file type. Please upload an MP3 or WAV file.");
       }
     }
   };
@@ -78,157 +86,318 @@ const UploadForm: React.FC<UploadFormProps> = ({ onUpload }) => {
   
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
+    if (!file) {
+      toast.error("Please upload an audio file first");
+      return;
+    }
+    
+    if (mode === 'register') {
+      if (!isWalletConnected) {
+        toast.error("Please connect your wallet to register IP");
+        return;
+      }
+      
+      if (!songTitle || !artistName) {
+        toast.error("Please fill in all required fields");
+        return;
+      }
+    }
+    
     setIsLoading(true);
     
-    // Mock AI analysis progression
-    setAnalysisStage("Analyzing audio waveforms...");
-    
-    setTimeout(() => {
-      setAnalysisStage("Identifying instrumentation and mood...");
+    if (mode === 'register') {
+      // Mock AI analysis progression for registration
+      setAnalysisStage("Analyzing audio waveforms...");
       
       setTimeout(() => {
-        setAnalysisStage("Generating metadata and keywords...");
+        setAnalysisStage("Identifying instrumentation and mood...");
         
         setTimeout(() => {
-          setAnalysisStage("Finalizing results...");
+          setAnalysisStage("Generating metadata and keywords...");
+          
+          setTimeout(() => {
+            setAnalysisStage("Finalizing results...");
+            
+            setTimeout(() => {
+              setIsLoading(false);
+              setAnalysisStage(null);
+              
+              // Set AI-generated metadata
+              setAiMetadata({
+                description: "An upbeat electronic track with synth pads and a driving beat. Features a distinctive melody with minor key progressions and ambient textures in the background.",
+                tags: ["Electronic", "Synthwave", "Upbeat", "Instrumental", "Driving", "Ambient", "Minor Key", "Soundtrack"],
+                mood: "Energetic, Mysterious",
+                instrumentation: "Synthesizers, Electronic Drums, Ambient Pads"
+              });
+              
+            }, 500);
+          }, 1000);
+        }, 1000);
+      }, 1000);
+    } else {
+      // Mock verification process
+      setAnalysisStage("Analyzing audio fingerprint...");
+      
+      setTimeout(() => {
+        setAnalysisStage("Searching for match on Story Protocol...");
+        
+        setTimeout(() => {
+          setAnalysisStage("Retrieving license information...");
           
           setTimeout(() => {
             setIsLoading(false);
             setAnalysisStage(null);
-            toast.success("AI analysis completed successfully!");
             
-            // Pass mock data to parent component
+            // Mock verification data
             onUpload({
-              title: songTitle || "Demo Track",
-              artist: artistName || "Unknown Artist",
-              filename: file?.name || "demo-track.mp3",
-              source: selectedMethod,
+              filename: file.name,
               timestamp: new Date().toISOString()
             });
-          }, 500);
-        }, 1000);
+          }, 1000);
+        }, 1500);
       }, 1000);
-    }, 1000);
+    }
+  };
+  
+  const handleFinalSubmit = () => {
+    onUpload({
+      title: songTitle,
+      artist: artistName,
+      filename: file?.name,
+      license: selectedLicense,
+      metadata: aiMetadata,
+      timestamp: new Date().toISOString()
+    });
   };
   
   return (
-    <div className="w-full max-w-2xl mx-auto p-6 md:p-8 bg-white rounded-2xl shadow-lg border">
-      <div className="mb-8">
-        <h2 className="text-2xl font-semibold mb-2">Register Your Sound IP</h2>
-        <p className="text-muted-foreground">
-          Upload an audio file or search for a song to generate AI-powered metadata for your IP registration.
-        </p>
-      </div>
-      
-      <div className="flex border-b mb-8">
-        <button
-          className={`pb-2 px-4 transition-colors ${selectedMethod === 'search' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground hover:text-foreground'}`}
-          onClick={() => handleMethodChange('search')}
-        >
-          <Search className="inline-block mr-2 h-4 w-4" />
-          Search
-        </button>
-        <button
-          className={`pb-2 px-4 transition-colors ${selectedMethod === 'file' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground hover:text-foreground'}`}
-          onClick={() => handleMethodChange('file')}
-        >
-          <Upload className="inline-block mr-2 h-4 w-4" />
-          Upload MP3
-        </button>
-      </div>
-      
+    <div className="w-full max-w-3xl mx-auto">
       <form onSubmit={handleSubmit} className="space-y-6">
-        {selectedMethod === 'search' && (
-          <div className="space-y-2">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="songTitle" className="block text-sm font-medium">
-                  Song Title
-                </label>
-                <Input
-                  id="songTitle"
-                  name="songTitle"
-                  value={songTitle}
-                  onChange={handleSongTitleChange}
-                  placeholder="Enter song title"
-                />
+        <div 
+          className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${isDragging ? 'border-primary bg-primary/5' : 'border-muted'} ${file ? 'border-green-500 bg-green-50' : ''}`}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          onClick={handleUploadClick}
+        >
+          <input
+            type="file"
+            ref={fileInputRef}
+            accept=".mp3,.wav,audio/mpeg,audio/wav"
+            className="hidden"
+            onChange={handleFileChange}
+          />
+          
+          {file ? (
+            <div className="py-4">
+              <div className="flex items-center justify-center text-green-600 mb-2">
+                <FileAudio className="h-10 w-10" />
               </div>
-              <div className="space-y-2">
-                <label htmlFor="artistName" className="block text-sm font-medium">
-                  Artist Name
-                </label>
-                <Input
-                  id="artistName"
-                  name="artistName"
-                  value={artistName}
-                  onChange={handleArtistNameChange}
-                  placeholder="Enter artist name"
-                />
-              </div>
+              <p className="font-medium">{file.name}</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                {(file.size / (1024 * 1024)).toFixed(2)} MB
+              </p>
             </div>
-          </div>
-        )}
-        
-        {selectedMethod === 'file' && (
-          <div 
-            className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${isDragging ? 'border-primary bg-primary/5' : 'border-muted'} ${file ? 'border-green-500 bg-green-50' : ''}`}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            onClick={handleUploadClick}
-          >
-            <input
-              type="file"
-              ref={fileInputRef}
-              accept=".mp3,audio/mpeg"
-              className="hidden"
-              onChange={handleFileChange}
-            />
-            
-            {file ? (
-              <div className="py-4">
-                <div className="flex items-center justify-center text-green-600 mb-2">
-                  <Upload className="h-10 w-10" />
-                </div>
-                <p className="font-medium">{file.name}</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {(file.size / (1024 * 1024)).toFixed(2)} MB
-                </p>
+          ) : (
+            <>
+              <div className="flex items-center justify-center text-muted-foreground mb-4">
+                <Upload className="h-10 w-10" />
               </div>
-            ) : (
-              <>
-                <div className="flex items-center justify-center text-muted-foreground mb-4">
-                  <Upload className="h-10 w-10" />
-                </div>
-                <p className="font-medium">Drag and drop your MP3 file</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  or click to browse from your device
-                </p>
-              </>
-            )}
-          </div>
-        )}
+              <p className="font-medium">
+                {mode === 'register' 
+                  ? "Drag and drop your audio file to register" 
+                  : "Drag and drop an audio file to verify its license"}
+              </p>
+              <p className="text-sm text-muted-foreground mt-1">
+                or click to browse from your device
+              </p>
+            </>
+          )}
+        </div>
         
         {isLoading ? (
           <div className="bg-secondary/20 rounded-lg p-6 text-center">
             <div className="flex justify-center mb-4">
               <Loader className="h-8 w-8 animate-spin text-primary" />
             </div>
-            <h3 className="text-lg font-medium mb-2">AI Analysis in Progress</h3>
-            <p className="text-muted-foreground mb-4">Our AI is listening... generating insights for your track!</p>
+            <h3 className="text-lg font-medium mb-2">
+              {mode === 'register' ? 'AI Analysis in Progress' : 'Verification in Progress'}
+            </h3>
+            <p className="text-muted-foreground mb-4">
+              {mode === 'register' 
+                ? "Our AI is listening... generating insights for your track!" 
+                : "Searching for a match on Story Protocol..."}
+            </p>
             
             <div className="w-full bg-background rounded-full h-2.5">
               <div className="bg-primary h-2.5 rounded-full animate-pulse w-3/4"></div>
             </div>
             <p className="text-sm text-muted-foreground mt-2">{analysisStage}</p>
           </div>
+        ) : aiMetadata ? (
+          // Show AI metadata and registration form
+          <div className="space-y-6">
+            <div className="bg-primary/5 border border-primary/20 rounded-lg p-6">
+              <h3 className="text-lg font-medium mb-4 flex items-center">
+                <Tag className="mr-2 h-5 w-5" />
+                AI-Generated Metadata <span className="text-xs ml-2 bg-primary/20 px-2 py-0.5 rounded">Editable</span>
+              </h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    AI-Suggested Description
+                  </label>
+                  <Textarea 
+                    value={aiMetadata.description} 
+                    onChange={(e) => setAiMetadata({...aiMetadata, description: e.target.value})}
+                    className="w-full"
+                    rows={3}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    AI-Suggested Tags/Keywords
+                  </label>
+                  <Input 
+                    value={aiMetadata.tags.join(', ')} 
+                    onChange={(e) => setAiMetadata({
+                      ...aiMetadata, 
+                      tags: e.target.value.split(',').map(tag => tag.trim())
+                    })}
+                    className="w-full"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">Comma-separated tags</p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      AI-Detected Mood
+                    </label>
+                    <Input 
+                      value={aiMetadata.mood} 
+                      onChange={(e) => setAiMetadata({...aiMetadata, mood: e.target.value})}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      AI-Detected Instrumentation
+                    </label>
+                    <Input 
+                      value={aiMetadata.instrumentation} 
+                      onChange={(e) => setAiMetadata({...aiMetadata, instrumentation: e.target.value})}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="songTitle" className="block text-sm font-medium mb-1">
+                    Track Title <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    id="songTitle"
+                    value={songTitle}
+                    onChange={handleSongTitleChange}
+                    placeholder="Enter track title"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="artistName" className="block text-sm font-medium mb-1">
+                    Artist/Creator Name <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    id="artistName"
+                    value={artistName}
+                    onChange={handleArtistNameChange}
+                    placeholder="Enter artist name"
+                    required
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="text-lg font-medium mb-3">Select Programmable IP License (PIL)</h3>
+                <RadioGroup 
+                  defaultValue="non-commercial"
+                  value={selectedLicense}
+                  onValueChange={setSelectedLicense}
+                  className="space-y-3"
+                >
+                  <div className="flex items-start space-x-2">
+                    <RadioGroupItem value="non-commercial" id="non-commercial" />
+                    <div className="grid gap-1.5">
+                      <Label htmlFor="non-commercial" className="font-medium">
+                        Non-Commercial Social Remixing
+                      </Label>
+                      <p className="text-sm text-muted-foreground">
+                        Free to use non-commercially, attribution required, remix allowed
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start space-x-2">
+                    <RadioGroupItem value="commercial" id="commercial" />
+                    <div className="grid gap-1.5">
+                      <Label htmlFor="commercial" className="font-medium">
+                        Commercial Use
+                      </Label>
+                      <p className="text-sm text-muted-foreground">
+                        Allow commercial usage with specified terms (demo only)
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start space-x-2">
+                    <RadioGroupItem value="commercial-remix" id="commercial-remix" />
+                    <div className="grid gap-1.5">
+                      <Label htmlFor="commercial-remix" className="font-medium">
+                        Commercial Remix
+                      </Label>
+                      <p className="text-sm text-muted-foreground">
+                        Allow commercial remixing, attribution required
+                      </p>
+                    </div>
+                  </div>
+                </RadioGroup>
+              </div>
+              
+              <Button
+                type="button"
+                onClick={handleFinalSubmit}
+                className="w-full py-3 px-4 rounded-lg text-white font-medium transition-colors bg-primary hover:bg-primary-dark"
+                disabled={!isWalletConnected}
+              >
+                <Check className="mr-2 h-4 w-4" />
+                Register on Story Protocol Testnet
+              </Button>
+              
+              {!isWalletConnected && (
+                <p className="text-amber-600 text-sm text-center">
+                  Please connect your wallet to register your IP on Story Protocol
+                </p>
+              )}
+            </div>
+          </div>
         ) : (
-          <button
+          <Button
             type="submit"
             className="w-full py-3 px-4 rounded-lg text-white font-medium transition-colors bg-primary hover:bg-primary-dark"
+            disabled={!file}
           >
-            Generate AI Metadata
-          </button>
+            {mode === 'register' 
+              ? "Generate AI Metadata" 
+              : "Verify License on Story Protocol"}
+          </Button>
         )}
       </form>
     </div>
