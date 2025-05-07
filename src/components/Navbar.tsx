@@ -29,7 +29,8 @@ const Navbar = () => {
     { path: '/upload', label: 'Try It', icon: '🎵' },
     { path: '/whitepaper', label: 'White Paper', icon: '📜' },
     { path: '/about', label: 'About', icon: '🎧' },
-    { path: '/invest', label: 'Invest', icon: '💰' },
+    // Removed the Invest link from navigation
+    // { path: '/invest', label: 'Invest', icon: '💰' },
   ];
 
   const isActive = (path: string) => location.pathname === path;
