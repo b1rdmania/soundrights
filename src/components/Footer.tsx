@@ -6,12 +6,23 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
   
   return (
-    <footer className="w-full py-6 mt-auto border-t bg-background">
+    <footer className="w-full py-6 mt-auto relative">
+      {/* Decorative elements */}
+      <div className="absolute top-0 left-0 w-full h-4 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5"></div>
+      
+      {/* Musical note animation */}
+      <div className="absolute right-[10%] -top-8 text-primary/20 animate-float" style={{ animationDuration: '5s', fontSize: '28px' }}>
+        🎵
+      </div>
+      <div className="absolute left-[20%] -top-4 text-primary/20 animate-float" style={{ animationDuration: '7s', fontSize: '20px' }}>
+        🎶
+      </div>
+      
       <div className="container px-4 md:px-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="space-y-3">
             <Link to="/" className="flex items-center space-x-2 text-xl font-semibold">
-              <span className="bg-primary rounded-md p-1 text-xs text-primary-foreground">SR</span>
+              <span className="bg-primary rounded-md p-1 text-xs text-primary-foreground">🎵</span>
               <span>SoundRights</span>
             </Link>
             <p className="text-sm text-muted-foreground">
@@ -23,23 +34,27 @@ const Footer = () => {
             <h3 className="text-sm font-medium">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  Home
+                <Link to="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 group">
+                  <span className="scale-0 group-hover:scale-100 transition-transform">🏠</span>
+                  <span className="relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-current after:transition-all after:duration-300 group-hover:after:w-full">Home</span>
                 </Link>
               </li>
               <li>
-                <Link to="/upload" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  Try It Now
+                <Link to="/upload" className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 group">
+                  <span className="scale-0 group-hover:scale-100 transition-transform">🎵</span>
+                  <span className="relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-current after:transition-all after:duration-300 group-hover:after:w-full">Try It Now</span>
                 </Link>
               </li>
               <li>
-                <Link to="/whitepaper" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  White Paper
+                <Link to="/whitepaper" className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 group">
+                  <span className="scale-0 group-hover:scale-100 transition-transform">📜</span>
+                  <span className="relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-current after:transition-all after:duration-300 group-hover:after:w-full">White Paper</span>
                 </Link>
               </li>
               <li>
-                <Link to="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  About
+                <Link to="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 group">
+                  <span className="scale-0 group-hover:scale-100 transition-transform">🎧</span>
+                  <span className="relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-current after:transition-all after:duration-300 group-hover:after:w-full">About</span>
                 </Link>
               </li>
             </ul>
@@ -49,22 +64,25 @@ const Footer = () => {
             <h3 className="text-sm font-medium">Legal</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/privacy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  Privacy Policy
+                <Link to="/privacy" className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 group">
+                  <span className="scale-0 group-hover:scale-100 transition-transform">🔒</span>
+                  <span className="relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-current after:transition-all after:duration-300 group-hover:after:w-full">Privacy Policy</span>
                 </Link>
               </li>
               <li>
-                <Link to="/terms" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  Terms of Use
+                <Link to="/terms" className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 group">
+                  <span className="scale-0 group-hover:scale-100 transition-transform">📄</span>
+                  <span className="relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-current after:transition-all after:duration-300 group-hover:after:w-full">Terms of Use</span>
                 </Link>
               </li>
             </ul>
           </div>
         </div>
         
-        <div className="mt-8 pt-4 border-t">
+        <div className="mt-8 pt-4 border-t relative">
+          <div className="absolute left-1/4 top-0 w-1/2 h-[1px] bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
           <p className="text-xs text-center text-muted-foreground">
-            © {currentYear} SoundRights. Built on <a href="https://story.xyz" className="text-primary hover:underline">Story Protocol</a>. All rights reserved.
+            © {currentYear} SoundRights 🎵 Built on <a href="https://story.xyz" className="text-primary hover:underline">Story Protocol</a>. All rights reserved.
           </p>
         </div>
       </div>

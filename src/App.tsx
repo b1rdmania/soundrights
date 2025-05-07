@@ -1,9 +1,12 @@
+
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { ErrorBoundary } from 'react-error-boundary';
 import { Suspense } from 'react';
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import Index from "./pages/Index";
 import Upload from "./pages/Upload";
 import Results from "./pages/Results";
@@ -52,6 +55,7 @@ const App = () => {
           <TooltipProvider>
             <Toaster position="top-right" />
             <Sonner />
+            <Navbar />
             <Suspense fallback={<LoadingFallback />}>
               <main className="container mx-auto px-4 py-8">
                 <Routes>
@@ -65,6 +69,7 @@ const App = () => {
                 </Routes>
               </main>
             </Suspense>
+            <Footer />
           </TooltipProvider>
         </div>
       </Router>
