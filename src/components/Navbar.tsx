@@ -2,18 +2,15 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils";
-import { Menu, X, FileText, Music } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { NavLink } from "react-router-dom";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const isMobile = useIsMobile();
-  
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   
   useEffect(() => {
     const handleScroll = () => {
@@ -27,15 +24,12 @@ const Navbar = () => {
     };
   }, []);
   
-  useEffect(() => {
-    setIsMenuOpen(false);
-  }, [location.pathname]);
-
   const navLinks = [
     { path: '/', label: 'Home', icon: '🏠' },
     { path: '/upload', label: 'Try It', icon: '🎵' },
     { path: '/whitepaper', label: 'White Paper', icon: '📜' },
     { path: '/about', label: 'About', icon: '🎧' },
+    { path: '/invest', label: 'Invest', icon: '💰' },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -45,7 +39,7 @@ const Navbar = () => {
       className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
         isScrolled 
-          ? "bg-white/80 backdrop-blur-lg shadow-sm" 
+          ? "bg-white/90 backdrop-blur-lg shadow-sm" 
           : "bg-transparent"
       )}
     >
@@ -64,8 +58,9 @@ const Navbar = () => {
           <span>SoundRights</span>
         </Link>
         
+        {/* Desktop navigation */}
         {!isMobile ? (
-          <nav className="flex items-center space-x-8">
+          <nav className="flex items-center space-x-5 lg:space-x-8">
             {navLinks.map((link) => (
               <Link
                 key={link.path}
@@ -87,49 +82,43 @@ const Navbar = () => {
             ))}
           </nav>
         ) : (
-          <button 
-            className="flex items-center justify-center h-10 w-10 rounded-full bg-secondary hover:bg-secondary/80 transition-colors hover:rotate-[5deg] hover:scale-105"
-            onClick={toggleMenu}
-            aria-label="Toggle menu"
-          >
-            {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
+          <Sheet>
+            <SheetTrigger asChild>
+              <button 
+                className="flex items-center justify-center h-10 w-10 rounded-full bg-secondary hover:bg-secondary/80 transition-colors hover:rotate-[5deg] hover:scale-105"
+                aria-label="Toggle menu"
+              >
+                <Menu size={20} />
+              </button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[75vw] sm:w-[350px]">
+              <SheetHeader>
+                <SheetTitle className="flex items-center gap-2">
+                  <span className="bg-primary rounded-md p-1 text-xs text-primary-foreground">🎵</span>
+                  <span>SoundRights Menu</span>
+                </SheetTitle>
+              </SheetHeader>
+              <nav className="mt-8 flex flex-col gap-4">
+                {navLinks.map((link) => (
+                  <NavLink
+                    key={link.path}
+                    to={link.path}
+                    className={({ isActive }) => cn(
+                      "flex items-center gap-3 px-3 py-2 text-base rounded-md transition-all duration-200",
+                      isActive 
+                        ? "bg-primary/10 text-primary font-medium" 
+                        : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
+                    )}
+                  >
+                    <span className="text-xl">{link.icon}</span>
+                    <span>{link.label}</span>
+                  </NavLink>
+                ))}
+              </nav>
+            </SheetContent>
+          </Sheet>
         )}
       </div>
-      
-      {/* Mobile menu */}
-      {isMobile && (
-        <div 
-          className={cn(
-            "absolute top-full left-0 right-0 bg-background/95 backdrop-blur-sm shadow-lg transition-all duration-300 overflow-hidden",
-            isMenuOpen ? "max-h-[300px] border-b" : "max-h-0"
-          )}
-        >
-          <SheetContent side="left">
-            <SheetHeader>
-              <SheetTitle className="flex items-center gap-2">
-                <Music className="h-5 w-5 text-primary" /> Menu
-              </SheetTitle>
-            </SheetHeader>
-            <nav className="grid gap-4 py-4">
-              {navLinks.map((link) => (
-                <NavLink
-                  key={link.path}
-                  to={link.path}
-                  className={({ isActive }) => cn(
-                    "flex items-center gap-2 text-lg font-semibold hover:translate-x-1 transition-transform",
-                    isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
-                  )}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <span className="text-xl">{link.icon}</span>
-                  {link.label}
-                </NavLink>
-              ))}
-            </nav>
-          </SheetContent>
-        </div>
-      )}
     </header>
   );
 };

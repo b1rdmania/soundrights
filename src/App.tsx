@@ -46,18 +46,17 @@ const LoadingFallback = () => {
 };
 
 const App = () => {
-  console.log('App rendering...'); // Debug log
-
   return (
     <ErrorBoundary FallbackComponent={ErrorFallback}>
       <Router>
-        <div className="min-h-screen bg-gray-50">
-          <TooltipProvider>
+        <TooltipProvider>
+          <div className="flex flex-col min-h-screen">
             <Toaster position="top-right" />
             <Sonner />
             <Navbar />
+            
             <Suspense fallback={<LoadingFallback />}>
-              <main className="container mx-auto px-4 py-8">
+              <main className="flex-grow">
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/upload" element={<Upload />} />
@@ -69,9 +68,10 @@ const App = () => {
                 </Routes>
               </main>
             </Suspense>
+            
             <Footer />
-          </TooltipProvider>
-        </div>
+          </div>
+        </TooltipProvider>
       </Router>
     </ErrorBoundary>
   );

@@ -78,6 +78,18 @@
     padding: 0;
     @apply bg-background text-foreground;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    font-size: 16px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Set a minimum touch target size for interactive elements */
+  button, a, input, select, textarea {
+    @apply min-h-[44px] min-w-[44px];
+  }
+  
+  /* Better focus styles for accessibility */
+  :focus-visible {
+    @apply outline-primary outline-offset-2;
   }
   
   #root {
@@ -87,6 +99,7 @@
     max-width: 100%;
     margin: 0 auto;
     padding: 0;
+    overflow-x: hidden;
   }
 
   /* Paper texture effect for the background */
@@ -98,6 +111,42 @@
     opacity: 0.2;
     z-index: -1;
     pointer-events: none;
+  }
+  
+  /* Mobile-friendly scrollbar */
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--background));
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--primary) / 0.5);
+    border-radius: 10px;
+  }
+  
+  /* Improve tap target size on mobile */
+  @media (max-width: 640px) {
+    h1 {
+      line-height: 1.2;
+    }
+    
+    input, select, textarea {
+      font-size: 16px; /* Prevents iOS zoom on focus */
+    }
+    
+    /* Add smooth scrolling for anchor links */
+    html {
+      scroll-behavior: smooth;
+    }
+    
+    /* Disable pull-to-refresh on mobile */
+    body {
+      overscroll-behavior: none;
+    }
   }
 }
 
@@ -141,6 +190,11 @@
     background-position-y: 7px;
   }
   
+  /* Mobile-friendly button sizes */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px] p-2;
+  }
+  
   /* Animation for musical notes */
   @keyframes float-up {
     0% { transform: translateY(0) rotate(0); opacity: 0.2; }
@@ -150,6 +204,25 @@
   
   .animate-float-up {
     animation: float-up 4s ease-in-out forwards;
+  }
+  
+  /* Reduce animation on devices with reduced motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+  
+  /* Safe area insets for newer mobile devices */
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 1rem);
+  }
+  
+  .safe-top {
+    padding-top: env(safe-area-inset-top, 1rem);
   }
 }
 

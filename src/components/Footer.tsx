@@ -6,7 +6,7 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
   
   return (
-    <footer className="w-full py-6 mt-auto relative">
+    <footer className="w-full py-8 mt-auto relative">
       {/* Decorative elements */}
       <div className="absolute top-0 left-0 w-full h-4 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5"></div>
       
@@ -19,7 +19,7 @@ const Footer = () => {
       </div>
       
       <div className="container px-4 md:px-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           <div className="space-y-3">
             <Link to="/" className="flex items-center space-x-2 text-xl font-semibold">
               <span className="bg-primary rounded-md p-1 text-xs text-primary-foreground">🎵</span>
@@ -32,50 +32,38 @@ const Footer = () => {
           
           <div className="space-y-3">
             <h3 className="text-sm font-medium">Quick Links</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link to="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 group">
-                  <span className="scale-0 group-hover:scale-100 transition-transform">🏠</span>
-                  <span className="relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-current after:transition-all after:duration-300 group-hover:after:w-full">Home</span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/upload" className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 group">
-                  <span className="scale-0 group-hover:scale-100 transition-transform">🎵</span>
-                  <span className="relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-current after:transition-all after:duration-300 group-hover:after:w-full">Try It Now</span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/whitepaper" className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 group">
-                  <span className="scale-0 group-hover:scale-100 transition-transform">📜</span>
-                  <span className="relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-current after:transition-all after:duration-300 group-hover:after:w-full">White Paper</span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 group">
-                  <span className="scale-0 group-hover:scale-100 transition-transform">🎧</span>
-                  <span className="relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-current after:transition-all after:duration-300 group-hover:after:w-full">About</span>
-                </Link>
-              </li>
-            </ul>
+            <div className="grid grid-cols-2 sm:grid-cols-1 gap-2">
+              <Link to="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 group">
+                <span className="scale-0 group-hover:scale-100 transition-transform">🏠</span>
+                <span className="relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-current after:transition-all after:duration-300 group-hover:after:w-full">Home</span>
+              </Link>
+              <Link to="/upload" className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 group">
+                <span className="scale-0 group-hover:scale-100 transition-transform">🎵</span>
+                <span className="relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-current after:transition-all after:duration-300 group-hover:after:w-full">Try It Now</span>
+              </Link>
+              <Link to="/whitepaper" className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 group">
+                <span className="scale-0 group-hover:scale-100 transition-transform">📜</span>
+                <span className="relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-current after:transition-all after:duration-300 group-hover:after:w-full">White Paper</span>
+              </Link>
+              <Link to="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 group">
+                <span className="scale-0 group-hover:scale-100 transition-transform">🎧</span>
+                <span className="relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-current after:transition-all after:duration-300 group-hover:after:w-full">About</span>
+              </Link>
+            </div>
           </div>
           
           <div className="space-y-3">
             <h3 className="text-sm font-medium">Legal</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link to="/privacy" className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 group">
-                  <span className="scale-0 group-hover:scale-100 transition-transform">🔒</span>
-                  <span className="relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-current after:transition-all after:duration-300 group-hover:after:w-full">Privacy Policy</span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/terms" className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 group">
-                  <span className="scale-0 group-hover:scale-100 transition-transform">📄</span>
-                  <span className="relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-current after:transition-all after:duration-300 group-hover:after:w-full">Terms of Use</span>
-                </Link>
-              </li>
-            </ul>
+            <div className="grid grid-cols-2 sm:grid-cols-1 gap-2">
+              <Link to="/privacy" className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 group">
+                <span className="scale-0 group-hover:scale-100 transition-transform">🔒</span>
+                <span className="relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-current after:transition-all after:duration-300 group-hover:after:w-full">Privacy Policy</span>
+              </Link>
+              <Link to="/terms" className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 group">
+                <span className="scale-0 group-hover:scale-100 transition-transform">📄</span>
+                <span className="relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-current after:transition-all after:duration-300 group-hover:after:w-full">Terms of Use</span>
+              </Link>
+            </div>
           </div>
         </div>
         
