@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils";
-import { Menu, X } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { NavLink } from "react-router-dom";
@@ -49,13 +49,7 @@ const Navbar = () => {
           to="/" 
           className="flex items-center space-x-2 text-xl font-semibold"
         >
-          <span className="bg-primary rounded-md p-1.5 text-primary-foreground">
-            <img 
-              src="/lovable-uploads/c79eecdb-b679-494a-97c5-b9bf84dbf7f0.png" 
-              alt="SoundRights Logo" 
-              className="w-6 h-6" 
-            />
-          </span>
+          <span className="text-2xl">🎵</span>
           <span>SoundRights</span>
         </Link>
         
@@ -95,7 +89,7 @@ const Navbar = () => {
             <SheetContent side="left" className="w-[75vw] sm:w-[350px]">
               <SheetHeader>
                 <SheetTitle className="flex items-center gap-2">
-                  <span className="bg-primary rounded-md p-1 text-xs text-primary-foreground">🎵</span>
+                  <span className="text-xl">🎵</span>
                   <span>SoundRights Menu</span>
                 </SheetTitle>
               </SheetHeader>
