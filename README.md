@@ -1,111 +1,111 @@
-# SoundMatch AI - Find Similar Copyright-Free Music
+# SoundRights
 
-**Hackathon Project - Seeking Partners!**
+**Decentralized Sound IP Registration & Verification on Story Protocol**
 
-This project is being developed for a hackathon and we are actively looking for enthusiastic partners to join the team! If you're interested in AI, music technology, web development (React/FastAPI), or data services like MusicBrainz and Jamendo, please reach out!
+SoundRights is a web3-native platform for registering, licensing, and verifying sound assets on-chain. Built for the Surreal World Assets bounty, it enables:
 
-## Project Goal
+- **On-Chain Registration:** Upload audio, generate AI-powered metadata, and register as an IP Asset on Story Protocol.
+- **Programmable Licensing:** Attach clear, machine-readable licenses (PILs) to your sound IP.
+- **Transparent Verification:** Anyone can upload a file to verify its license status via audio fingerprinting and on-chain queries.
 
-SoundMatch AI aims to be an intelligent platform that helps content creators, developers, and music enthusiasts discover copyright-free music similar to a provided track or audio file.
+**Tech Stack:** FastAPI (Python), React (TypeScript), Story Protocol SDK, Google Gemini (AI), AcoustID/Chromaprint (fingerprinting), PostgreSQL/SQLite, Docker.
 
-Users can:
-- **Search by song/artist:** Enter a known song, and the app will find similar royalty-free alternatives.
-- **Upload an MP3:** Analyze an existing audio file to find similar royalty-free tracks.
-- **Paste a link:** Analyze a YouTube link to find similar royalty-free tracks.
+**Current GitHub Remote:**  
+`origin  https://github.com/b1rdmania/soundrights.git (fetch)`  
+`origin  https://github.com/b1rdmania/soundrights.git (push)`
 
-The core idea is to leverage metadata analysis (using MusicBrainz) and similarity searching (using Jamendo) to provide relevant and usable music recommendations.
+---
 
-## Technology Stack
+## Audio Fingerprinting: How It Works
 
-- **Frontend:** React, Vite, TypeScript, Tailwind CSS, shadcn-ui
-- **Backend:** Python, FastAPI
-- **Metadata:** MusicBrainz API
-- **Royalty-Free Music Search:** Jamendo API
-- **Deployment:** Vercel (Frontend), Railway (Backend)
+When a user uploads an audio file:
+1. The backend saves the file temporarily.
+2. The `fpcalc` tool (from Chromaprint) is run on the file to extract a unique audio fingerprint and duration.
+3. This fingerprint is used to:
+    - Register the asset (mapping fingerprint to on-chain ipAssetId).
+    - Verify uploaded files by matching their fingerprint against registered assets.
+4. The backend can also query the AcoustID API for additional metadata if needed.
 
-## Development Progress So Far
+**Key file:**  
+`app/services/audio_identification/acoustid_service.py`  
+- Runs `fpcalc` via subprocess/asyncio.
+- Handles errors, parses JSON output, and returns fingerprint data.
 
-We have made significant progress in building the core infrastructure and functionality:
-
-- **Backend API (FastAPI on Railway):**
-    - Set up FastAPI application structure.
-    - Implemented API endpoints for:
-        - `/search`: Takes title/artist, fetches metadata from Musixmatch (with fallback search), MusicBrainz, Discogs, and Wikipedia. Analyzes combined data with Gemini to generate description/keywords, then searches Jamendo.
-        - `/process-file`: Accepts an MP3 upload, recognizes it using Shazam, fetches metadata from Musixmatch/MusicBrainz/Discogs/Wikipedia, analyzes with Gemini, and searches Jamendo.
-        - *`/process-link`: (Future Feature) Accepts a music URL.*
-    - Integrated Musixmatch client with fallback logic (`matcher.track.get` -> `track.search`).
-    - Integrated Shazam client (using a third-party wrapper) for audio recognition.
-    - Integrated MusicBrainz client to fetch recording MBID and tags.
-    - Integrated Discogs client to fetch release year, styles, genres, and **cover art URL**.
-    - Integrated **Wikipedia client** to fetch introductory summaries.
-    - Integrated **Gemini client (gemini-1.5-flash)**:
-        - Refined prompt significantly to **synthesize data from all sources (Musixmatch, MusicBrainz, Discogs)**.
-        - Instructed Gemini to use its **internal knowledge base** to enhance descriptions (e.g., specific instruments, production).
-        - Improved keyword generation strategy for more specific Jamendo searches.
-    - Integrated Jamendo client for searching copyright-free music based on Gemini keywords.
-    - Configured CORS, environment variables, logging, and basic error handling.
-    - Created Docker configurations for potential containerization.
-- **Frontend (React on Vercel):**
-    - Set up React application using Vite and TypeScript.
-    - Created main pages (Index, Upload, Results) and routing.
-    - Developed the `UploadForm` component.
-    - Significantly **refactored the `Results` page**:
-        - Displays the source track with **cover art** (from Discogs/Shazam).
-        - Shows a detailed summary including data from Musixmatch, Discogs (genres, styles, year), and linked IDs (Discogs, MusicBrainz).
-        - Displays the **Wikipedia summary** in a dedicated section.
-        - Removed the raw technical data dumps.
-        - Added **audio playback controls** (play/pause/seek) for Jamendo results.
-        - Implemented a dynamic "Analyzing..." loading state.
-    - Integrated API client (`axios`) to communicate with the backend.
-    - Styled with Tailwind CSS and `shadcn-ui`.
-    - Added user feedback (toasts) for playback errors.
-- **Deployment & Infrastructure:**
-    - Frontend successfully deployed to Vercel.
-    - Backend successfully deployed to Railway.
-    - Configured environment variables for all services.
-- **Troubleshooting & Refinement:**
-    - Resolved CORS issues.
-    - Iteratively fixed backend API errors related to various service integrations (Musixmatch, MusicBrainz, Discogs, Gemini, Jamendo) and error handling logic.
-    - Addressed initial **limitations with AcousticBrainz** (unreliable/discontinued data) by **removing it** and integrating richer sources (Discogs/MusicBrainz).
-    - Refined Gemini prompt multiple times to improve analysis specificity and keyword quality based on synthesized metadata.
-    - Improved frontend layout and data presentation based on available information.
-
-## Next Steps / Known Limitations
-
-- **Improve Wikipedia Search Term:** Experiment with different search terms (e.g., `"Song Title (song)"`) for better Wikipedia summary results.
-- **Refine Gemini Prompt Further:** Continue tuning the prompt based on analysis quality for diverse tracks.
-- **Enhance Jamendo Keyword Strategy:** Explore techniques beyond simple keyword search on Jamendo (e.g., using tags, filtering by license).
-- **Link Processing:** Implement `/process-link` functionality.
-- **Advanced Similarity (Future):** Consider FAISS or vector similarity if keyword search proves insufficient.
-- **Expand Music Sources:** Integrate more royalty-free libraries.
-- **Testing:** Add comprehensive unit and integration tests.
-- **Scalability & Performance:** Optimize API calls, especially concurrent requests to external services.
-- **UI/UX Polish:** Add more loading indicators, refine playback controls, improve mobile responsiveness.
+---
 
 ## Getting Started Locally
 
-To run this project locally:
+### 1. Clone the repository
 
-1.  **Clone the repository:**
-    ```bash
-    git clone <YOUR_GIT_URL>
-    cd soundmatch-audio-finder
-    ```
-2.  **Set up Backend:**
-    - Navigate to the backend directory (if structure dictates, otherwise root).
-    - Create a Python virtual environment: `python -m venv .venv`
-    - Activate the virtual environment: `source .venv/bin/activate` (or `.\venv\Scripts\activate` on Windows)
-    - Install backend dependencies: `pip install -r requirements.txt`
-    - Create a `.env` file based on `.env.example` and add your API keys (Jamendo, potentially others).
-    - Run the backend server: `uvicorn app.main:app --reload --port 8000`
-3.  **Set up Frontend:**
-    - Navigate to the frontend directory (if structure dictates, otherwise root).
-    - Install frontend dependencies: `npm install`
-    - Create a `.env.local` file and add `VITE_API_URL=http://localhost:8000/api/v1` (or your backend URL).
-    - Run the frontend development server: `npm run dev`
+```sh
+git clone https://github.com/b1rdmania/soundrights.git
+cd soundrights
+```
 
-The frontend should be accessible at `http://localhost:5173` (or another port specified by Vite).
+### 2. Backend Setup
 
-**Join Us!**
+- Create a Python virtual environment:
+  ```sh
+  python -m venv .venv
+  source .venv/bin/activate
+  ```
+- Install dependencies:
+  ```sh
+  pip install -r requirements.txt
+  ```
+- Copy `.env.example` to `.env` and add your API keys (e.g., for Gemini, AcoustID).
+- Run the backend server:
+  ```sh
+  uvicorn app.main:app --reload --port 8000
+  ```
 
-If you're excited about this project and want to contribute during the hackathon, please reach out!
+### 3. Frontend Setup
+
+- Install frontend dependencies:
+  ```sh
+  npm install
+  ```
+- Create a `.env.local` file and set:
+  ```
+  VITE_API_URL=http://localhost:8000/api/v1
+  ```
+- Run the frontend development server:
+  ```sh
+  npm run dev
+  ```
+
+The frontend should be accessible at `http://localhost:5173`.
+
+---
+
+## Project Roadmap
+
+- [x] On-chain registration of sound assets (Story Protocol Testnet)
+- [x] AI-powered metadata generation (Google Gemini)
+- [x] Audio fingerprinting (Chromaprint/AcoustID)
+- [x] Programmable license selection (PILs)
+- [x] License verification via upload and on-chain query
+- [ ] $IP token payment integration (future)
+- [ ] Batch registration, DAW integrations (future)
+
+---
+
+## Contributing
+
+Pull requests and issues are welcome! If you're interested in collaborating, please reach out.
+
+---
+
+## License
+
+MIT
+
+---
+
+## Acknowledgements
+
+- [Story Protocol](https://storyprotocol.xyz/)
+- [Google Gemini](https://ai.google/)
+- [AcoustID / Chromaprint](https://acoustid.org/)
+- [FastAPI](https://fastapi.tiangolo.com/)
+- [React](https://react.dev/)
