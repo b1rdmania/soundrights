@@ -71,7 +71,7 @@ SoundRights addresses these challenges by offering a modern, transparent, and au
 
 - **On-Chain IP Registration:** Register audio assets as Story Protocol IP, with AI-enriched metadata.
 - **Programmable Licensing:** Attach clear, machine-readable licenses (PILs) to your sound IP.
-- **Audio Fingerprinting:** Chromaprint/AcoustID for robust audio identification and verification.
+- **Audio Fingerprinting:** AudD API for robust audio identification and verification.
 - **AI Metadata:** Google Gemini and open music DBs for rich, accurate metadata.
 - **License Verification:** Anyone can upload a file to verify its license status via fingerprinting and onchain queries.
 - **Admin Dashboard:** Monitor system health, job queues, and user activity.
@@ -93,8 +93,8 @@ SoundRights addresses these challenges by offering a modern, transparent, and au
 - **Backend:** FastAPI (Python), PostgreSQL, Redis, Celery
 - **Frontend:** React (TypeScript), Vite, Tailwind
 - **Blockchain:** Story Protocol (Testnet)
-- **Audio:** Chromaprint, pyacoustid, Mutagen
-- **AI/Metadata:** Google Gemini, MusicBrainz
+- **Audio:**
+- **AI/Metadata:** Google Gemini, MusicBrainz, AudD API, Discogs API (potential)
 - **Integrations:** Tomo, Yakoa, Zapper
 
 ## 📈 Roadmap (V1)
@@ -125,9 +125,9 @@ MIT
 
 ## Music Recognition
 
-SoundRights now uses the [AudD Music Recognition API](https://docs.audd.io/) for audio identification. This replaces the previous chromaprint/pyacoustid-based approach.
+SoundRights now uses the [AudD Music Recognition API](https://docs.audd.io/) for audio identification. This replaces the previous local fingerprinting approaches.
 
-> **Note:** The AudD service is implemented in `app/services/audio_identification/audd_service.py` but is **not yet wired into the main API endpoints**. API integration is a pending task.
+> **Note:** The AudD service is implemented in `app/services/audio_identification/audd_service.py` and integrated into the `/api/v1/recognize/audio/audd` endpoint.
 
 ### Setup
 - Sign up at [AudD Dashboard](https://audd.io/) to obtain your API token.
