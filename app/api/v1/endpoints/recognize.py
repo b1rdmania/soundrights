@@ -1,120 +1,52 @@
+# NOTE: All endpoints in this file should have automated, detailed tests and ongoing debugging.
+# TODO: Create automated tests for all endpoints in this file (no test directory found yet).
 from fastapi import APIRouter, HTTPException, UploadFile, File
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any
 
-from app.services.recognition.shazam import zyla_shazam_client
-from app.services.ai.llm import gemini_service
+from app.services.audio_identification.audd_service import AudDService
 from app.core.logging import logger
-from app.core.exceptions import RecognitionAPIError
+import tempfile
+import os
 
 router = APIRouter()
 
-@router.post("/audio")
-async def recognize_audio_endpoint(file: UploadFile = File(...)) -> Dict[str, Any]:
+@router.post("/audio/audd")
+async def recognize_audio_audd_endpoint(file: UploadFile = File(...)) -> Dict[str, Any]:
     """
-    Recognize a song from an uploaded audio file using Shazam.
-    
+    Recognize a song from an uploaded audio file using the AudD API.
     Args:
         file: The uploaded audio file (MP3 recommended).
-        
     Returns:
-        Dictionary containing the recognized track information from Shazam.
+        Dictionary containing the recognized track information from AudD.
     """
-    logger.info(f"Received audio file for recognition: {file.filename}")
-    
-    # Basic validation (optional, can add more checks)
-    if not file.filename:
-        raise HTTPException(status_code=400, detail="Filename cannot be empty.")
-        
-    # Read file content
-    try:
-        audio_data = await file.read()
-    except Exception as e:
-        logger.error(f"Error reading uploaded file: {str(e)}")
-        raise HTTPException(status_code=400, detail="Could not read the uploaded file.")
-        
-    if not audio_data:
-         raise HTTPException(status_code=400, detail="Uploaded file is empty.")
-
-    # Send to Shazam service
-    try:
-        recognized_track = await zyla_shazam_client.recognize_audio(audio_data, file.filename)
-        
-        if recognized_track:
-            logger.info(f"Successfully recognized track: {recognized_track.get('title')} by {recognized_track.get('subtitle')}")
-            return recognized_track
-        else:
-            logger.warning(f"Could not recognize track from file: {file.filename}")
-            raise HTTPException(status_code=404, detail="Could not recognize the track from the provided audio.")
-            
-    except RecognitionAPIError as e:
-        logger.error(f"Shazam recognition failed for {file.filename}: {str(e)}")
-        # Provide a generic error or map specific errors if needed
-        raise HTTPException(status_code=503, detail=f"Audio recognition service failed: {str(e)}")
-    except Exception as e:
-        logger.error(f"Unexpected error during Shazam recognition for {file.filename}: {str(e)}")
-        raise HTTPException(status_code=500, detail="An unexpected error occurred during audio recognition.") 
-
-@router.post("/identify-and-generate-keywords")
-async def identify_and_generate_keywords_endpoint(file: UploadFile = File(...)) -> Dict[str, Any]:
-    """
-    Recognize a song using Shazam, generate keywords using Gemini,
-    and return both.
-    
-    Args:
-        file: The uploaded audio file (MP3 recommended).
-        
-    Returns:
-        Dictionary containing recognized track info and generated keywords.
-    """
-    logger.info(f"Received audio file for identify-and-generate: {file.filename}")
+    logger.info(f"Received audio file for AudD recognition: {file.filename}")
 
     if not file.filename:
         raise HTTPException(status_code=400, detail="Filename cannot be empty.")
 
-    # Read file content
+    # Save uploaded file to a temporary location
     try:
         audio_data = await file.read()
+        if not audio_data:
+            raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+        with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(file.filename)[-1]) as tmp:
+            tmp.write(audio_data)
+            tmp_path = tmp.name
     except Exception as e:
-        logger.error(f"Error reading uploaded file: {str(e)}")
-        raise HTTPException(status_code=400, detail="Could not read the uploaded file.")
+        logger.error(f"Error handling uploaded file: {str(e)}")
+        raise HTTPException(status_code=400, detail="Could not process the uploaded file.")
 
-    if not audio_data:
-        raise HTTPException(status_code=400, detail="Uploaded file is empty.")
-
-    # 1. Recognize with Shazam
-    recognized_track: Optional[Dict[str, Any]] = None
+    # Call AudDService
     try:
-        recognized_track = await zyla_shazam_client.recognize_audio(audio_data, file.filename)
-        if not recognized_track:
-            raise HTTPException(status_code=404, detail="Shazam could not recognize the track.")
-        
-        logger.info(f"Shazam identified: {recognized_track.get('title')} by {recognized_track.get('subtitle')}")
-        
-    except RecognitionAPIError as e:
-        logger.error(f"Shazam recognition failed for {file.filename}: {str(e)}")
-        raise HTTPException(status_code=503, detail=f"Audio recognition service failed: {str(e)}")
+        result = AudDService.recognize_by_file(tmp_path, return_metadata="apple_music,spotify")
+        logger.info(f"AudD recognition result: {result}")
+        return result
     except Exception as e:
-        logger.error(f"Unexpected error during Shazam recognition for {file.filename}: {str(e)}")
-        raise HTTPException(status_code=500, detail="An unexpected error occurred during audio recognition.")
-
-    # 2. Generate Keywords with Gemini
-    track_title = recognized_track.get('title', 'Unknown Title')
-    track_artist = recognized_track.get('subtitle', 'Unknown Artist') # Zyla seems to use subtitle for artist
-    generated_keywords: Optional[List[str]] = None
-    try:
-        generated_keywords = await gemini_service.generate_keywords_for_track(track_title, track_artist)
-        if not generated_keywords:
-             logger.warning(f"Gemini failed to generate keywords for {track_title}")
-             # Proceed without keywords, or raise an error? Decide based on desired behavior.
-             # For now, we'll return the track info anyway.
-
-    except Exception as e:
-        # Log the error but don't fail the whole request if Gemini fails
-        logger.error(f"Gemini keyword generation failed for {track_title}: {str(e)}")
-        # generated_keywords remains None
-
-    # 3. Combine and Return Results
-    return {
-        "recognized_track": recognized_track,
-        "generated_keywords": generated_keywords or [] # Return empty list if generation failed
-    } 
+        logger.error(f"AudD recognition failed: {str(e)}")
+        raise HTTPException(status_code=503, detail=f"AudD recognition failed: {str(e)}")
+    finally:
+        # Clean up temp file
+        try:
+            os.remove(tmp_path)
+        except Exception:
+            pass 

@@ -7,6 +7,58 @@
 
 SoundRights is a B2B-focused, web3-native platform designed to streamline the registration, licensing, and verification of sound assets. Leveraging Story Protocol for on-chain IP management, advanced audio fingerprinting for identification, and AI for metadata enrichment, SoundRights aims to provide a transparent, efficient, and secure marketplace for music rights holders and licensees. This document outlines the V1 technical architecture, core components, and key implementation considerations. The primary goal is to address the complexities of music licensing in the B2B space, including sync and commercial use, by providing robust tools for rights holders and a simplified acquisition process for licensees, while abstracting Web3 complexities for mainstream adoption.
 
+## 1. System Architecture Overview
+
+- **Backend:** FastAPI (Python), PostgreSQL, Redis, Celery
+- **Frontend:** React (TypeScript), Vite, Tailwind
+- **Blockchain:** Story Protocol (Testnet)
+- **Audio Processing:** Chromaprint, pyacoustid
+- **AI/Metadata:** Google Gemini, Mutagen, MusicBrainz
+- **Partner Integrations:** Tomo, Yakoa, Zapper
+
+## 2. Key Integrations (V1)
+
+### 2.1 Tomo (Social Login & Wallet Aggregation)
+- **Purpose:** Simplifies onboarding for B2B users and rights holders by enabling social login and seamless wallet creation/aggregation.
+- **Integration:**
+  - Use Tomo SDK in the React frontend for OAuth/social login flows.
+  - On successful login, retrieve wallet address and associate with user profile in backend.
+  - Use Tomo's wallet aggregation for multi-wallet management (future-proofing for advanced users).
+- **Security:** All wallet operations are non-custodial; private keys are never stored by SoundRights.
+
+### 2.2 Yakoa (Audio Originality & Authentication API)
+- **Purpose:** Verifies the originality and authenticity of uploaded audio assets, providing an additional layer of IP protection.
+- **Integration:**
+  - On audio upload, backend calls Yakoa's REST API with the file hash or audio sample.
+  - Store Yakoa's originality/authentication result in the track metadata.
+  - Display originality status in the UI and use for admin review/flagging.
+- **Security:** API keys are stored securely in backend; results are not exposed to public endpoints.
+
+### 2.3 Zapper (Onchain Analytics & License Transparency)
+- **Purpose:** Provides onchain analytics and transparency for IP assets and licenses, enhancing trust for B2B clients.
+- **Integration:**
+  - Use Zapper's API to fetch onchain data (ownership, license status, transaction history) for registered IP assets.
+  - Display analytics in user dashboards and public verification pages.
+- **Security:** Only public onchain data is displayed; no sensitive user data is shared with Zapper.
+
+## 3. Core Modules
+- User Management (Tomo integration)
+- Audio Upload & Metadata (Yakoa integration)
+- Licensing & Verification (Story Protocol, Zapper integration)
+- Admin/Operational Dashboard
+
+## 4. Security & Privacy
+- All partner API keys are stored in environment variables and never exposed to the frontend.
+- Wallets are managed non-custodially via Tomo.
+- All originality/authentication checks are performed server-side.
+
+## 5. Future/Stretch Integrations
+- Crossmint (walletless onboarding, NFT minting)
+- Advanced AI agents (Fleek, Holoworld)
+- Custom smart contracts (thirdweb)
+
+**See also:** [Development Roadmap](./SoundRights_Development_Roadmap_V1.md), [Product Document](./SoundRights_Product_Document_V1.md), [Site Plan](./SoundRights_Site_Plan_V1.md)
+
 ## 1. Introduction & Vision
 
 The current music licensing landscape is fragmented, often opaque, and fraught with inefficiencies. SoundRights envisions a future where sound IP is easily registered, its usage rights are clearly defined and programmable, and licenses can be acquired and verified with minimal friction. By building on Story Protocol, SoundRights provides an immutable, globally accessible ledger for sound IP assets and their associated licenses (PILs - Programmable IP Licenses).

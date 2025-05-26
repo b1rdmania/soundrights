@@ -14,25 +14,17 @@
     *   Backend: Audio Fingerprinting (Chromaprint).
     *   Backend: Story Protocol IP Asset Registration.
 3.  **RH Dashboard:** View registered tracks, status, licenses sold (summary), earnings (summary).
-4.  **Licensee Workflow: Music Discovery (Core V1):**
-    *   Browse Music Catalog.
-    *   Search by keywords (title, artist, genre, mood).
-    *   Filter by genre, mood.
-    *   Preview tracks (watermarked/low-fi stream).
-    *   View Track Detail Page (public info, license options).
-5.  **Licensee Workflow: License Acquisition:**
-    *   Select License from Track Detail Page.
-    *   Fiat Payment (Stripe Integration).
-    *   Receive: Download link (HQ audio), On-chain license (Story Protocol - backend initiated), PDF license receipt.
-6.  **Licensee Dashboard:** View purchased licenses, re-download assets, view Story Protocol record link.
-7.  **Public License Verification Page:** Verify license authenticity via ID.
-8.  **Admin Tools (Enhanced Operational Focus):**
-    *   User Management (basic).
-    *   Content Management (view tracks, flag content - internal process).
-    *   **Operational Dashboard:** Monitoring for fingerprinting job status, Story Protocol queue/failures, upload errors, payment gateway issues.
-    *   View logs/details for failed jobs.
-    *   Basic Sentry/Grafana integration for visibility.
-9.  **Basic Legal Pages:** Terms, Privacy.
+4.  **Licensee Workflow: Music Discovery (Core Search, Browse, Filter, Listen, License).**
+5.  **License Purchase & Verification:**
+    *   Purchase flow (Stripe, crypto, or testnet for hackathon).
+    *   License NFT/record issued on Story Protocol.
+    *   License verification endpoint (public, onchain lookup).
+6.  **Admin/Operational Dashboard:**
+    *   System health, error tracking, job queues, user management.
+7.  **API Integrations:**
+    *   **Tomo:** Social login & wallet aggregation for onboarding (Week 2-3).
+    *   **Yakoa:** Audio originality/authentication API for verifying uploads (Week 3-4).
+    *   **Zapper:** Onchain analytics and license transparency (Week 4-5).
 
 ---
 
@@ -151,3 +143,29 @@
 *   **Learning Curve:** Team familiarity with Story Protocol.
 
 Regular sprint reviews, clear communication, and adaptability will be key to navigating this timeline. 
+
+---
+
+**🗓️ Week-by-Week Plan (First 5 Weeks)**
+
+- **Week 1:** Project setup, DB schema, FastAPI skeleton, user model, basic auth, Story Protocol SDK exploration.
+- **Week 2:** Audio upload, metadata extraction, AI metadata, file storage, initial Tomo integration (social login/wallet).
+- **Week 3:** Audio fingerprinting, Story Protocol registration, Yakoa API integration for originality/authentication.
+- **Week 4:** License purchase flow, license NFT, Zapper API integration for onchain analytics, admin dashboard.
+- **Week 5:** Polish, error handling, docs, testnet deployment, partner bounty requirements, submission.
+
+---
+
+**Partner Integrations (V1)**
+- **Tomo:** Social login & wallet onboarding for all users.
+- **Yakoa:** Audio originality/authentication for all uploads.
+- **Zapper:** Onchain analytics for IP assets and licenses.
+
+---
+
+**Stretch Goals:**
+- Crossmint (walletless onboarding/NFT minting), advanced AI agents, partner-specific bounties.
+
+---
+
+**See also:** [Technical Whitepaper](./SoundRights_Technical_Whitepaper_V1.md), [Product Document](./SoundRights_Product_Document_V1.md), [Site Plan](./SoundRights_Site_Plan_V1.md) 
