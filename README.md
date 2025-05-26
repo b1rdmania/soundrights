@@ -30,6 +30,32 @@ Our mission is to provide a seamless, efficient, and trustworthy ecosystem for m
 
 ---
 
+## 🚀 Week 2 & Beyond: Next Steps
+
+- [ ] **Finalize Yakoa Integration:**
+    - [ ] Verify and refine Pydantic models for Yakoa API with actual responses.
+    - [ ] Implement public URL generation for media (e.g., S3 upload).
+    - [ ] Integrate Yakoa `register_token` into the audio upload workflow.
+    - [ ] Add DB fields for Yakoa `token_id`/status & create migration.
+    - [ ] Write integration tests for the complete Yakoa flow.
+- [ ] **Implement Core Story Protocol Functionality:**
+    - [ ] Service for registering IP Assets on Story Protocol.
+    - [ ] Service for attaching licenses (PILs) to IP Assets.
+    - [ ] API endpoints for these Story Protocol interactions.
+- [ ] **Integrate Tomo for User Onboarding:**
+    - [ ] Plan and implement Tomo SDK/API for social login & wallet management.
+- [ ] **Frontend Development (Initial Phase):**
+    - [ ] UI for user registration/login (with Tomo).
+    - [ ] UI for audio upload and metadata input.
+    - [ ] UI for displaying track information (including Yakoa/Story Protocol status).
+- [ ] **Database & Backend Polish:**
+    - [ ] Expand database models and create Alembic migrations for new features.
+    - [ ] Refine existing CRUD endpoints with full business logic.
+- [ ] **Testing & CI/CD:**
+    - [ ] Continuously expand test coverage for all new features.
+
+---
+
 ## 🧐 The Problem We Solve
 
 The traditional B2B music licensing landscape is often characterized by:
@@ -136,40 +162,5 @@ SoundRights now uses the [AudD Music Recognition API](https://docs.audd.io/) for
 ## Project Status & Next Steps
 
 <!-- Add high-level status and immediate next steps here -->
-
-## Week 1 Achievements (Initial Backend & Core Services Setup)
-
-- [x] **Core Backend Foundation:**
-    - [x] FastAPI application structure initialized.
-    - [x] Docker setup for development and production (initial versions).
-    - [x] `requirements.txt` established.
-    - [x] Core configuration (`app/core/config.py`) implemented.
-    - [x] Security utilities (password hashing, JWT) in place.
-    - [x] Basic API routers and main application setup.
-    - [x] CORS, Sentry, and `structlog` logging integrated.
-- [x] **Database & Migrations:**
-    - [x] Initial database models defined (User, Track, License, APIKey).
-    - [x] Alembic configured for database migrations.
-- [x] **API Endpoints & Functionality:**
-    - [x] Authentication endpoints (`/auth`) implemented.
-    - [x] Basic CRUD-style placeholders for Users, Tracks, Licenses.
-- [x] **Audio Fingerprinting (AudD Integration):**
-    - [x] `AudDService` created for interacting with AudD API.
-    - [x] `/recognize/audio/audd` API endpoint implemented for file uploads.
-    - [x] Unit tests for AudD endpoint and service interaction.
-- [x] **IP Verification (Yakoa Integration - Initial Setup):**
-    - [x] `YAKOA_INTEGRATION.md` planning document created.
-    - [x] `YakoaService` created with logging, error handling, and `register_token` method.
-    - [x] Unit tests for `YakoaService` (mocking API calls).
-    - [x] Basic `/ip-verification/yakoa/register-token` API endpoint created.
-    - [x] Configuration for Yakoa API (API key, subdomain, network) added.
-- [x] **Testing & CI/CD (Foundations):**
-    - [x] `pytest` setup and initial test structure.
-    - [x] `conftest.py` for test environment setup.
-    - [x] Automated testing policy noted.
-- [x] **Project Planning & Documentation:**
-    - [x] Initial `README.md` created and updated.
-    - [x] High-level planning documents (Whitepaper, Product Doc, Roadmap, Site Plan) created.
-    - [x] Hackathon partner integrations (Tomo, Yakoa, Zapper) identified.
 
 ## Development
