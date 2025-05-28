@@ -47,7 +47,7 @@ Based on the Tomo documentation, the following are key for SoundRights:
         // We need to confirm the exact chainType string for EVM/Story.
         // Possible options: ['ethereum'], or specific chain IDs if Tomo maps them.
         chainTypes={['ethereum']} // Placeholder - VERIFY THIS!
-        clientId="YOUR_TOMO_CLIENT_ID"
+        clientId="UK3t1GAWruVbbEqFsNahhdMmMBzE0K75Z3pn1kpNONLROSjTvRMTSu5pK7452brIxhUnM624ugcQUI5n0t4eaCSq"
       >
         <YourApp />
       </TomoContextProvider>

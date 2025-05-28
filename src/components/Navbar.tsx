@@ -1,16 +1,19 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils";
-import { Menu } from 'lucide-react';
+import { Menu, LogOut, Wallet } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { NavLink } from "react-router-dom";
+import { useTomo } from '@tomo-inc/tomo-web-sdk';
+import { Button } from "@/components/ui/button";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
   const isMobile = useIsMobile();
+  const { openConnectModal, connected, disconnect, walletState } = useTomo();
+  console.log('Tomo SDK state:', { openConnectModal, connected, walletState });
   
   useEffect(() => {
     const handleScroll = () => {
@@ -34,6 +37,17 @@ const Navbar = () => {
   ];
 
   const isActive = (path: string) => location.pathname === path;
+
+  const ConnectButton = () => (
+    <Button 
+      variant="outline" 
+      size={isMobile ? "lg" : "sm"}
+      onClick={() => connected ? disconnect() : openConnectModal()}
+      className="flex items-center gap-2"
+    >
+      {connected ? <><LogOut size={16} /> Disconnect</> : <><Wallet size={16} /> Connect Wallet</>}
+    </Button>
+  );
 
   return (
     <header 
@@ -75,6 +89,8 @@ const Navbar = () => {
                 )}></span>
               </Link>
             ))}
+            {/* Tomo Connect Button for Desktop */}
+            <ConnectButton />
           </nav>
         ) : (
           <Sheet>
@@ -109,6 +125,10 @@ const Navbar = () => {
                     <span>{link.label}</span>
                   </NavLink>
                 ))}
+                {/* Tomo Connect Button for Mobile Sheet */}
+                <div className="mt-auto pt-4 border-t border-border">
+                  <ConnectButton />
+                </div>
               </nav>
             </SheetContent>
           </Sheet>

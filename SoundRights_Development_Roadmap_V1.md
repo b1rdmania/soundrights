@@ -24,7 +24,6 @@
 7.  **API Integrations:**
     *   **Tomo:** Social login & wallet aggregation for onboarding (Week 2-3).
     *   **Yakoa:** Audio originality/authentication API for verifying uploads (Week 3-4).
-    *   **Zapper:** Onchain analytics and license transparency (Week 4-5).
 
 ---
 
@@ -150,16 +149,15 @@ Regular sprint reviews, clear communication, and adaptability will be key to nav
 
 - **Week 1:** Project setup, DB schema, FastAPI skeleton, user model, basic auth, Story Protocol SDK exploration.
 - **Week 2:** Audio upload, metadata extraction, AI metadata, file storage, initial Tomo integration (social login/wallet).
-- **Week 3:** Audio fingerprinting, Story Protocol registration, Yakoa API integration for originality/authentication.
-- **Week 4:** License purchase flow, license NFT, Zapper API integration for onchain analytics, admin dashboard.
-- **Week 5:** Polish, error handling, docs, testnet deployment, partner bounty requirements, submission.
+- **Week 3:** Audio fingerprinting, Story Protocol registration, Yakoa API integration for originality/authentication. Admin dashboard skeleton.
+- **Week 4:** License purchase flow, license NFT, begin work on public-facing site components.
+- **Week 5:** Polish core RH and Licensee flows, error handling, docs, testnet deployment preparation, partner bounty requirements review, start planning for submission.
 
 ---
 
 **Partner Integrations (V1)**
 - **Tomo:** Social login & wallet onboarding for all users.
 - **Yakoa:** Audio originality/authentication for all uploads.
-- **Zapper:** Onchain analytics for IP assets and licenses.
 
 ---
 
@@ -169,3 +167,12 @@ Regular sprint reviews, clear communication, and adaptability will be key to nav
 ---
 
 **See also:** [Technical Whitepaper](./SoundRights_Technical_Whitepaper_V1.md), [Product Document](./SoundRights_Product_Document_V1.md), [Site Plan](./SoundRights_Site_Plan_V1.md) 
+
+**Future Enhancements / Post-V1 Considerations:**
+
+*   **Zapper Integration:** Onchain analytics for IP assets and licenses. Provides users with a dashboard view of their onchain IP assets. (Details in `ZAPPER_INTEGRATION.md`).
+*   Advanced AI-driven music analysis and tagging.
+*   Community features (e.g., forums, artist profiles).
+*   Expanded licensing options (e.g., exclusive licenses, bulk licensing).
+*   Integration with more music distribution platforms.
+*   Decentralized dispute resolution mechanisms. 
