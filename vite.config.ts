@@ -1,3 +1,4 @@
+
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
@@ -23,4 +24,38 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      onwarn(warning, warn) {
+        // Suppress the /*#__PURE__*/ comment warnings
+        if (warning.code === 'INVALID_ANNOTATION') return;
+        warn(warning);
+      },
+      output: {
+        manualChunks: {
+          // Split large dependencies into separate chunks to reduce memory usage
+          'tomo-sdk': ['@tomo-inc/tomo-web-sdk'],
+          'react-vendor': ['react', 'react-dom'],
+          'ui-vendor': ['@radix-ui/react-slot', '@radix-ui/react-dialog', '@radix-ui/react-popover'],
+        }
+      }
+    },
+    // Increase memory limit for build process
+    target: 'esnext',
+    minify: mode === 'production',
+    sourcemap: mode === 'development',
+    chunkSizeWarningLimit: 1000,
+  },
+  optimizeDeps: {
+    include: [
+      '@tomo-inc/tomo-web-sdk',
+      'react',
+      'react-dom',
+      'react-router-dom'
+    ],
+    exclude: ['@tomo-inc/tomo-web-sdk']
+  },
+  define: {
+    global: 'globalThis',
+  }
 }));
