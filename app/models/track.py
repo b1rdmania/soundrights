@@ -66,6 +66,11 @@ class Track(Base, AuditMixin):
     story_transaction_hash = Column(String(66), nullable=True)
     story_metadata_uri = Column(String(500), nullable=True)
     story_registration_timestamp = Column(Integer, nullable=True)
+
+    # Yakoa integration fields
+    yakoa_token_id = Column(String(100), nullable=True, unique=True, index=True)
+    yakoa_media_id = Column(String(100), nullable=True)
+    yakoa_infringement_status = Column(String(50), nullable=True)
     
     # Status and visibility
     status = Column(

@@ -2,7 +2,8 @@
 Application configuration using pydantic-settings.
 Handles environment variables and application settings.
 """
-from typing import Optional, List, HttpUrl
+from typing import Optional, List
+from pydantic import HttpUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import AnyHttpUrl, PostgresDsn, validator
 import secrets
