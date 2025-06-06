@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { storyService } from "./storyProtocol";
+import { audioAnalysis } from "./audioAnalysis";
 import multer from "multer";
 import { z } from "zod";
 import { insertTrackSchema, insertLicenseSchema } from "@shared/schema";
@@ -73,12 +74,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Store file temporarily - would integrate with cloud storage in production
       trackData.audioUrl = `/uploads/${file.originalname}`;
 
+      // Analyze audio file for features and similarity detection
+      let audioFeatures = null;
+      let similarTracks = [];
+      
+      try {
+        console.log('Analyzing audio file:', file.originalname);
+        audioFeatures = await audioAnalysis.analyzeAudioFile(file.buffer, file.originalname);
+        
+        // Get all existing tracks for similarity comparison
+        const existingTracks = await storage.getUserTracks(userId);
+        similarTracks = await audioAnalysis.findSimilarTracks(audioFeatures, existingTracks);
+        
+        // Update track data with analysis results
+        if (audioFeatures) {
+          trackData.duration = audioFeatures.duration;
+          trackData.bpm = audioFeatures.bpm;
+          trackData.musicalKey = audioFeatures.key;
+          trackData.energy = audioFeatures.energy;
+          trackData.status = similarTracks.length > 0 ? 'processing' : 'verified';
+        }
+      } catch (analysisError) {
+        console.warn('Audio analysis failed, proceeding without features:', analysisError);
+      }
+
       const track = await storage.createTrack(trackData);
       
       // Log activity
       await storage.logUserActivity(userId, 'track_uploaded', 'track', track.id);
+      
+      // Automatically register IP asset on Story Protocol if track is verified
+      if (track.title && track.artist && similarTracks.length === 0) {
+        try {
+          const ipAsset = await storyService.registerIPAsset({
+            name: track.title,
+            description: `Music track by ${track.artist}`,
+            mediaUrl: track.audioUrl || '',
+            attributes: {
+              artist: track.artist,
+              genre: track.genre || 'Unknown',
+              duration: track.duration || 0,
+              bpm: track.bpm || 0,
+              key: track.musicalKey || 'Unknown',
+              energy: track.energy || 0,
+              uploadedAt: track.createdAt,
+              fingerprint: audioFeatures?.fingerprint || 'unknown'
+            },
+            userAddress: userId,
+          });
 
-      res.status(201).json(track);
+          // Store IP asset in database
+          await storage.createIpAsset({
+            trackId: track.id,
+            userId: userId,
+            storyProtocolIpId: ipAsset.ipId,
+            tokenId: ipAsset.tokenId,
+            chainId: ipAsset.chainId,
+            txHash: ipAsset.txHash,
+            metadata: ipAsset.metadata,
+            storyProtocolUrl: ipAsset.storyProtocolUrl,
+            status: 'confirmed',
+          });
+
+          await storage.logUserActivity(userId, 'ip_registered', 'ip_asset', ipAsset.ipId);
+
+          res.status(201).json({
+            ...track,
+            audioFeatures,
+            similarTracks,
+            ipRegistered: true,
+            storyProtocolUrl: ipAsset.storyProtocolUrl
+          });
+        } catch (ipError) {
+          console.error("Failed to register IP asset:", ipError);
+          res.status(201).json({
+            ...track,
+            audioFeatures,
+            similarTracks,
+            ipRegistered: false,
+            ipError: ipError instanceof Error ? ipError.message : 'Unknown error'
+          });
+        }
+      } else {
+        res.status(201).json({
+          ...track,
+          audioFeatures,
+          similarTracks,
+          ipRegistered: false,
+          reason: similarTracks.length > 0 ? 'Similar tracks detected' : 'Missing metadata'
+        });
+      }
     } catch (error) {
       console.error("Error creating track:", error);
       if (error instanceof z.ZodError) {
