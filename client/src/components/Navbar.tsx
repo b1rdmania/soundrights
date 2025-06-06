@@ -1,19 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'wouter';
 import { cn } from "@/lib/utils";
 import { Menu, LogOut, Wallet } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { NavLink } from "react-router-dom";
-import { useTomo } from '@tomo-inc/tomo-web-sdk';
 import { Button } from "@/components/ui/button";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [connected, setConnected] = useState(false);
   const location = useLocation();
   const isMobile = useIsMobile();
-  const { openConnectModal, connected, disconnect, walletState } = useTomo();
-  console.log('Tomo SDK state:', { openConnectModal, connected, walletState });
   
   useEffect(() => {
     const handleScroll = () => {
@@ -38,11 +35,20 @@ const Navbar = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
+  const handleWalletConnect = () => {
+    if (connected) {
+      setConnected(false);
+    } else {
+      // Simplified wallet connection for now
+      setConnected(true);
+    }
+  };
+
   const ConnectButton = () => (
     <Button 
       variant="outline" 
       size={isMobile ? "lg" : "sm"}
-      onClick={() => connected ? disconnect() : openConnectModal()}
+      onClick={handleWalletConnect}
       className="flex items-center gap-2"
     >
       {connected ? <><LogOut size={16} /> Disconnect</> : <><Wallet size={16} /> Connect Wallet</>}
