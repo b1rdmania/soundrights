@@ -58,15 +58,9 @@ function AppRouter() {
 
   return (
     <Switch>
-      {!isAuthenticated ? (
-        <Route path="/" component={Index} />
-      ) : (
-        <>
-          <Route path="/" component={Upload} />
-          <Route path="/upload" component={Upload} />
-          <Route path="/results" component={Results} />
-        </>
-      )}
+      <Route path="/" component={!isAuthenticated ? Index : Upload} />
+      <Route path="/upload" component={Upload} />
+      <Route path="/results" component={Results} />
       <Route path="/about" component={About} />
       <Route path="/whitepaper" component={WhitePaper} />
       <Route path="/invest" component={Invest} />
