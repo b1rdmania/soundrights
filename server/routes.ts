@@ -75,8 +75,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       trackData.audioUrl = `/uploads/${file.originalname}`;
 
       // Analyze audio file for features and similarity detection
-      let audioFeatures: any = null;
-      let similarTracks: any[] = [];
+      let audioFeatures: {
+        duration: number;
+        bpm: number;
+        key: string;
+        energy: number;
+        danceability: number;
+        valence: number;
+        acousticness: number;
+        instrumentalness: number;
+        fingerprint: string;
+      } | null = null;
+      let similarTracks: Array<{
+        trackId: string;
+        title: string;
+        artist: string;
+        similarity: number;
+        matchType: 'exact' | 'partial' | 'similar';
+      }> = [];
       
       try {
         console.log('Analyzing audio file:', file.originalname);
@@ -114,8 +130,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               genre: track.genre || 'Unknown',
               duration: track.duration || 0,
               bpm: track.bpm || 0,
-              key: track.musicalKey || 'Unknown',
-              energy: track.energy || 0,
+              key: track.key || 'Unknown',
               uploadedAt: track.createdAt,
               fingerprint: audioFeatures?.fingerprint || 'unknown'
             },
@@ -126,7 +141,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await storage.createIpAsset({
             trackId: track.id,
             userId: userId,
-            storyProtocolIpId: ipAsset.ipId,
+            storyProtocolIpId: ipAsset.ipId || '',
             tokenId: ipAsset.tokenId,
             chainId: ipAsset.chainId,
             txHash: ipAsset.txHash,
@@ -140,7 +155,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           res.status(201).json({
             ...track,
             audioFeatures,
-            similarTracks,
+            similarTracks: similarTracks || [],
             ipRegistered: true,
             storyProtocolUrl: ipAsset.storyProtocolUrl
           });
@@ -149,7 +164,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           res.status(201).json({
             ...track,
             audioFeatures,
-            similarTracks,
+            similarTracks: similarTracks || [],
             ipRegistered: false,
             ipError: ipError instanceof Error ? ipError.message : 'Unknown error'
           });
@@ -158,7 +173,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(201).json({
           ...track,
           audioFeatures,
-          similarTracks,
+          similarTracks: similarTracks || [],
           ipRegistered: false,
           reason: similarTracks.length > 0 ? 'Similar tracks detected' : 'Missing metadata'
         });

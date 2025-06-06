@@ -86,13 +86,13 @@ export class StoryProtocolService {
         console.log('IP asset registered on blockchain:', response);
 
         return {
-          ipId: response.ipId,
-          tokenId: response.tokenId.toString(),
+          ipId: response.ipId || '',
+          tokenId: response.tokenId?.toString() || '',
           chainId: aeneid.id,
-          txHash: response.txHash,
+          txHash: response.txHash || '',
           metadata,
           storyProtocolUrl: `https://explorer.story.foundation/ip/${response.ipId}`,
-          blockNumber: response.blockNumber || 0,
+          blockNumber: 0,
           gasUsed: "150000",
           status: "confirmed",
           registeredAt: new Date().toISOString(),
