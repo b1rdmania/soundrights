@@ -41,7 +41,7 @@ const HeroSection = () => {
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2 sm:pt-4">
             <Link
-              to="/upload"
+              href="/upload"
               className="inline-flex items-center justify-center px-6 py-3 rounded-full text-base font-medium bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-all duration-300 hover:scale-105 hover:shadow-xl gap-2 w-full sm:w-auto relative overflow-hidden group"
             >
               <span className="absolute inset-0 w-full h-full bg-gradient-to-b from-white/20 to-transparent"></span>
@@ -52,7 +52,7 @@ const HeroSection = () => {
             </Link>
             
             <Link
-              to="/whitepaper"
+              href="/whitepaper"
               className="inline-flex items-center justify-center px-6 py-3 rounded-full text-base font-medium bg-secondary hover:bg-secondary/80 transition-all duration-300 hover:scale-105 hover:shadow-lg gap-2 w-full sm:w-auto relative overflow-hidden group"
             >
               <span className="absolute inset-0 w-full h-full bg-gradient-to-b from-white/10 to-transparent"></span>

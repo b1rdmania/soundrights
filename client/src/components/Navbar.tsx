@@ -74,7 +74,7 @@ const Navbar = () => {
     >
       <div className="container flex items-center justify-between h-16 px-4 md:px-6">
         <Link 
-          to="/" 
+          href="/" 
           className="flex items-center space-x-2 text-xl font-semibold"
         >
           <span className="text-2xl">🎵</span>
@@ -87,7 +87,7 @@ const Navbar = () => {
             {navLinks.map((link) => (
               <Link
                 key={link.path}
-                to={link.path}
+                href={link.path}
                 className={cn(
                   "text-sm font-medium transition-all hover:text-primary flex items-center gap-2 relative",
                   isActive(link.path) 
