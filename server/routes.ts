@@ -15,9 +15,19 @@ const upload = multer({
     fileSize: 100 * 1024 * 1024, // 100MB limit
   },
   fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('audio/')) {
+    const allowedTypes = [
+      'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/wave', 'audio/x-wav',
+      'audio/flac', 'audio/aac', 'audio/ogg', 'audio/webm', 'audio/m4a'
+    ];
+    const allowedExtensions = ['.mp3', '.wav', '.flac', '.aac', '.ogg', '.m4a'];
+    
+    if (file.mimetype.startsWith('audio/') || 
+        allowedTypes.includes(file.mimetype) ||
+        allowedExtensions.some(ext => file.originalname.toLowerCase().endsWith(ext)) ||
+        file.originalname.toLowerCase().includes('audio')) {
       cb(null, true);
     } else {
+      console.log('Rejected file:', file.originalname, 'mimetype:', file.mimetype);
       cb(new Error('Only audio files are allowed'));
     }
   }
@@ -47,8 +57,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Development endpoint for testing without auth
-  app.post("/api/tracks/demo", upload.single('audio'), async (req: any, res) => {
+  // Development endpoint for testing without auth - no file validation
+  const demoUpload = multer({ 
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 100 * 1024 * 1024 }
+  });
+  
+  app.post("/api/tracks/demo", demoUpload.single('audio'), async (req: any, res) => {
     try {
       const userId = 'demo-user-' + Date.now(); // Generate demo user ID
       const file = req.file;
