@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'wouter';
 
 const CtaSection = () => {
   return (
@@ -11,14 +11,14 @@ const CtaSection = () => {
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
-              to="/upload"
+              href="/upload"
               className="inline-flex items-center justify-center px-6 py-3 rounded-full text-base font-medium bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-all duration-300 w-full sm:w-auto"
             >
               Try the Demo
             </Link>
             
             <Link
-              to="/whitepaper"
+              href="/whitepaper"
               className="inline-flex items-center justify-center px-6 py-3 rounded-full text-base font-medium bg-secondary hover:bg-secondary/80 transition-colors w-full sm:w-auto"
             >
               Read Our White Paper
