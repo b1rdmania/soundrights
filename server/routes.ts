@@ -325,6 +325,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test endpoint for Story Protocol integration (bypass auth for testing)
+  app.post("/api/story/test-register", async (req: any, res) => {
+    try {
+      const { name, description, mediaUrl, attributes } = req.body;
+
+      if (!name || !description) {
+        return res.status(400).json({ message: "Name and description are required" });
+      }
+
+      const ipAsset = await storyService.registerIPAsset({
+        name,
+        description,
+        mediaUrl: mediaUrl || "https://example.com/test.mp3",
+        attributes: attributes || {},
+        userAddress: "test_user_" + Date.now(),
+      });
+
+      res.json({
+        success: true,
+        ipAsset,
+        message: "IP asset registered successfully"
+      });
+    } catch (error) {
+      console.error("Error in test registration:", error);
+      res.status(500).json({ 
+        message: "Failed to register IP asset",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
