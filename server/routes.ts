@@ -47,6 +47,142 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Development endpoint for testing without auth
+  app.post("/api/tracks/demo", upload.single('audio'), async (req: any, res) => {
+    try {
+      const userId = 'demo-user-' + Date.now(); // Generate demo user ID
+      const file = req.file;
+      
+      if (!file) {
+        return res.status(400).json({ message: "Audio file is required" });
+      }
+
+      // Validate track data
+      const trackData = insertTrackSchema.parse({
+        userId,
+        title: req.body.title,
+        artist: req.body.artist,
+        album: req.body.album,
+        genre: req.body.genre,
+        mood: req.body.mood,
+        tags: req.body.tags ? JSON.parse(req.body.tags) : [],
+        fileSize: file.size,
+        fileFormat: file.mimetype,
+        status: 'uploaded'
+      });
+
+      // Store file temporarily
+      trackData.audioUrl = `/uploads/${file.originalname}`;
+
+      // Analyze audio file for features and similarity detection
+      let audioFeatures: {
+        duration: number;
+        bpm: number;
+        key: string;
+        energy: number;
+        danceability: number;
+        valence: number;
+        acousticness: number;
+        instrumentalness: number;
+        fingerprint: string;
+      } | null = null;
+      let similarTracks: Array<{
+        trackId: string;
+        title: string;
+        artist: string;
+        similarity: number;
+        matchType: 'exact' | 'partial' | 'similar';
+      }> = [];
+      
+      try {
+        console.log('Analyzing audio file:', file.originalname);
+        audioFeatures = await audioAnalysis.analyzeAudioFile(file.buffer, file.originalname);
+        
+        // Get all existing tracks for similarity comparison
+        const existingTracks = await storage.getUserTracks(userId);
+        similarTracks = await audioAnalysis.findSimilarTracks(audioFeatures, existingTracks);
+        
+        // Update track data with analysis results
+        if (audioFeatures) {
+          trackData.duration = audioFeatures.duration;
+          trackData.bpm = audioFeatures.bpm;
+          trackData.key = audioFeatures.key;
+          trackData.status = similarTracks.length > 0 ? 'processing' : 'verified';
+        }
+      } catch (analysisError) {
+        console.warn('Audio analysis failed, proceeding without features:', analysisError);
+      }
+
+      const track = await storage.createTrack(trackData);
+      
+      // Register IP asset with Story Protocol if track is verified and has complete metadata
+      if (track.status === 'verified' && track.title && track.artist) {
+        try {
+          const ipAsset = await storyService.registerIPAsset({
+            name: track.title,
+            description: `Music track: ${track.title} by ${track.artist}${track.album ? ` from album ${track.album}` : ''}`,
+            mediaUrl: track.audioUrl || '',
+            attributes: {
+              title: track.title,
+              artist: track.artist,
+              genre: track.genre || 'Unknown',
+              duration: track.duration || 0,
+              bpm: track.bpm || 0,
+              key: track.key || 'Unknown',
+              uploadedAt: track.createdAt,
+              fingerprint: audioFeatures?.fingerprint || 'unknown'
+            },
+            userAddress: userId,
+          });
+
+          // Store IP asset in database
+          await storage.createIpAsset({
+            trackId: track.id,
+            userId: userId,
+            storyProtocolIpId: ipAsset.ipId || '',
+            tokenId: ipAsset.tokenId,
+            chainId: ipAsset.chainId,
+            txHash: ipAsset.txHash,
+            metadata: ipAsset.metadata,
+            storyProtocolUrl: ipAsset.storyProtocolUrl,
+            status: 'confirmed',
+          });
+
+          res.status(201).json({
+            ...track,
+            audioFeatures,
+            similarTracks: similarTracks || [],
+            ipRegistered: true,
+            storyProtocolUrl: ipAsset.storyProtocolUrl
+          });
+        } catch (ipError) {
+          console.error("Failed to register IP asset:", ipError);
+          res.status(201).json({
+            ...track,
+            audioFeatures,
+            similarTracks: similarTracks || [],
+            ipRegistered: false,
+            ipError: ipError instanceof Error ? ipError.message : 'Unknown error'
+          });
+        }
+      } else {
+        res.status(201).json({
+          ...track,
+          audioFeatures,
+          similarTracks: similarTracks || [],
+          ipRegistered: false,
+          reason: similarTracks.length > 0 ? 'Similar tracks detected' : 'Missing metadata'
+        });
+      }
+    } catch (error) {
+      console.error("Error creating track:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid track data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create track" });
+    }
+  });
+
   // Track management routes
   app.post("/api/tracks", isAuthenticated, upload.single('audio'), async (req: any, res) => {
     try {
