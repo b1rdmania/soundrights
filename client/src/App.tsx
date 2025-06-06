@@ -16,6 +16,7 @@ import Results from "./pages/Results";
 import About from "./pages/About";
 import WhitePaper from "./pages/WhitePaper";
 import Invest from "./pages/Invest";
+import Demo from "./pages/Demo";
 import NotFound from "./pages/NotFound";
 
 // Error boundary component
@@ -69,6 +70,7 @@ function AppRouter() {
       <Route path="/about" component={About} />
       <Route path="/whitepaper" component={WhitePaper} />
       <Route path="/invest" component={Invest} />
+      <Route path="/demo" component={Demo} />
       <Route component={NotFound} />
     </Switch>
   );

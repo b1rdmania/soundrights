@@ -28,6 +28,7 @@ const Navbar = () => {
   const navLinks = [
     { path: '/', label: 'Home', icon: '🏠' },
     { path: '/upload', label: 'Try It', icon: '🎵' },
+    { path: '/demo', label: 'Story Demo', icon: '⛓️' },
     { path: '/whitepaper', label: 'White Paper', icon: '📜' },
     { path: '/about', label: 'About', icon: '🎧' },
     // Removed the Invest link from navigation
