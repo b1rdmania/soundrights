@@ -75,8 +75,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       trackData.audioUrl = `/uploads/${file.originalname}`;
 
       // Analyze audio file for features and similarity detection
-      let audioFeatures = null;
-      let similarTracks = [];
+      let audioFeatures: any = null;
+      let similarTracks: any[] = [];
       
       try {
         console.log('Analyzing audio file:', file.originalname);
@@ -90,8 +90,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (audioFeatures) {
           trackData.duration = audioFeatures.duration;
           trackData.bpm = audioFeatures.bpm;
-          trackData.musicalKey = audioFeatures.key;
-          trackData.energy = audioFeatures.energy;
+          trackData.key = audioFeatures.key;
           trackData.status = similarTracks.length > 0 ? 'processing' : 'verified';
         }
       } catch (analysisError) {
