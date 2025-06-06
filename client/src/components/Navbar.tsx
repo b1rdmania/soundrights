@@ -5,12 +5,13 @@ import { Menu, LogOut, Wallet } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [connected, setConnected] = useState(false);
   const [location] = useLocation();
   const isMobile = useIsMobile();
+  const { user, isAuthenticated, isLoading } = useAuth();
   
   useEffect(() => {
     const handleScroll = () => {
@@ -35,24 +36,31 @@ const Navbar = () => {
 
   const isActive = (path: string) => location === path;
 
-  const handleWalletConnect = () => {
-    if (connected) {
-      setConnected(false);
-    } else {
-      // Simplified wallet connection for now
-      setConnected(true);
-    }
-  };
-
   const ConnectButton = () => (
     <Button 
       variant="outline" 
       size={isMobile ? "lg" : "sm"}
-      onClick={handleWalletConnect}
+      onClick={() => window.location.href = '/api/login'}
       className="flex items-center gap-2"
     >
-      {connected ? <><LogOut size={16} /> Disconnect</> : <><Wallet size={16} /> Connect Wallet</>}
+      <Wallet size={16} /> Sign In
     </Button>
+  );
+
+  const UserMenu = ({ user }: { user: any }) => (
+    <div className="flex items-center gap-3">
+      <span className="text-sm font-medium">
+        {user.firstName || user.email || 'User'}
+      </span>
+      <Button 
+        variant="outline" 
+        size={isMobile ? "lg" : "sm"}
+        onClick={() => window.location.href = '/api/logout'}
+        className="flex items-center gap-2"
+      >
+        <LogOut size={16} /> Sign Out
+      </Button>
+    </div>
   );
 
   return (

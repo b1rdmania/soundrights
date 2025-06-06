@@ -1,33 +1,14 @@
 
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import UploadForm from '@/components/UploadForm';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Wallet } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import React from 'react';
+import { useLocation } from 'wouter';
+import TrackUpload from '@/components/TrackUpload';
 
 const Upload = () => {
-  const navigate = useNavigate();
-  const [isWalletConnected, setIsWalletConnected] = useState(false);
-  const [walletAddress, setWalletAddress] = useState('');
+  const [, setLocation] = useLocation();
 
-  const handleUpload = (data: any) => {
-    // Handle the uploaded data for demo purposes
-    toast.success("Registration successful! View on Explorer");
-    console.log("Upload data received:", data);
-    
-    // Navigate to results page with mock data
-    navigate('/results', { 
-      state: { 
-        resultData: {
-          originalTrack: {
-            title: data.title,
-            artist: data.artist,
-            source: data.source
-          },
-          similarTracks: [
-            { title: "Similar Track 1", artist: "Artist A", license: "CC BY 4.0" },
+  const handleUploadSuccess = (track: any) => {
+    setLocation(`/results?trackId=${track.id}`);
+  };
             { title: "Similar Track 2", artist: "Artist B", license: "CC BY-NC 4.0" },
             { title: "Similar Track 3", artist: "Artist C", license: "CC0 1.0" }
           ]
