@@ -152,6 +152,40 @@ export class DatabaseStorage implements IStorage {
       metadata,
     });
   }
+
+  // IP Asset operations for Story Protocol
+  async createIpAsset(ipAssetData: InsertIpAsset): Promise<IpAsset> {
+    const [ipAsset] = await db
+      .insert(ipAssets)
+      .values(ipAssetData)
+      .returning();
+    return ipAsset;
+  }
+
+  async getIpAsset(id: string): Promise<IpAsset | undefined> {
+    const [ipAsset] = await db.select().from(ipAssets).where(eq(ipAssets.id, id));
+    return ipAsset || undefined;
+  }
+
+  async getTrackIpAssets(trackId: string): Promise<IpAsset[]> {
+    return db.select().from(ipAssets).where(eq(ipAssets.trackId, trackId));
+  }
+
+  async getUserIpAssets(userId: string): Promise<IpAsset[]> {
+    return db.select().from(ipAssets).where(eq(ipAssets.userId, userId));
+  }
+
+  async updateIpAssetStatus(id: string, status: string, txHash?: string): Promise<IpAsset> {
+    const updateData: any = { status, updatedAt: new Date() };
+    if (txHash) updateData.txHash = txHash;
+
+    const [updatedIpAsset] = await db
+      .update(ipAssets)
+      .set(updateData)
+      .where(eq(ipAssets.id, id))
+      .returning();
+    return updatedIpAsset;
+  }
 }
 
 export const storage = new DatabaseStorage();
