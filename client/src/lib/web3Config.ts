@@ -3,7 +3,7 @@ import { sepolia, polygonMumbai } from 'wagmi/chains';
 
 export const config = getDefaultConfig({
   appName: 'SoundRights',
-  projectId: 'your_project_id', // You'll need to get this from WalletConnect
+  projectId: process.env.WALLETCONNECT_PROJECT_ID || 'a1b2c3d4e5f6g7h8i9j0',
   chains: [sepolia, polygonMumbai],
   ssr: false,
 });

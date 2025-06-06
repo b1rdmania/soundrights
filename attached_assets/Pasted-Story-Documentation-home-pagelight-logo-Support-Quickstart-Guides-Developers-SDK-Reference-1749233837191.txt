@@ -1,0 +1,142 @@
+Story Documentation home pagelight logo
+
+    Support
+    Quickstart
+
+Guides
+Developers
+SDK Reference
+Smart Contract Reference
+API Reference
+Foundation
+Learn
+Help & Support
+Network Status
+Protocol API Overview
+
+    Introduction
+    Blockscout API
+
+IPAssets
+
+    POST
+    List IPAssets
+    POST
+    List IP Edges
+    GET
+    Get an IPAsset
+    GET
+    Get metadata for an IPAsset
+
+Collections
+
+    POST
+    List Collections
+    GET
+    Get an Collection
+
+IPLicenseTerms
+
+    POST
+    List detailed ip license term
+    POST
+    List IPLicenseTerms
+    GET
+    Get IP License Terms for an IP
+
+Disputes
+
+    POST
+    List Disputes
+    GET
+    Get a Dispute
+
+IPGroup
+
+    POST
+    List a IPGroup's edges
+    POST
+    List IP groups
+
+Licenses
+
+    POST
+    List LicenseMintingFeePays
+    GET
+    Get a LicenseMintingFeePay
+
+LicenseTemplates
+
+    POST
+    List LicenseTemplates
+    GET
+    Get a LicenseTemplate
+
+LicenseTerms
+
+    POST
+    List LicenseTerms
+    GET
+    Get a LicenseTerm
+
+LicenseTokens
+
+    POST
+    List LicenseTokens
+    GET
+    Get an LicenseToken
+
+Modules
+
+    POST
+    List Modules
+    GET
+    Get a Module
+
+Permissions
+
+    POST
+    List Permissions
+    GET
+    Get a Permission
+
+Royalties
+
+    POST
+    List RoyaltyPays
+    GET
+    Get a RoyaltyPay
+
+Transactions
+
+    POST
+    List Transactions
+    POST
+    List Latest Transactions
+    GET
+    Get a Transaction
+
+Protocol API Overview
+Introduction
+
+Example section for showcasing API endpoints
+
+Welcome to the Story API Reference! Please use the https://api.storyapis.com endpoint.
+Headers
+Copy
+
+// pick one depending on the network. `story` = mainnet, `story-aeneid` = testnet
+X-CHAIN: story | story-aeneid
+// same for both networks
+X-API-Key: MhBsxkU1z9fG6TofE59KqiiWV-YlYE8Q4awlLQehF3U
+
+​
+Rate Limit
+
+The above public API key has a requests/second of 300. If you’d like an API key with a higher limit, please join our Builder Discord and describe your project needs in the discussion channel.
+Blockscout API
+x
+github
+website
+Powered by Mintlify
+
