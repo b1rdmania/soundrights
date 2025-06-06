@@ -65,7 +65,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post("/api/tracks/demo", demoUpload.single('audio'), async (req: any, res) => {
     try {
-      const userId = 'demo-user-' + Date.now(); // Generate demo user ID
+      const userId = 'demo-user'; // Fixed demo user ID
+      
+      // Ensure demo user exists
+      try {
+        await storage.upsertUser({
+          id: userId,
+          email: 'demo@soundrights.com',
+          firstName: 'Demo',
+          lastName: 'User',
+          profileImageUrl: null,
+        });
+      } catch (userError) {
+        console.log('Demo user already exists or creation failed:', userError);
+      }
+      
       const file = req.file;
       
       if (!file) {
