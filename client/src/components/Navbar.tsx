@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [connected, setConnected] = useState(false);
-  const location = useLocation();
+  const [location] = useLocation();
   const isMobile = useIsMobile();
   
   useEffect(() => {
@@ -33,7 +33,7 @@ const Navbar = () => {
     // { path: '/invest', label: 'Invest', icon: '💰' },
   ];
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => location === path;
 
   const handleWalletConnect = () => {
     if (connected) {
@@ -117,19 +117,19 @@ const Navbar = () => {
               </SheetHeader>
               <nav className="mt-8 flex flex-col gap-4">
                 {navLinks.map((link) => (
-                  <NavLink
+                  <Link
                     key={link.path}
-                    to={link.path}
-                    className={({ isActive }) => cn(
+                    href={link.path}
+                    className={cn(
                       "flex items-center gap-3 px-3 py-2 text-base rounded-md transition-all duration-200",
-                      isActive 
+                      isActive(link.path) 
                         ? "bg-primary/10 text-primary font-medium" 
                         : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
                     )}
                   >
                     <span className="text-xl">{link.icon}</span>
                     <span>{link.label}</span>
-                  </NavLink>
+                  </Link>
                 ))}
                 {/* Tomo Connect Button for Mobile Sheet */}
                 <div className="mt-auto pt-4 border-t border-border">
