@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { storyService } from "./storyProtocol";
 import multer from "multer";
 import { z } from "zod";
 import { insertTrackSchema, insertLicenseSchema } from "@shared/schema";
@@ -230,6 +231,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching track licenses:", error);
       res.status(500).json({ message: "Failed to fetch track licenses" });
+    }
+  });
+
+  // Story Protocol API routes
+  app.post("/api/story/register-ip", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { name, description, mediaUrl, attributes } = req.body;
+
+      if (!name || !description || !mediaUrl) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      const ipAsset = await storyService.registerIPAsset({
+        name,
+        description,
+        mediaUrl,
+        attributes: attributes || {},
+        userAddress: userId,
+      });
+
+      await storage.logUserActivity(userId, 'ip_registered', 'ip_asset', ipAsset.ipId);
+
+      res.json(ipAsset);
+    } catch (error) {
+      console.error("Error registering IP asset:", error);
+      res.status(500).json({ 
+        message: "Failed to register IP asset",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  app.post("/api/story/create-license", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { ipId, licenseTerms, licensee } = req.body;
+
+      if (!ipId || !licenseTerms) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      const license = await storyService.createLicense({
+        ipId,
+        licenseTerms,
+        licensee: licensee || userId,
+      });
+
+      await storage.logUserActivity(userId, 'license_created', 'license', license.licenseId);
+
+      res.json(license);
+    } catch (error) {
+      console.error("Error creating license:", error);
+      res.status(500).json({ 
+        message: "Failed to create license",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  app.post("/api/story/get-ip-asset", isAuthenticated, async (req: any, res) => {
+    try {
+      const { ipId } = req.body;
+
+      if (!ipId) {
+        return res.status(400).json({ message: "IP ID is required" });
+      }
+
+      const ipAsset = await storyService.getIPAsset(ipId);
+      res.json(ipAsset);
+    } catch (error) {
+      console.error("Error fetching IP asset:", error);
+      res.status(500).json({ 
+        message: "Failed to fetch IP asset",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  app.get("/api/story/licenses/:ipId", isAuthenticated, async (req: any, res) => {
+    try {
+      const { ipId } = req.params;
+
+      const licenses = await storyService.getLicenses(ipId);
+      res.json(licenses);
+    } catch (error) {
+      console.error("Error fetching licenses:", error);
+      res.status(500).json({ 
+        message: "Failed to fetch licenses",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
 
