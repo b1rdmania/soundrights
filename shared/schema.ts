@@ -141,6 +141,22 @@ export const userActivities = pgTable("user_activities", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// IP Assets table for Story Protocol integration
+export const ipAssets = pgTable("ip_assets", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  trackId: uuid("track_id").notNull().references(() => tracks.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  storyProtocolIpId: varchar("story_protocol_ip_id").notNull().unique(),
+  tokenId: varchar("token_id").notNull(),
+  chainId: integer("chain_id").notNull(),
+  txHash: varchar("tx_hash"),
+  metadata: jsonb("metadata"),
+  storyProtocolUrl: varchar("story_protocol_url"),
+  status: varchar("status").notNull().default("pending"), // pending, confirmed, failed
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   tracks: many(tracks),
@@ -156,6 +172,7 @@ export const tracksRelations = relations(tracks, ({ one, many }) => ({
     references: [users.id],
   }),
   licenses: many(licenses),
+  ipAssets: many(ipAssets),
 }));
 
 export const licensesRelations = relations(licenses, ({ one }) => ({
@@ -189,6 +206,17 @@ export const userActivitiesRelations = relations(userActivities, ({ one }) => ({
   }),
 }));
 
+export const ipAssetsRelations = relations(ipAssets, ({ one }) => ({
+  track: one(tracks, {
+    fields: [ipAssets.trackId],
+    references: [tracks.id],
+  }),
+  user: one(users, {
+    fields: [ipAssets.userId],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users);
 export const insertTrackSchema = createInsertSchema(tracks).omit({
@@ -202,6 +230,12 @@ export const insertLicenseSchema = createInsertSchema(licenses).omit({
   updatedAt: true,
 });
 
+export const insertIpAssetSchema = createInsertSchema(ipAssets).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -209,5 +243,7 @@ export type InsertTrack = z.infer<typeof insertTrackSchema>;
 export type Track = typeof tracks.$inferSelect;
 export type InsertLicense = z.infer<typeof insertLicenseSchema>;
 export type License = typeof licenses.$inferSelect;
+export type InsertIpAsset = z.infer<typeof insertIpAssetSchema>;
+export type IpAsset = typeof ipAssets.$inferSelect;
 export type ApiKey = typeof apiKeys.$inferSelect;
 export type UserActivity = typeof userActivities.$inferSelect;

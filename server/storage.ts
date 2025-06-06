@@ -3,12 +3,15 @@ import {
   tracks,
   licenses,
   userActivities,
+  ipAssets,
   type User,
   type UpsertUser,
   type Track,
   type InsertTrack,
   type License,
   type InsertLicense,
+  type IpAsset,
+  type InsertIpAsset,
   type UserActivity,
 } from "@shared/schema";
 import { db } from "./db";
@@ -35,6 +38,13 @@ export interface IStorage {
   
   // Activity logging
   logUserActivity(userId: string, action: string, resourceType?: string, resourceId?: string, metadata?: any): Promise<void>;
+  
+  // IP Asset operations for Story Protocol
+  createIpAsset(ipAsset: InsertIpAsset): Promise<IpAsset>;
+  getIpAsset(id: string): Promise<IpAsset | undefined>;
+  getTrackIpAssets(trackId: string): Promise<IpAsset[]>;
+  getUserIpAssets(userId: string): Promise<IpAsset[]>;
+  updateIpAssetStatus(id: string, status: string, txHash?: string): Promise<IpAsset>;
 }
 
 export class DatabaseStorage implements IStorage {
