@@ -5,6 +5,7 @@ import ProblemSection from '@/components/ProblemSection';
 import SolutionSection from '@/components/SolutionSection';
 import FeaturesSection from '@/components/FeaturesSection';
 import StoryProtocolSection from '@/components/StoryProtocolSection';
+import WalletConnectSection from '@/components/WalletConnectSection';
 import CtaSection from '@/components/CtaSection';
 
 const Index = () => {
@@ -16,6 +17,7 @@ const Index = () => {
         <SolutionSection />
         <FeaturesSection />
         <StoryProtocolSection />
+        <WalletConnectSection />
         <CtaSection />
       </main>
     </div>

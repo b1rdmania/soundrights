@@ -8,6 +8,7 @@ import { Shield, Users, BarChart3, Wallet, CheckCircle, AlertCircle, ExternalLin
 import TomoIntegration from './TomoIntegration';
 import YakoaIntegration from './YakoaIntegration';
 import WalletConnectIntegration from './WalletConnectIntegration';
+import ZapperIntegration from './ZapperIntegration';
 
 interface SponsorStatus {
   yakoa: string;
@@ -158,22 +159,26 @@ export default function SponsorIntegrations() {
       </div>
 
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="overview" className="flex items-center gap-2 text-xs">
+            <Settings className="h-3 w-3" />
             Overview
           </TabsTrigger>
-          <TabsTrigger value="tomo" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
+          <TabsTrigger value="tomo" className="flex items-center gap-2 text-xs">
+            <Users className="h-3 w-3" />
             Tomo
           </TabsTrigger>
-          <TabsTrigger value="yakoa" className="flex items-center gap-2">
-            <Shield className="h-4 w-4" />
+          <TabsTrigger value="yakoa" className="flex items-center gap-2 text-xs">
+            <Shield className="h-3 w-3" />
             Yakoa
           </TabsTrigger>
-          <TabsTrigger value="walletconnect" className="flex items-center gap-2">
-            <Wallet className="h-4 w-4" />
+          <TabsTrigger value="walletconnect" className="flex items-center gap-2 text-xs">
+            <Wallet className="h-3 w-3" />
             WalletConnect
+          </TabsTrigger>
+          <TabsTrigger value="zapper" className="flex items-center gap-2 text-xs">
+            <BarChart3 className="h-3 w-3" />
+            Zapper
           </TabsTrigger>
         </TabsList>
 
@@ -289,6 +294,10 @@ export default function SponsorIntegrations() {
 
         <TabsContent value="walletconnect" className="mt-6">
           <WalletConnectIntegration />
+        </TabsContent>
+
+        <TabsContent value="zapper" className="mt-6">
+          <ZapperIntegration />
         </TabsContent>
       </Tabs>
     </div>

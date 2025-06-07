@@ -27,12 +27,11 @@ const Navbar = () => {
   
   const navLinks = [
     { path: '/', label: 'Home', icon: '🏠' },
-    { path: '/upload', label: 'Try It', icon: '🎵' },
-    { path: '/demo', label: 'Story Demo', icon: '⛓️' },
+    { path: '/demo', label: 'Demo', icon: '🎵' },
+    { path: '/sponsors', label: 'Integrations', icon: '⛓️' },
+    { path: '/upload', label: 'Upload', icon: '📤' },
     { path: '/whitepaper', label: 'White Paper', icon: '📜' },
     { path: '/about', label: 'About', icon: '🎧' },
-    // Removed the Invest link from navigation
-    // { path: '/invest', label: 'Invest', icon: '💰' },
   ];
 
   const isActive = (path: string) => location === path;
