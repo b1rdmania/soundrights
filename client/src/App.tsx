@@ -17,6 +17,7 @@ import About from "./pages/About";
 import WhitePaper from "./pages/WhitePaper";
 import Invest from "./pages/Invest";
 import Demo from "./pages/Demo";
+import Sponsors from "./pages/Sponsors";
 import NotFound from "./pages/NotFound";
 
 // Error boundary component
@@ -58,13 +59,14 @@ function AppRouter() {
 
   return (
     <Switch>
-      <Route path="/" component={!isAuthenticated ? Index : Upload} />
+      <Route path="/" component={!isAuthenticated ? Index : Demo} />
       <Route path="/upload" component={Upload} />
+      <Route path="/demo" component={Demo} />
+      <Route path="/sponsors" component={Sponsors} />
       <Route path="/results" component={Results} />
       <Route path="/about" component={About} />
       <Route path="/whitepaper" component={WhitePaper} />
       <Route path="/invest" component={Invest} />
-      <Route path="/demo" component={Demo} />
       <Route component={NotFound} />
     </Switch>
   );
