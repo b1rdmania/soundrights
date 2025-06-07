@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowDown, FileText, Database, Shield, Link, Award, TrendingUp, FileCode, FileAudio, Key, Rocket } from 'lucide-react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink } from 'wouter';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 const WhitePaper = () => {
@@ -40,7 +40,7 @@ const WhitePaper = () => {
                   </a>
                   
                   <RouterLink
-                    to="/upload"
+                    href="/upload"
                     className="group relative inline-flex items-center justify-center px-6 py-3 rounded-full text-base font-medium border-2 border-primary text-primary shadow-sm transition-all duration-200 hover:shadow hover:bg-primary/5"
                   >
                     <span className="absolute inset-0 w-full h-full bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></span>
