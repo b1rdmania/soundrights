@@ -1,6 +1,8 @@
-import { Shield } from 'lucide-react';
+import { Shield, Music, Building2 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DemoUpload from '@/components/DemoUpload';
+import SponsorIntegrations from '@/components/SponsorIntegrations';
 import { WalletConnection } from '@/components/WalletConnection';
 
 export default function Demo() {
@@ -11,30 +13,51 @@ export default function Demo() {
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Story Protocol Demo
+              SoundRights Hackathon Demo
             </h1>
             <p className="text-xl text-gray-600 dark:text-gray-400">
-              Upload music and register IP rights on the blockchain
+              Complete Story Protocol integration with sponsor technology suite
             </p>
           </div>
 
-          {/* Wallet Connection */}
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="w-5 h-5" />
-                Blockchain Connection (Optional)
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <WalletConnection 
-                showStoryProtocolStatus={true}
-              />
-            </CardContent>
-          </Card>
+          <Tabs defaultValue="upload" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="upload" className="flex items-center gap-2">
+                <Music className="h-4 w-4" />
+                Upload & Register IP
+              </TabsTrigger>
+              <TabsTrigger value="integrations" className="flex items-center gap-2">
+                <Building2 className="h-4 w-4" />
+                Sponsor Integrations
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="upload">
+              {/* Wallet Connection */}
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="w-5 h-5" />
+                    Blockchain Connection (Optional)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <WalletConnection 
+                    showStoryProtocolStatus={true}
+                  />
+                </CardContent>
+              </Card>
 
-          {/* Upload Component */}
-          <DemoUpload />
+              {/* Upload Component */}
+              <DemoUpload />
+            </TabsContent>
+            
+            <TabsContent value="integrations">
+              <div className="bg-white/50 dark:bg-black/20 rounded-lg p-6">
+                <SponsorIntegrations />
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </div>

@@ -4,6 +4,9 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { storyService } from "./storyProtocol";
 import { audioAnalysis } from "./audioAnalysis";
+import { yakoaService } from "./yakoaService";
+import { tomoService } from "./tomoService";
+import { zapperService } from "./zapperService";
 import multer from "multer";
 import { z } from "zod";
 import { insertTrackSchema, insertLicenseSchema } from "@shared/schema";
@@ -618,6 +621,192 @@ export async function registerRoutes(app: Express): Promise<Server> {
         error: error instanceof Error ? error.message : "Unknown error"
       });
     }
+  });
+
+  // Yakoa IP Authentication API routes
+  app.post("/api/yakoa/check-originality", isAuthenticated, async (req: any, res) => {
+    try {
+      const { mediaUrl, metadata } = req.body;
+      
+      if (!mediaUrl) {
+        return res.status(400).json({ message: "Media URL is required" });
+      }
+
+      const result = await yakoaService.checkOriginality(mediaUrl, metadata || {});
+      
+      // Log the IP check activity
+      const userId = req.user.claims.sub;
+      await storage.logUserActivity(userId, 'ip_check', 'yakoa_token', result.yakoaTokenId);
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Error checking originality with Yakoa:", error);
+      res.status(500).json({ 
+        message: "Failed to check originality",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  app.get("/api/yakoa/token/:tokenId", isAuthenticated, async (req: any, res) => {
+    try {
+      const { tokenId } = req.params;
+      const token = await yakoaService.getToken(tokenId);
+      res.json(token);
+    } catch (error) {
+      console.error("Error fetching Yakoa token:", error);
+      res.status(500).json({ 
+        message: "Failed to fetch token status",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // Tomo Social Login API routes
+  app.get("/api/tomo/auth/:provider", async (req: any, res) => {
+    try {
+      const { provider } = req.params;
+      const authUrl = tomoService.generateAuthUrl(provider as any);
+      res.json({ authUrl });
+    } catch (error) {
+      console.error("Error generating Tomo auth URL:", error);
+      res.status(500).json({ 
+        message: "Failed to generate authentication URL",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  app.post("/api/tomo/callback", async (req: any, res) => {
+    try {
+      const { provider, code } = req.body;
+      
+      if (!provider || !code) {
+        return res.status(400).json({ message: "Provider and code are required" });
+      }
+
+      const authResult = await tomoService.authenticateUser(provider, code);
+      res.json(authResult);
+    } catch (error) {
+      console.error("Error processing Tomo callback:", error);
+      res.status(500).json({ 
+        message: "Authentication failed",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  app.get("/api/tomo/profile/:userId", isAuthenticated, async (req: any, res) => {
+    try {
+      const { userId } = req.params;
+      const profile = await tomoService.getUserProfile(userId);
+      res.json(profile);
+    } catch (error) {
+      console.error("Error fetching Tomo profile:", error);
+      res.status(500).json({ 
+        message: "Failed to fetch user profile",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  app.get("/api/tomo/wallets/:userId", isAuthenticated, async (req: any, res) => {
+    try {
+      const { userId } = req.params;
+      const wallets = await tomoService.getUserWallets(userId);
+      res.json(wallets);
+    } catch (error) {
+      console.error("Error fetching Tomo wallets:", error);
+      res.status(500).json({ 
+        message: "Failed to fetch user wallets",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // Zapper Analytics API routes
+  app.get("/api/zapper/portfolio/:address", isAuthenticated, async (req: any, res) => {
+    try {
+      const { address } = req.params;
+      const portfolio = await zapperService.getUserPortfolio(address);
+      res.json(portfolio);
+    } catch (error) {
+      console.error("Error fetching Zapper portfolio:", error);
+      res.status(500).json({ 
+        message: "Failed to fetch portfolio",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  app.get("/api/zapper/transactions/:address", isAuthenticated, async (req: any, res) => {
+    try {
+      const { address } = req.params;
+      const limit = parseInt(req.query.limit as string) || 50;
+      const transactions = await zapperService.getTransactionHistory(address, limit);
+      res.json(transactions);
+    } catch (error) {
+      console.error("Error fetching Zapper transactions:", error);
+      res.status(500).json({ 
+        message: "Failed to fetch transactions",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  app.get("/api/zapper/ip-analytics/:address", isAuthenticated, async (req: any, res) => {
+    try {
+      const { address } = req.params;
+      const analytics = await zapperService.getIPAssetAnalytics(address);
+      
+      // Log analytics access
+      const userId = req.user.claims.sub;
+      await storage.logUserActivity(userId, 'analytics_viewed', 'zapper_analytics', address);
+      
+      res.json(analytics);
+    } catch (error) {
+      console.error("Error fetching IP asset analytics:", error);
+      res.status(500).json({ 
+        message: "Failed to fetch IP analytics",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  app.post("/api/zapper/track-registration", isAuthenticated, async (req: any, res) => {
+    try {
+      const { txHash, userAddress } = req.body;
+      
+      if (!txHash || !userAddress) {
+        return res.status(400).json({ message: "Transaction hash and user address are required" });
+      }
+
+      const tracking = await zapperService.trackIPAssetRegistration(txHash, userAddress);
+      res.json(tracking);
+    } catch (error) {
+      console.error("Error tracking IP registration:", error);
+      res.status(500).json({ 
+        message: "Failed to track registration",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // Health check for sponsor integrations
+  app.get("/api/sponsors/status", async (req: any, res) => {
+    const status = {
+      yakoa: !yakoaService['demoMode'] ? 'connected' : 'demo_mode',
+      tomo: !tomoService['demoMode'] ? 'connected' : 'demo_mode', 
+      zapper: !zapperService['demoMode'] ? 'connected' : 'demo_mode',
+      walletconnect: process.env.WALLETCONNECT_PROJECT_ID ? 'configured' : 'demo_mode',
+      story_protocol: 'connected'
+    };
+    
+    res.json({ 
+      sponsor_integrations: status,
+      demo_mode: Object.values(status).some(s => s.includes('demo')),
+      timestamp: new Date().toISOString()
+    });
   });
 
   const httpServer = createServer(app);
