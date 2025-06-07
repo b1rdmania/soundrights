@@ -3,7 +3,7 @@ import { sepolia, polygonMumbai } from 'wagmi/chains';
 
 export const config = getDefaultConfig({
   appName: 'SoundRights',
-  projectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || 'a1b2c3d4e5f6g7h8i9j0',
+  projectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || 'demo-project-id',
   chains: [sepolia, polygonMumbai],
   ssr: false,
 });
