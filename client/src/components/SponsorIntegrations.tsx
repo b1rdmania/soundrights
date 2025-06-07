@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Shield, Users, BarChart3, Wallet, CheckCircle, AlertCircle, ExternalLink, Settings } from 'lucide-react';
 import TomoIntegration from './TomoIntegration';
 import YakoaIntegration from './YakoaIntegration';
+import WalletConnectIntegration from './WalletConnectIntegration';
 
 interface SponsorStatus {
   yakoa: string;
@@ -157,7 +158,7 @@ export default function SponsorIntegrations() {
       </div>
 
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
             Overview
@@ -169,6 +170,10 @@ export default function SponsorIntegrations() {
           <TabsTrigger value="yakoa" className="flex items-center gap-2">
             <Shield className="h-4 w-4" />
             Yakoa
+          </TabsTrigger>
+          <TabsTrigger value="walletconnect" className="flex items-center gap-2">
+            <Wallet className="h-4 w-4" />
+            WalletConnect
           </TabsTrigger>
         </TabsList>
 
@@ -280,6 +285,10 @@ export default function SponsorIntegrations() {
 
         <TabsContent value="yakoa" className="mt-6">
           <YakoaIntegration />
+        </TabsContent>
+
+        <TabsContent value="walletconnect" className="mt-6">
+          <WalletConnectIntegration />
         </TabsContent>
       </Tabs>
     </div>

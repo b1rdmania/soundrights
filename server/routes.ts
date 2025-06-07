@@ -7,6 +7,7 @@ import { audioAnalysis } from "./audioAnalysis";
 import { yakoaService } from "./yakoaService";
 import { tomoService } from "./tomoService";
 import { zapperService } from "./zapperService";
+import { walletConnectService } from "./walletConnectService";
 import multer from "multer";
 import { z } from "zod";
 import { insertTrackSchema, insertLicenseSchema } from "@shared/schema";
@@ -822,6 +823,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
       demo_mode: Object.values(status).some(s => s.includes('demo')),
       timestamp: new Date().toISOString()
     });
+  });
+
+  // WalletConnect API routes
+  app.get("/api/walletconnect/status", async (req, res) => {
+    try {
+      const status = await walletConnectService.getConnectionStatus();
+      res.json(status);
+    } catch (error) {
+      console.error("Error getting WalletConnect status:", error);
+      res.status(500).json({ message: "Failed to get wallet status" });
+    }
+  });
+
+  app.post("/api/walletconnect/connect", async (req, res) => {
+    try {
+      const result = await walletConnectService.connectWallet();
+      res.json(result);
+    } catch (error) {
+      console.error("Error connecting wallet:", error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : "Failed to connect wallet" 
+      });
+    }
+  });
+
+  app.post("/api/walletconnect/disconnect", async (req, res) => {
+    try {
+      await walletConnectService.disconnectWallet();
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error disconnecting wallet:", error);
+      res.status(500).json({ message: "Failed to disconnect wallet" });
+    }
+  });
+
+  app.post("/api/walletconnect/send-transaction", async (req, res) => {
+    try {
+      const { to, value, data } = req.body;
+      
+      if (!to || !value) {
+        return res.status(400).json({ message: "Missing required transaction parameters" });
+      }
+
+      const result = await walletConnectService.sendTransaction({ to, value, data });
+      res.json(result);
+    } catch (error) {
+      console.error("Error sending transaction:", error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : "Failed to send transaction" 
+      });
+    }
+  });
+
+  app.get("/api/walletconnect/features", async (req, res) => {
+    try {
+      const features = walletConnectService.getSupportedFeatures();
+      res.json(features);
+    } catch (error) {
+      console.error("Error getting supported features:", error);
+      res.status(500).json({ message: "Failed to get supported features" });
+    }
   });
 
   const httpServer = createServer(app);
