@@ -29,34 +29,31 @@ export interface TomoAuthResponse {
 
 export class TomoService {
   private readonly apiKey: string;
-  private readonly baseUrl = 'https://api.tomo.so/v1';
+  private readonly baseUrl = 'https://api.tomo.inc/v1';
   private readonly demoMode: boolean;
 
   constructor() {
-    this.apiKey = process.env.TOMO_API_KEY || '';
-    this.demoMode = !this.apiKey || process.env.NODE_ENV === 'development';
+    this.apiKey = process.env.TOMO_API_KEY || 'UK3t1GAWruVbbEqFsNahhdMmMBzE0K75Z3pn1kpNONLROSjTvRMTSu5pK7452brIxhUnM624ugcQUI5n0t4eaCSq';
+    this.demoMode = false; // Always use real API with provided token
     
-    if (this.demoMode) {
-      console.log('Tomo Service running in demo mode - using mock responses');
-    }
+    console.log('Tomo Service initialized with API key for Surreal World Assets Buildathon');
   }
 
   private async makeRequest(endpoint: string, options: any = {}) {
-    if (this.demoMode) {
-      return this.getMockResponse(endpoint, options);
-    }
-
     const url = `${this.baseUrl}${endpoint}`;
     const response = await fetch(url, {
       ...options,
       headers: {
         'Authorization': `Bearer ${this.apiKey}`,
         'Content-Type': 'application/json',
+        'User-Agent': 'SoundRights-Hackathon/1.0',
         ...options.headers,
       },
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Tomo API error: ${response.status} ${response.statusText} - ${errorText}`);
       throw new Error(`Tomo API error: ${response.status} ${response.statusText}`);
     }
 
