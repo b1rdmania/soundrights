@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Shield, Users, BarChart3, Wallet, CheckCircle, AlertCircle, ExternalLink } from 'lucide-react';
+import { Shield, Users, BarChart3, Wallet, CheckCircle, AlertCircle, ExternalLink, Settings } from 'lucide-react';
+import TomoIntegration from './TomoIntegration';
 
 interface SponsorStatus {
   yakoa: string;
@@ -101,7 +103,7 @@ export default function SponsorIntegrations() {
       icon: Users,
       color: 'bg-purple-500',
       testEndpoint: '/api/tomo/auth/demo',
-      docs: 'https://docs.tomo.so'
+      docs: 'https://docs.tomo.inc'
     },
     zapper: {
       name: 'Zapper Analytics',
@@ -148,110 +150,129 @@ export default function SponsorIntegrations() {
         {status?.demo_mode && (
           <Badge variant="outline" className="mt-2">
             <AlertCircle className="w-3 h-3 mr-1" />
-            Demo Mode Active - Provide API keys for full functionality
+            Some services in demo mode - Tomo fully connected
           </Badge>
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {status && Object.entries(status.sponsor_integrations).map(([key, value]) => {
-          const details = sponsorDetails[key as keyof typeof sponsorDetails];
-          if (!details) return null;
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="overview" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Integration Overview
+          </TabsTrigger>
+          <TabsTrigger value="tomo" className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            Tomo Demo
+          </TabsTrigger>
+        </TabsList>
 
-          const Icon = details.icon;
+        <TabsContent value="overview" className="mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {status && Object.entries(status.sponsor_integrations).map(([key, value]) => {
+              const details = sponsorDetails[key as keyof typeof sponsorDetails];
+              if (!details) return null;
 
-          return (
-            <Card key={key} className="relative overflow-hidden">
-              <div className={`absolute top-0 left-0 w-full h-1 ${details.color}`} />
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className={`p-2 rounded-lg ${details.color} bg-opacity-10`}>
-                      <Icon className={`h-5 w-5 text-white`} style={{ filter: 'brightness(0) saturate(100%)' }} />
+              const Icon = details.icon;
+
+              return (
+                <Card key={key} className="relative overflow-hidden">
+                  <div className={`absolute top-0 left-0 w-full h-1 ${details.color}`} />
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className={`p-2 rounded-lg ${details.color} bg-opacity-10`}>
+                          <Icon className={`h-5 w-5 text-white`} style={{ filter: 'brightness(0) saturate(100%)' }} />
+                        </div>
+                        <div>
+                          <CardTitle className="text-lg">{details.name}</CardTitle>
+                          <CardDescription className="text-sm">
+                            {details.description}
+                          </CardDescription>
+                        </div>
+                      </div>
+                      {getStatusBadge(value)}
                     </div>
-                    <div>
-                      <CardTitle className="text-lg">{details.name}</CardTitle>
-                      <CardDescription className="text-sm">
-                        {details.description}
-                      </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">Status:</span>
+                      <span className="text-sm capitalize">{value.replace('_', ' ')}</span>
                     </div>
-                  </div>
-                  {getStatusBadge(value)}
-                </div>
+                    
+                    <div className="flex space-x-2">
+                      {details.testEndpoint && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => testIntegration(details.name, details.testEndpoint)}
+                          disabled={testing === details.name}
+                          className="flex-1"
+                        >
+                          {testing === details.name ? 'Testing...' : 'Test API'}
+                        </Button>
+                      )}
+                      
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => window.open(details.docs, '_blank')}
+                        className="px-3"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          {status && (
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle className="text-lg">Integration Summary</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium">Status:</span>
-                  <span className="text-sm capitalize">{value.replace('_', ' ')}</span>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                  <div>
+                    <div className="text-2xl font-bold text-primary">
+                      {Object.values(status.sponsor_integrations).filter(s => s === 'connected').length}
+                    </div>
+                    <div className="text-sm text-muted-foreground">Connected</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-blue-600">
+                      {Object.values(status.sponsor_integrations).filter(s => s === 'configured').length}
+                    </div>
+                    <div className="text-sm text-muted-foreground">Configured</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-yellow-600">
+                      {Object.values(status.sponsor_integrations).filter(s => s.includes('demo')).length}
+                    </div>
+                    <div className="text-sm text-muted-foreground">Demo Mode</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-green-600">
+                      {Object.keys(status.sponsor_integrations).length}
+                    </div>
+                    <div className="text-sm text-muted-foreground">Total Services</div>
+                  </div>
                 </div>
                 
-                <div className="flex space-x-2">
-                  {details.testEndpoint && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => testIntegration(details.name, details.testEndpoint)}
-                      disabled={testing === details.name}
-                      className="flex-1"
-                    >
-                      {testing === details.name ? 'Testing...' : 'Test API'}
-                    </Button>
-                  )}
-                  
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => window.open(details.docs, '_blank')}
-                    className="px-3"
-                  >
-                    <ExternalLink className="h-3 w-3" />
-                  </Button>
+                <div className="text-xs text-muted-foreground text-center">
+                  Last updated: {new Date(status.timestamp).toLocaleString()}
                 </div>
               </CardContent>
             </Card>
-          );
-        })}
-      </div>
+          )}
+        </TabsContent>
 
-      {status && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Integration Summary</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-              <div>
-                <div className="text-2xl font-bold text-primary">
-                  {Object.values(status.sponsor_integrations).filter(s => s === 'connected').length}
-                </div>
-                <div className="text-sm text-muted-foreground">Connected</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-blue-600">
-                  {Object.values(status.sponsor_integrations).filter(s => s === 'configured').length}
-                </div>
-                <div className="text-sm text-muted-foreground">Configured</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-yellow-600">
-                  {Object.values(status.sponsor_integrations).filter(s => s.includes('demo')).length}
-                </div>
-                <div className="text-sm text-muted-foreground">Demo Mode</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-green-600">
-                  {Object.keys(status.sponsor_integrations).length}
-                </div>
-                <div className="text-sm text-muted-foreground">Total Services</div>
-              </div>
-            </div>
-            
-            <div className="text-xs text-muted-foreground text-center">
-              Last updated: {new Date(status.timestamp).toLocaleString()}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+        <TabsContent value="tomo" className="mt-6">
+          <TomoIntegration />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

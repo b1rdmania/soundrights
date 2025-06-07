@@ -110,16 +110,28 @@ export class TomoService {
    */
   async authenticateUser(provider: string, code: string): Promise<TomoAuthResponse> {
     try {
-      const response = await this.makeRequest('/auth/social', {
-        method: 'POST',
-        body: JSON.stringify({
-          provider,
-          code,
-          redirect_uri: `${process.env.BASE_URL}/auth/tomo/callback`
-        }),
-      });
-
-      return response;
+      // Try different possible endpoints based on Tomo documentation
+      const endpoints = ['/auth', '/oauth/token', '/v1/auth', '/authenticate'];
+      
+      for (const endpoint of endpoints) {
+        try {
+          const response = await this.makeRequest(endpoint, {
+            method: 'POST',
+            body: JSON.stringify({
+              provider,
+              code,
+              redirect_uri: `${process.env.BASE_URL}/auth/tomo/callback`,
+              grant_type: 'authorization_code'
+            }),
+          });
+          return response;
+        } catch (endpointError) {
+          console.log(`Endpoint ${endpoint} failed, trying next...`);
+          continue;
+        }
+      }
+      
+      throw new Error('All authentication endpoints failed');
     } catch (error) {
       console.error('Failed to authenticate with Tomo:', error);
       throw new Error('Social authentication failed');
