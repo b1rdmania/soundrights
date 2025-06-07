@@ -663,6 +663,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Tomo Social Login API routes
+  app.get("/api/tomo/status", async (req: any, res) => {
+    try {
+      const status = await tomoService.testConnection();
+      res.json(status);
+    } catch (error) {
+      console.error("Error testing Tomo connection:", error);
+      res.status(500).json({ 
+        message: "Failed to test Tomo connection",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
   app.get("/api/tomo/auth/:provider", async (req: any, res) => {
     try {
       const { provider } = req.params;
