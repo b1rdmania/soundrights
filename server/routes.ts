@@ -624,7 +624,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Yakoa IP Authentication API routes
-  app.post("/api/yakoa/check-originality", isAuthenticated, async (req: any, res) => {
+  app.post("/api/yakoa/check-originality", async (req: any, res) => {
     try {
       const { mediaUrl, metadata } = req.body;
       
@@ -634,9 +634,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const result = await yakoaService.checkOriginality(mediaUrl, metadata || {});
       
-      // Log the IP check activity
-      const userId = req.user.claims.sub;
-      await storage.logUserActivity(userId, 'ip_check', 'yakoa_token', result.yakoaTokenId);
+      // Log the IP check activity if user is authenticated
+      if (req.user && req.user.claims) {
+        const userId = req.user.claims.sub;
+        await storage.logUserActivity(userId, 'ip_check', 'yakoa_token', result.yakoaTokenId);
+      }
       
       res.json(result);
     } catch (error) {

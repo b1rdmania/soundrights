@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Shield, Users, BarChart3, Wallet, CheckCircle, AlertCircle, ExternalLink, Settings } from 'lucide-react';
 import TomoIntegration from './TomoIntegration';
+import YakoaIntegration from './YakoaIntegration';
 
 interface SponsorStatus {
   yakoa: string;
@@ -156,14 +157,18 @@ export default function SponsorIntegrations() {
       </div>
 
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
-            Integration Overview
+            Overview
           </TabsTrigger>
           <TabsTrigger value="tomo" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
-            Tomo Demo
+            Tomo
+          </TabsTrigger>
+          <TabsTrigger value="yakoa" className="flex items-center gap-2">
+            <Shield className="h-4 w-4" />
+            Yakoa
           </TabsTrigger>
         </TabsList>
 
@@ -271,6 +276,10 @@ export default function SponsorIntegrations() {
 
         <TabsContent value="tomo" className="mt-6">
           <TomoIntegration />
+        </TabsContent>
+
+        <TabsContent value="yakoa" className="mt-6">
+          <YakoaIntegration />
         </TabsContent>
       </Tabs>
     </div>
