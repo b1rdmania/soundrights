@@ -1,8 +1,9 @@
-import { Shield, Music, Building2 } from 'lucide-react';
+import { Shield, Music, Building2, Search } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DemoUpload from '@/components/DemoUpload';
 import SponsorIntegrations from '@/components/SponsorIntegrations';
+import EnhancedIPVerification from '@/components/EnhancedIPVerification';
 import { WalletConnection } from '@/components/WalletConnection';
 
 export default function Demo() {
@@ -20,17 +21,25 @@ export default function Demo() {
             </p>
           </div>
 
-          <Tabs defaultValue="upload" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
+          <Tabs defaultValue="verification" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 mb-6">
+              <TabsTrigger value="verification" className="flex items-center gap-2">
+                <Search className="h-4 w-4" />
+                IP Verification
+              </TabsTrigger>
               <TabsTrigger value="upload" className="flex items-center gap-2">
                 <Music className="h-4 w-4" />
-                Upload & Register IP
+                Upload & Register
               </TabsTrigger>
               <TabsTrigger value="integrations" className="flex items-center gap-2">
                 <Building2 className="h-4 w-4" />
                 Sponsor Integrations
               </TabsTrigger>
             </TabsList>
+            
+            <TabsContent value="verification">
+              <EnhancedIPVerification />
+            </TabsContent>
             
             <TabsContent value="upload">
               {/* Wallet Connection */}
