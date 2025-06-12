@@ -11,7 +11,9 @@ import { walletConnectService } from "./walletConnectService";
 
 import multer from "multer";
 import { z } from "zod";
-import { insertTrackSchema, insertLicenseSchema } from "@shared/schema";
+import { insertTrackSchema, insertLicenseSchema, licenses, tracks, userActivities } from "@shared/schema";
+import { db } from "./db";
+import { eq, and, desc } from "drizzle-orm";
 
 // Configure multer for file uploads
 const upload = multer({
@@ -886,6 +888,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to get supported features" });
     }
   });
+
+
 
   const httpServer = createServer(app);
   return httpServer;

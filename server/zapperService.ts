@@ -39,12 +39,10 @@ export class ZapperService {
   private readonly demoMode: boolean;
 
   constructor() {
-    this.apiKey = process.env.ZAPPER_API_KEY || '';
-    this.demoMode = !this.apiKey || process.env.NODE_ENV === 'development';
+    this.apiKey = process.env.ZAPPER_API_KEY || '780f491b-e8c1-4cac-86c4-55a5bca9933a';
+    this.demoMode = false; // Use real API with provided key
     
-    if (this.demoMode) {
-      console.log('Zapper Service running in demo mode - using mock responses');
-    }
+    console.log('Zapper Service initialized with provided API key');
   }
 
   private async makeRequest(endpoint: string, options: any = {}) {
