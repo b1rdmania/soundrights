@@ -115,7 +115,6 @@ export default function EnhancedIPVerification() {
 
       const comprehensiveResults: ComprehensiveResults = {
         yakoa: yakoaResult,
-        secondhandsongs: null,
         overall_score: overallScore,
         is_original: isOriginal,
         recommendations: [
@@ -163,9 +162,9 @@ export default function EnhancedIPVerification() {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h3 className="text-2xl font-bold mb-2">Enhanced IP Verification System</h3>
+        <h3 className="text-2xl font-bold mb-2">IP Verification System</h3>
         <p className="text-muted-foreground">
-          Comprehensive originality checking combining multiple verification services
+          Advanced IP authentication using Yakoa API and audio fingerprint analysis
         </p>
         <Badge variant="outline" className="mt-2">
           <Music className="w-3 h-3 mr-1" />

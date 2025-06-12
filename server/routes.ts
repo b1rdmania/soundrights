@@ -8,7 +8,7 @@ import { yakoaService } from "./yakoaService";
 import { tomoService } from "./tomoService";
 import { zapperService } from "./zapperService";
 import { walletConnectService } from "./walletConnectService";
-import { secondHandSongsService } from "./secondHandSongsService";
+
 import multer from "multer";
 import { z } from "zod";
 import { insertTrackSchema, insertLicenseSchema } from "@shared/schema";
@@ -884,65 +884,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error getting supported features:", error);
       res.status(500).json({ message: "Failed to get supported features" });
-    }
-  });
-
-  // SecondHandSongs API routes for cover version and derivative work detection
-  app.post("/api/secondhandsongs/check-originality", async (req, res) => {
-    try {
-      const { title, artist, audioFeatures } = req.body;
-      
-      if (!title || !artist) {
-        return res.status(400).json({ message: "Title and artist are required" });
-      }
-
-      const result = await secondHandSongsService.checkOriginality(title, artist, audioFeatures);
-      res.json(result);
-    } catch (error) {
-      console.error("Error checking originality with SecondHandSongs:", error);
-      res.status(500).json({ 
-        message: "Failed to check originality",
-        error: error instanceof Error ? error.message : "Unknown error"
-      });
-    }
-  });
-
-  app.post("/api/secondhandsongs/comprehensive-check", async (req, res) => {
-    try {
-      const { title, artist, audioFeatures, lyrics } = req.body;
-      
-      if (!title || !artist) {
-        return res.status(400).json({ message: "Title and artist are required" });
-      }
-
-      const result = await secondHandSongsService.comprehensiveOrigininalityCheck({
-        title,
-        artist,
-        audioFeatures,
-        lyrics
-      });
-      
-      res.json(result);
-    } catch (error) {
-      console.error("Error performing comprehensive check:", error);
-      res.status(500).json({ 
-        message: "Failed to perform comprehensive originality check",
-        error: error instanceof Error ? error.message : "Unknown error"
-      });
-    }
-  });
-
-  app.get("/api/secondhandsongs/search/:title/:artist", async (req, res) => {
-    try {
-      const { title, artist } = req.params;
-      const works = await secondHandSongsService.searchWorks(title, artist);
-      res.json({ works });
-    } catch (error) {
-      console.error("Error searching SecondHandSongs:", error);
-      res.status(500).json({ 
-        message: "Failed to search works",
-        error: error instanceof Error ? error.message : "Unknown error"
-      });
     }
   });
 
