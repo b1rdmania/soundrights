@@ -4,12 +4,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Shield, Users, BarChart3, Wallet, CheckCircle, AlertCircle, ExternalLink, Settings, History } from 'lucide-react';
+import { Shield, Users, BarChart3, Wallet, CheckCircle, AlertCircle, ExternalLink, Settings } from 'lucide-react';
 import TomoIntegration from './TomoIntegration';
 import YakoaIntegration from './YakoaIntegration';
 import WalletConnectIntegration from './WalletConnectIntegration';
 import ZapperIntegration from './ZapperIntegration';
-import SecondHandSongsIntegration from './SecondHandSongsIntegration';
 
 interface SponsorStatus {
   yakoa: string;
@@ -160,30 +159,26 @@ export default function SponsorIntegrations() {
       </div>
 
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="overview" className="flex items-center gap-1 text-xs">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="overview" className="flex items-center gap-2 text-xs">
             <Settings className="h-3 w-3" />
             Overview
           </TabsTrigger>
-          <TabsTrigger value="tomo" className="flex items-center gap-1 text-xs">
+          <TabsTrigger value="tomo" className="flex items-center gap-2 text-xs">
             <Users className="h-3 w-3" />
             Tomo
           </TabsTrigger>
-          <TabsTrigger value="yakoa" className="flex items-center gap-1 text-xs">
+          <TabsTrigger value="yakoa" className="flex items-center gap-2 text-xs">
             <Shield className="h-3 w-3" />
             Yakoa
           </TabsTrigger>
-          <TabsTrigger value="walletconnect" className="flex items-center gap-1 text-xs">
+          <TabsTrigger value="walletconnect" className="flex items-center gap-2 text-xs">
             <Wallet className="h-3 w-3" />
             WalletConnect
           </TabsTrigger>
-          <TabsTrigger value="zapper" className="flex items-center gap-1 text-xs">
+          <TabsTrigger value="zapper" className="flex items-center gap-2 text-xs">
             <BarChart3 className="h-3 w-3" />
             Zapper
-          </TabsTrigger>
-          <TabsTrigger value="secondhandsongs" className="flex items-center gap-1 text-xs">
-            <History className="h-3 w-3" />
-            SHS
           </TabsTrigger>
         </TabsList>
 
@@ -303,10 +298,6 @@ export default function SponsorIntegrations() {
 
         <TabsContent value="zapper" className="mt-6">
           <ZapperIntegration />
-        </TabsContent>
-
-        <TabsContent value="secondhandsongs" className="mt-6">
-          <SecondHandSongsIntegration />
         </TabsContent>
       </Tabs>
     </div>

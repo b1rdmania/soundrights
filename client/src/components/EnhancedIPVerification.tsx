@@ -18,7 +18,6 @@ interface VerificationStep {
 
 interface ComprehensiveResults {
   yakoa: any;
-  secondhandsongs: any;
   overall_score: number;
   is_original: boolean;
   recommendations: string[];
@@ -40,11 +39,6 @@ export default function EnhancedIPVerification() {
       name: 'Yakoa IP Authentication',
       status: 'pending',
       icon: <Shield className="h-4 w-4" />
-    },
-    {
-      name: 'SecondHandSongs Cover Detection',
-      status: 'pending',
-      icon: <History className="h-4 w-4" />
     },
     {
       name: 'Audio Fingerprint Analysis',
@@ -100,26 +94,9 @@ export default function EnhancedIPVerification() {
       const yakoaResult = await yakoaResponse.json();
       updateStepStatus(0, 'complete', yakoaResult);
 
-      // Step 2: SecondHandSongs Cover Detection
+      // Step 2: Audio Fingerprint Analysis (simulated)
       setCurrentStep(2);
       updateStepStatus(1, 'running');
-
-      const shsResponse = await fetch('/api/secondhandsongs/comprehensive-check', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: formData.title,
-          artist: formData.artist,
-          lyrics: formData.description
-        })
-      });
-
-      const shsResult = await shsResponse.json();
-      updateStepStatus(1, 'complete', shsResult);
-
-      // Step 3: Audio Fingerprint Analysis (simulated)
-      setCurrentStep(3);
-      updateStepStatus(2, 'running');
       
       await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate processing
       const audioResult = {
@@ -127,29 +104,28 @@ export default function EnhancedIPVerification() {
         similarity_score: 0.12,
         matches_found: 0
       };
-      updateStepStatus(2, 'complete', audioResult);
+      updateStepStatus(1, 'complete', audioResult);
 
-      // Step 4: Comprehensive Assessment
-      setCurrentStep(4);
-      updateStepStatus(3, 'running');
+      // Step 3: Comprehensive Assessment
+      setCurrentStep(3);
+      updateStepStatus(2, 'running');
 
-      const overallScore = (yakoaResult.confidence + shsResult.confidence_score + (1 - audioResult.similarity_score)) / 3;
-      const isOriginal = yakoaResult.isOriginal && shsResult.overall_originality && !audioResult.fingerprint_match;
+      const overallScore = (yakoaResult.confidence + (1 - audioResult.similarity_score)) / 2;
+      const isOriginal = yakoaResult.isOriginal && !audioResult.fingerprint_match;
 
       const comprehensiveResults: ComprehensiveResults = {
         yakoa: yakoaResult,
-        secondhandsongs: shsResult,
+        secondhandsongs: null,
         overall_score: overallScore,
         is_original: isOriginal,
         recommendations: [
-          ...(yakoaResult.isOriginal ? ['✓ Passed Yakoa IP authentication'] : ['⚠ Review Yakoa IP concerns']),
-          ...(shsResult.overall_originality ? ['✓ No cover versions detected'] : ['⚠ Potential cover versions found']),
-          ...(audioResult.matches_found === 0 ? ['✓ Audio fingerprint is unique'] : ['⚠ Similar audio patterns detected']),
-          isOriginal ? '🎯 Recommended for IP registration' : '📋 Review licensing requirements before registration'
+          ...(yakoaResult.isOriginal ? ['Passed Yakoa IP authentication'] : ['Review Yakoa IP concerns']),
+          ...(audioResult.matches_found === 0 ? ['Audio fingerprint is unique'] : ['Similar audio patterns detected']),
+          isOriginal ? 'Recommended for IP registration' : 'Review licensing requirements before registration'
         ]
       };
 
-      updateStepStatus(3, 'complete', comprehensiveResults);
+      updateStepStatus(2, 'complete', comprehensiveResults);
       setResults(comprehensiveResults);
 
       toast({
@@ -339,9 +315,9 @@ export default function EnhancedIPVerification() {
               
               <div className="text-center">
                 <div className="text-2xl font-bold text-purple-600">
-                  {Math.round(results.secondhandsongs.confidence_score * 100)}%
+                  {results.yakoa.infringements ? results.yakoa.infringements.length : 0}
                 </div>
-                <div className="text-sm text-muted-foreground">SHS Score</div>
+                <div className="text-sm text-muted-foreground">Issues Found</div>
               </div>
             </div>
 
