@@ -65,6 +65,8 @@ export class ZapperService {
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.log('Zapper API Error Response:', errorText);
       throw new Error(`Zapper API error: ${response.status} ${response.statusText}`);
     }
 
@@ -246,16 +248,17 @@ export class ZapperService {
 
       const response = await this.makeRequest('', { body: graphqlQuery });
       
-      // Transform Zapper API response to our portfolio format
-      const tokens = Object.values(response).flat().map((balance: any) => ({
-        contract_address: balance.token?.address || 'unknown',
-        token_id: balance.token?.tokenId || '0',
-        name: balance.token?.name || balance.token?.symbol || 'Unknown Token',
-        description: balance.token?.symbol || balance.product?.label || '',
-        collection_name: balance.product?.label || 'Portfolio Assets',
+      // Transform GraphQL response to our portfolio format
+      const tokenBalances = response.data?.portfolioV2?.tokenBalances?.byToken?.edges || [];
+      const tokens = tokenBalances.map((edge: any) => ({
+        contract_address: edge.node.address || 'unknown',
+        token_id: '0',
+        name: edge.node.name || edge.node.symbol || 'Unknown Token',
+        description: edge.node.symbol || '',
+        collection_name: 'Portfolio Assets',
         owner: address,
-        blockchain: balance.network || 'ethereum',
-        estimated_value: balance.balanceUSD || 0
+        blockchain: edge.node.network?.toLowerCase() || 'ethereum',
+        estimated_value: edge.node.balanceUSD || 0
       }));
 
       const totalValue = tokens.reduce((sum, token) => sum + token.estimated_value, 0);
@@ -422,8 +425,16 @@ export class ZapperService {
     }
 
     try {
-      // Test API connection with a simple request
-      const response = await this.makeRequest(`/gas-prices`);
+      // Test API connection with a simple GraphQL query
+      const testQuery = {
+        query: `
+          query TestConnection {
+            __typename
+          }
+        `
+      };
+
+      const response = await this.makeRequest('', { body: testQuery });
       return {
         status: 'live',
         apiKey: this.apiKey.slice(0, 8) + '...' + this.apiKey.slice(-8),

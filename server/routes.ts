@@ -3,20 +3,18 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { db } from "./db";
-import { users, tracks, ipAssets, userActivities, licenses } from "@shared/schema";
-import { desc, eq } from "drizzle-orm";
+import { users, tracks, ipAssets, userActivities, licenses, insertTrackSchema, insertLicenseSchema } from "@shared/schema";
+import { desc, eq, and } from "drizzle-orm";
 import { storyService } from "./storyProtocol";
 import { audioAnalysis } from "./audioAnalysis";
 import { yakoaService } from "./yakoaService";
 import { tomoService } from "./tomoService";
 import { zapperService } from "./zapperService";
+import { blockchainService } from "./blockchainService";
 import { walletConnectService } from "./walletConnectService";
 
 import multer from "multer";
 import { z } from "zod";
-import { insertTrackSchema, insertLicenseSchema, licenses, tracks, userActivities } from "@shared/schema";
-import { db } from "./db";
-import { eq, and, desc } from "drizzle-orm";
 
 // Configure multer for file uploads
 const upload = multer({
