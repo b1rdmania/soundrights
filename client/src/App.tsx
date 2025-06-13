@@ -23,7 +23,7 @@ import Integrations from "./pages/Integrations";
 import Marketplace from "./pages/Marketplace";
 import Analytics from "./pages/Analytics";
 import Profile from "./pages/Profile";
-import Dashboard from "./pages/Dashboard";
+// Dashboard removed for MVP - focusing on demo functionality
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
@@ -61,7 +61,7 @@ function AppRouter() {
   return (
     <Switch>
       <Route path="/" component={Index} />
-      <Route path="/dashboard" component={Dashboard} />
+      {/* Dashboard removed for MVP - focusing on demo and integrations functionality */}
       <Route path="/upload" component={Upload} />
       <Route path="/demo" component={Demo} />
       <Route path="/live-demo" component={LiveDemo} />
