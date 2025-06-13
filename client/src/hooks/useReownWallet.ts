@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { walletKit, connectWallet, disconnectWallet, signMessage, sendTransaction, getWalletSessions } from '@/lib/reownConfig';
+import { getWalletKit, initializeWalletKit, connectWallet, disconnectWallet, signMessage, sendTransaction, getWalletSessions } from '@/lib/reownConfig';
 
 interface WalletState {
   address: string | null;
@@ -18,18 +18,19 @@ export function useReownWallet() {
     error: null
   });
 
-  // Check for existing session on mount
+  // Initialize WalletKit and check for existing sessions
   useEffect(() => {
-    const checkExistingSession = async () => {
+    const initializeAndCheck = async () => {
       try {
+        await initializeWalletKit();
         const sessions = getWalletSessions();
         const sessionKeys = Object.keys(sessions);
         
         if (sessionKeys.length > 0) {
-          const session = sessions[sessionKeys[0]];
+          const session = sessions[sessionKeys[0]] as any;
           if (session && session.namespaces?.eip155) {
             const address = session.namespaces.eip155.accounts[0]?.split(':')[2];
-            const chainId = parseInt(session.namespaces.eip155.chains[0]?.split(':')[1] || '1');
+            const chainId = parseInt(session.namespaces.eip155.chains[0]?.split(':')[1] || '11155111');
             
             setWalletState({
               address,
@@ -40,25 +41,34 @@ export function useReownWallet() {
             });
           }
         }
+
+        // Set up event listeners
+        const kit = getWalletKit();
+        if (kit) {
+          kit.on('session_proposal', (event: any) => {
+            console.log('Session proposal:', event);
+          });
+
+          kit.on('session_request', (event: any) => {
+            console.log('Session request:', event);
+          });
+
+          kit.on('session_delete', () => {
+            setWalletState({
+              address: null,
+              chainId: null,
+              connected: false,
+              connecting: false,
+              error: null
+            });
+          });
+        }
       } catch (error) {
-        console.error('Session check failed:', error);
+        console.error('WalletKit initialization failed:', error);
       }
     };
 
-    checkExistingSession();
-
-    // Set up event listeners if available
-    try {
-      walletKit.on('session_proposal', (event) => {
-        console.log('Session proposal:', event);
-      });
-
-      walletKit.on('session_request', (event) => {
-        console.log('Session request:', event);
-      });
-    } catch (error) {
-      console.log('Event listeners not available in current WalletKit version');
-    }
+    initializeAndCheck();
   }, []);
 
   const connect = async () => {

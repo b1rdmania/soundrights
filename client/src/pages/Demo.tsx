@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DemoUpload from '@/components/DemoUpload';
 import SponsorIntegrations from '@/components/SponsorIntegrations';
 import EnhancedIPVerification from '@/components/EnhancedIPVerification';
-import { WalletConnection } from '@/components/WalletConnection';
+import { ReownWalletConnection } from '@/components/ReownWalletConnection';
 
 export default function Demo() {
   return (
@@ -51,7 +51,7 @@ export default function Demo() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <WalletConnection 
+                  <ReownWalletConnection 
                     showStoryProtocolStatus={true}
                   />
                 </CardContent>
