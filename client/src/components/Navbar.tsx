@@ -43,11 +43,11 @@ const Navbar = () => {
 
     if (isConnected && address) {
       return (
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-green-50 text-green-700 px-3 py-1 rounded-lg border border-green-200">
-            <CheckCircle size={16} />
-            <span className="text-sm font-medium">
-              {formatAddress(address)}
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1 sm:gap-2 bg-green-50 text-green-700 px-2 sm:px-3 py-1 rounded-lg border border-green-200">
+            <CheckCircle size={14} className="sm:w-4 sm:h-4" />
+            <span className="text-xs sm:text-sm font-medium">
+              {isMobile ? formatAddress(address).slice(0, 8) + '...' : formatAddress(address)}
             </span>
           </div>
           <Button 

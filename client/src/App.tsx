@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { ErrorBoundary } from 'react-error-boundary';
 import { WalletProvider } from "@/components/WalletAuth";
+import MobileDetector from "@/components/MobileDetector";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Index from "./pages/Index";
@@ -85,17 +86,19 @@ const App = () => {
       <QueryClientProvider client={queryClient}>
         <ErrorBoundary FallbackComponent={ErrorFallback}>
           <TooltipProvider>
-            <div className="flex flex-col min-h-screen">
-              <Toaster position="top-right" />
-              <Sonner />
-              <Navbar />
-              
-              <main className="flex-grow">
-                <AppRouter />
-              </main>
-              
-              <Footer />
-            </div>
+            <MobileDetector>
+              <div className="flex flex-col min-h-screen">
+                <Toaster position="top-right" />
+                <Sonner />
+                <Navbar />
+                
+                <main className="flex-grow">
+                  <AppRouter />
+                </main>
+                
+                <Footer />
+              </div>
+            </MobileDetector>
           </TooltipProvider>
         </ErrorBoundary>
       </QueryClientProvider>

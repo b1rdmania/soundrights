@@ -26,16 +26,16 @@ const HeroSection = () => {
           
           {/* Main heading */}
           <div className="space-y-6">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-gray-900">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight text-gray-900">
               <span className="block">SoundRights</span>
-              <span className="block text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-purple-600 font-semibold mt-2">
-                Independent Label Platform
+              <span className="block text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl text-purple-600 font-semibold mt-1 sm:mt-2">
+                Blockchain Music Licensing
               </span>
             </h1>
             
-            <p className="text-lg sm:text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
-              Comprehensive licensing and sync royalty management for independent labels. 
-              Bulk catalog upload with blockchain IP registration and dynamic NFT marketplace.
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed px-4 sm:px-0">
+              Register music IP as NFTs, verify originality with AI, and license directly to buyers. 
+              Built for independent labels who need secure, transparent rights management.
             </p>
           </div>
           
