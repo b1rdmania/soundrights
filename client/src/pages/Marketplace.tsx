@@ -26,13 +26,12 @@ export default function Marketplace() {
   const [filterType, setFilterType] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('newest');
 
-  const { data: licenses, isLoading } = useQuery({
-    queryKey: ['/api/marketplace/licenses', filterType, sortBy, searchQuery],
-    enabled: false // We'll implement this when we have real data
+  const { data: licensesData, isLoading } = useQuery({
+    queryKey: ['/api/marketplace/licenses', filterType, sortBy, searchQuery]
   });
 
-  // Demo data for now
-  const demoLicenses: License[] = [
+  // Demonstration licenses for hackathon
+  const activeLicenses: License[] = [
     {
       id: '1',
       trackTitle: 'Digital Dreams',
