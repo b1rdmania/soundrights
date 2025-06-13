@@ -1,7 +1,7 @@
 import { Shield, Music, Building2, Search } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import DemoUpload from '@/components/DemoUpload';
+import EnhancedDemoUpload from '@/components/EnhancedDemoUpload';
 import SponsorIntegrations from '@/components/SponsorIntegrations';
 import EnhancedIPVerification from '@/components/EnhancedIPVerification';
 import { ReownWalletConnection } from '@/components/ReownWalletConnection';
@@ -57,8 +57,8 @@ export default function Demo() {
                 </CardContent>
               </Card>
 
-              {/* Upload Component */}
-              <DemoUpload />
+              {/* Enhanced Upload Component with Dramatic Verification */}
+              <EnhancedDemoUpload />
             </TabsContent>
             
             <TabsContent value="integrations">

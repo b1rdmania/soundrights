@@ -17,6 +17,7 @@ import About from "./pages/About";
 import WhitePaper from "./pages/WhitePaper";
 import Invest from "./pages/Invest";
 import Demo from "./pages/Demo";
+import LiveDemo from "./pages/LiveDemo";
 import Sponsors from "./pages/Sponsors";
 import Marketplace from "./pages/Marketplace";
 import Analytics from "./pages/Analytics";
@@ -66,6 +67,7 @@ function AppRouter() {
       <Route path="/" component={!isAuthenticated ? Index : Demo} />
       <Route path="/upload" component={Upload} />
       <Route path="/demo" component={Demo} />
+      <Route path="/live-demo" component={LiveDemo} />
       <Route path="/sponsors" component={Sponsors} />
       <Route path="/marketplace" component={Marketplace} />
       <Route path="/analytics" component={Analytics} />
