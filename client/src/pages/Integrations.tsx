@@ -26,7 +26,7 @@ export default function Integrations() {
   });
 
   const zapperTest = useMutation({
-    mutationFn: async () => await apiRequest(`/api/zapper/portfolio/${testWalletAddress}`),
+    mutationFn: async () => await apiRequest(`/api/zapper/test`),
     onSuccess: () => toast.success('Zapper API test successful - Portfolio data retrieved'),
     onError: (error) => toast.error(`Zapper test failed: ${error.message}`)
   });
@@ -255,7 +255,7 @@ export default function Integrations() {
                       className="w-full justify-start"
                     >
                       <BarChart3 className="h-4 w-4 mr-2" />
-                      Test Zapper Portfolio
+                      Test Zapper Portfolio Analytics
                       {zapperTest.isPending && <RefreshCw className="h-4 w-4 ml-2 animate-spin" />}
                     </Button>
                     
