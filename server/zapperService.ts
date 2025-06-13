@@ -40,13 +40,9 @@ export class ZapperService {
 
   constructor() {
     this.apiKey = process.env.ZAPPER_API_KEY || '';
-    this.demoMode = !this.apiKey;
+    this.demoMode = false; // Using live API with your credentials
     
-    if (this.demoMode) {
-      console.log('Zapper Service: No API key provided, using demo data');
-    } else {
-      console.log('Zapper Service: Live API enabled with provided key');
-    }
+    console.log('Zapper Service: Live API enabled with your credentials');
   }
 
   private async makeRequest(endpoint: string, options: any = {}) {
@@ -220,45 +216,40 @@ export class ZapperService {
     try {
       const graphqlQuery = {
         query: `
-          query PortfolioV2($addresses: [Address!]!, $networks: [Network!]) {
-            portfolioV2(addresses: $addresses, networks: $networks) {
+          query GetPortfolio($addresses: [Address!]!) {
+            portfolio(addresses: $addresses) {
               tokenBalances {
-                byToken {
-                  edges {
-                    node {
-                      balance
-                      balanceRaw
-                      balanceUSD
-                      symbol
-                      name
-                      address
-                      network
-                    }
-                  }
+                balance
+                balanceRaw
+                balanceUSD
+                token {
+                  symbol
+                  name
+                  address
+                  network
                 }
               }
             }
           }
         `,
         variables: {
-          addresses: [address],
-          networks: ['ETHEREUM_MAINNET', 'POLYGON_MAINNET', 'BASE_MAINNET']
+          addresses: [address]
         }
       };
 
       const response = await this.makeRequest('', { body: graphqlQuery });
       
       // Transform GraphQL response to our portfolio format
-      const tokenBalances = response.data?.portfolioV2?.tokenBalances?.byToken?.edges || [];
-      const tokens = tokenBalances.map((edge: any) => ({
-        contract_address: edge.node.address || 'unknown',
+      const tokenBalances = response.data?.portfolio?.tokenBalances || [];
+      const tokens = tokenBalances.map((balance: any) => ({
+        contract_address: balance.token?.address || 'unknown',
         token_id: '0',
-        name: edge.node.name || edge.node.symbol || 'Unknown Token',
-        description: edge.node.symbol || '',
+        name: balance.token?.name || balance.token?.symbol || 'Unknown Token',
+        description: balance.token?.symbol || '',
         collection_name: 'Portfolio Assets',
         owner: address,
-        blockchain: edge.node.network?.toLowerCase() || 'ethereum',
-        estimated_value: edge.node.balanceUSD || 0
+        blockchain: balance.token?.network?.toLowerCase() || 'ethereum',
+        estimated_value: balance.balanceUSD || 0
       }));
 
       const totalValue = tokens.reduce((sum: number, token: any) => sum + token.estimated_value, 0);
