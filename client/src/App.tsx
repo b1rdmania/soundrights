@@ -19,6 +19,7 @@ import Invest from "./pages/Invest";
 import Demo from "./pages/Demo";
 import Sponsors from "./pages/Sponsors";
 import Marketplace from "./pages/Marketplace";
+import Analytics from "./pages/Analytics";
 import NotFound from "./pages/NotFound";
 
 // Error boundary component
@@ -65,6 +66,7 @@ function AppRouter() {
       <Route path="/demo" component={Demo} />
       <Route path="/sponsors" component={Sponsors} />
       <Route path="/marketplace" component={Marketplace} />
+      <Route path="/analytics" component={Analytics} />
       <Route path="/results" component={Results} />
       <Route path="/about" component={About} />
       <Route path="/whitepaper" component={WhitePaper} />
