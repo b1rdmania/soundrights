@@ -4,16 +4,16 @@ import React from 'react';
 const SolutionSection = () => {
   const solutions = [
     {
-      title: "Register Your Sound IP",
-      description: "Create an immutable, on-chain record of your audio work."
+      title: "Blockchain IP Registry",
+      description: "Register music as NFTs with immutable ownership proof and creation timestamps."
     },
     {
-      title: "Define Programmable Licenses",
-      description: "Attach clear, specific, and machine-readable usage rights directly to your IP."
+      title: "AI-Powered Verification",
+      description: "Instant originality scanning prevents copyright disputes before they start."
     },
     {
-      title: "Enable Transparent Verification",
-      description: "Allow anyone to instantly check the authoritative license of any SoundRights-registered audio."
+      title: "Direct Licensing Market",
+      description: "Connect with sync buyers instantly. No middlemen, no delays, maximum revenue."
     }
   ];
 
@@ -21,9 +21,9 @@ const SolutionSection = () => {
     <section className="py-12 sm:py-16">
       <div className="container px-4 md:px-6">
         <div className="max-w-3xl mx-auto text-center mb-8 sm:mb-12">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">SoundRights: Clarity and Control, Powered by Story Protocol</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">SoundRights: Own Your Music, Control Your Future</h2>
           <p className="text-base sm:text-lg text-muted-foreground">
-            SoundRights offers a new path forward. By leveraging Story Protocol, the decentralized IP infrastructure, we provide tools to:
+            The first blockchain-native music licensing platform built for independent labels:
           </p>
         </div>
 

@@ -6,18 +6,18 @@ const FeaturesSection = () => {
   const features = [
     {
       icon: <Fingerprint className="h-7 w-7 sm:h-8 sm:w-8 text-primary" />,
-      title: "On-Chain IP Registration",
-      description: "Easily upload your sound files. Our system helps generate rich metadata (with AI assistance!) and registers your work as an immutable IP Asset on the Story Protocol Testnet."
+      title: "Instant Ownership Proof",
+      description: "Upload tracks to mint NFTs with immutable timestamps. Your music, your proof, forever."
     },
     {
       icon: <Scroll className="h-7 w-7 sm:h-8 sm:w-8 text-primary" />,
-      title: "Programmable Licensing",
-      description: "Choose from clear Programmable IP License (PIL) templates (e.g., Non-Commercial Remix, Commercial Use) to define exactly how others can use your sound, attaching these rules directly to your on-chain IP."
+      title: "Smart License Automation",
+      description: "Pre-built contracts for sync, streaming, and commercial use. Set rates, collect royalties automatically."
     },
     {
       icon: <Search className="h-7 w-7 sm:h-8 sm:w-8 text-primary" />,
-      title: "Transparent Verification",
-      description: "Anyone can upload an audio file to verify its license. SoundRights matches it and displays the authoritative usage terms directly from the Story Protocol blockchain."
+      title: "AI Originality Engine",
+      description: "Real-time scanning detects copyright conflicts before registration. Protect your catalog proactively."
     }
   ];
 
@@ -25,7 +25,7 @@ const FeaturesSection = () => {
     <section className="py-12 sm:py-16 bg-accent/30">
       <div className="container px-4 md:px-6">
         <div className="max-w-3xl mx-auto text-center mb-8 sm:mb-12">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-4">Discover the Core of SoundRights (MVP)</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold mb-4">Built for Independent Labels</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">

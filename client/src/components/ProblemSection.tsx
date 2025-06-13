@@ -4,20 +4,20 @@ import React from 'react';
 const ProblemSection = () => {
   const problems = [
     {
-      title: "Limited Control",
-      description: "Standard licenses don't allow for nuanced, creator-defined usage terms."
+      title: "Rights Fragmentation",
+      description: "Music IP scattered across platforms with no unified ownership proof."
     },
     {
-      title: "Verification Headaches",
-      description: "It's hard to prove or check the true license of a sound file."
+      title: "Licensing Bottlenecks", 
+      description: "Sync deals take months through intermediaries charging 30-50% fees."
     },
     {
-      title: "Complex Licensing",
-      description: "Custom deals are manual, slow, and often opaque."
+      title: "Originality Disputes",
+      description: "No reliable way to prove creation date or verify authenticity."
     },
     {
-      title: "An Opaque Future",
-      description: "How do we manage rights clearly in an age of remixes and AI-generated content?"
+      title: "Revenue Leakage",
+      description: "Complex royalty chains where creators lose track of their earnings."
     }
   ];
 
@@ -27,7 +27,7 @@ const ProblemSection = () => {
         <div className="max-w-3xl mx-auto text-center mb-12">
           <h2 className="text-3xl font-bold mb-4">The Problem: Lost Control, Unclear Rights</h2>
           <p className="text-lg text-muted-foreground">
-            In today's digital world, musicians and sound creators often struggle with:
+            Independent labels face billion-dollar inefficiencies in music rights management:
           </p>
         </div>
 

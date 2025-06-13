@@ -1,17 +1,16 @@
-# SoundRights - Web3 Music Licensing Platform
+# SoundRights - Blockchain Music Licensing Platform
 
-Comprehensive platform for independent record labels to manage licensing, sync royalties, and IP registration on blockchain.
+**🚀 NOW LIVE**: The first blockchain-native music licensing platform for independent labels.
+
+## Platform Status: OPERATIONAL ✅
+
+SoundRights is deployed and accessible with WalletConnect authentication. Independent labels can now register music IP as NFTs, verify originality, and license tracks directly to buyers.
+
+**Live Platform Access**: Connect any crypto wallet to start using the platform immediately.
 
 ## Overview
 
-SoundRights bridges traditional music licensing with blockchain technology, enabling labels to bulk upload catalogs, establish timestamped IP ownership, and sell licenses as NFTs through seamless account abstraction. Built specifically for independent labels seeking comprehensive licensing and sync royalty management.
-
-## Status
-
-- **Production Ready** - All systems operational
-- **Live Demo** - `/live-demo` with 6-stage verification
-- **Authentic APIs** - Real sponsor data integration
-- **Testing Complete** - Platform verified and documented
+SoundRights transforms music licensing through blockchain technology, enabling labels to register IP ownership, automate licensing, and connect directly with sync buyers. Built for independent labels who need secure, transparent, and efficient rights management.
 
 ## Features
 
