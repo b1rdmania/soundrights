@@ -1,7 +1,8 @@
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, CheckCircle, Shield, Users, BarChart3, Wallet } from 'lucide-react';
+import { ExternalLink, CheckCircle, Shield, Users, BarChart3, Wallet, AlertTriangle, Key } from 'lucide-react';
 
 export default function Integrations() {
   const integrations = [

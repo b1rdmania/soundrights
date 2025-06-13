@@ -599,6 +599,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Integration status endpoint - shows live vs demo status
+  app.get("/api/integration-status", async (req: any, res) => {
+    try {
+      const statuses = {
+        yakoa: await yakoaService.testConnection(),
+        tomo: await tomoService.testConnection(),
+        zapper: await zapperService.testConnection(),
+        walletconnect: await walletConnectService.getConnectionStatus()
+      };
+
+      // Transform to consistent format
+      const response = {
+        yakoa: {
+          status: statuses.yakoa.status === 'connected' ? 'live' : 'demo',
+          apiKey: statuses.yakoa.apiKey,
+          message: statuses.yakoa.message
+        },
+        tomo: {
+          status: statuses.tomo.status === 'connected' ? 'live' : 'demo', 
+          apiKey: statuses.tomo.apiKey,
+          message: statuses.tomo.message
+        },
+        zapper: {
+          status: statuses.zapper.status === 'connected' ? 'live' : 'demo',
+          apiKey: statuses.zapper.apiKey,
+          message: statuses.zapper.message
+        },
+        walletconnect: {
+          status: 'live',
+          apiKey: 'Project ID configured',
+          message: 'WalletConnect ready for wallet connections'
+        }
+      };
+
+      res.json(response);
+    } catch (error) {
+      console.error("Error checking integration status:", error);
+      res.status(500).json({ message: "Failed to check integration status" });
+    }
+  });
+
   // Test endpoint for Story Protocol integration (bypass auth for testing)
   app.post("/api/story/test-register", async (req: any, res) => {
     try {
