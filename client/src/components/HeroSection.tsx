@@ -27,9 +27,15 @@ const HeroSection = () => {
           {/* Main heading */}
           <div className="space-y-6">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight text-gray-900">
-              <span className="block">SoundRights</span>
-              <span className="block text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl text-purple-600 font-semibold mt-1 sm:mt-2">
+              <span className="block flex items-center justify-center gap-3">
+                <span>🎵</span>
+                SoundRights
+                <span>🎵</span>
+              </span>
+              <span className="block text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl text-purple-600 font-semibold mt-1 sm:mt-2 flex items-center justify-center gap-2">
+                <span>🎼</span>
                 Blockchain Music Licensing
+                <span>🎶</span>
               </span>
             </h1>
             
