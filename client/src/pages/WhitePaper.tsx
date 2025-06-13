@@ -27,26 +27,7 @@ const WhitePaper = () => {
                   <h2 className="text-2xl text-muted-foreground">On-Chain Sound IP & Programmable Licensing via Story Protocol</h2>
                 </div>
                 
-                <div className="mt-8 flex flex-col sm:flex-row justify-center gap-6">
-                  <a 
-                    href="#" 
-                    className="group relative inline-flex items-center justify-center px-6 py-3 rounded-full text-base font-medium text-primary-foreground shadow transition-all duration-200 overflow-hidden"
-                    style={{ background: 'linear-gradient(to bottom right, hsl(var(--primary)), hsl(var(--primary)) 65%, hsl(var(--primary)/0.85))' }}
-                  >
-                    <span className="absolute inset-0 w-full h-full bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                    <span className="absolute inset-0 w-full h-full bg-primary opacity-0 group-active:opacity-20 transition-opacity"></span>
-                    Download White Paper
-                    <ArrowDown className="ml-2 h-4 w-4 transition-transform group-hover:translate-y-1" />
-                  </a>
-                  
-                  <RouterLink
-                    href="/upload"
-                    className="group relative inline-flex items-center justify-center px-6 py-3 rounded-full text-base font-medium border-2 border-primary text-primary shadow-sm transition-all duration-200 hover:shadow hover:bg-primary/5"
-                  >
-                    <span className="absolute inset-0 w-full h-full bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                    Try the Demo
-                  </RouterLink>
-                </div>
+
               </div>
             </div>
             

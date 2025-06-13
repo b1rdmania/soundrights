@@ -220,6 +220,130 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Track upload endpoint for the new MusicUpload component
+  app.post("/api/tracks/upload", isAuthenticated, upload.single('audio'), async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const file = req.file;
+      
+      if (!file) {
+        return res.status(400).json({ message: "Audio file is required" });
+      }
+
+      // Parse metadata from request
+      const metadata = JSON.parse(req.body.metadata || '{}');
+      
+      // Validate track data
+      const trackData = insertTrackSchema.parse({
+        userId,
+        title: metadata.title,
+        artist: metadata.artist,
+        album: metadata.album,
+        genre: metadata.genre,
+        description: metadata.description,
+        fileSize: file.size,
+        fileFormat: file.mimetype,
+        status: 'processing'
+      });
+
+      // Store file temporarily - would integrate with cloud storage in production
+      trackData.audioUrl = `/uploads/${file.originalname}`;
+
+      // Create track record
+      const track = await storage.createTrack(trackData);
+      await storage.logUserActivity(userId, 'track_uploaded', 'track', track.id);
+
+      // Analyze audio file for features
+      let audioFeatures = null;
+      try {
+        audioFeatures = await audioAnalysis.analyzeAudioFile(file.buffer, file.originalname);
+        
+        // Update track with audio features
+        await storage.updateTrack(track.id, {
+          duration: audioFeatures.duration,
+          bpm: audioFeatures.bpm,
+          key: audioFeatures.key,
+          status: 'analyzed'
+        });
+      } catch (error) {
+        console.error("Audio analysis failed:", error);
+      }
+
+      // Verify authenticity with Yakoa
+      let yakoaResult = null;
+      try {
+        yakoaResult = await yakoaService.checkOriginality(trackData.audioUrl || '', metadata);
+        
+        if (yakoaResult.isOriginal) {
+          await storage.updateTrack(track.id, {
+            status: 'verified',
+            yakoaTokenId: yakoaResult.tokenId
+          });
+        } else {
+          await storage.updateTrack(track.id, {
+            status: 'rejected',
+            yakoaTokenId: yakoaResult.tokenId
+          });
+        }
+      } catch (error) {
+        console.error("Yakoa verification failed:", error);
+      }
+
+      // Register IP asset on Story Protocol if verified
+      if (yakoaResult?.isOriginal) {
+        try {
+          const ipAsset = await storyService.registerIPAsset({
+            title: track.title,
+            description: track.description || '',
+            mediaUrl: track.audioUrl || '',
+            attributes: {
+              artist: track.artist,
+              genre: track.genre || 'Unknown',
+              duration: audioFeatures?.duration || 0,
+              fingerprint: audioFeatures?.fingerprint || 'unknown'
+            },
+            userAddress: userId,
+          });
+
+          // Store IP asset in database
+          await storage.createIpAsset({
+            trackId: track.id,
+            userId: userId,
+            storyProtocolIpId: ipAsset.ipId || '',
+            tokenId: ipAsset.tokenId,
+            chainId: ipAsset.chainId,
+            txHash: ipAsset.txHash,
+            metadata: ipAsset.metadata,
+            storyProtocolUrl: ipAsset.storyProtocolUrl,
+            status: 'confirmed',
+          });
+
+          await storage.updateTrack(track.id, {
+            status: 'registered',
+            storyProtocolIpId: ipAsset.ipId
+          });
+
+          await storage.logUserActivity(userId, 'ip_registered', 'ip_asset', ipAsset.ipId);
+        } catch (error) {
+          console.error("Story Protocol registration failed:", error);
+        }
+      }
+
+      // Get updated track with all information
+      const finalTrack = await storage.getTrack(track.id);
+      
+      res.status(201).json({
+        track: finalTrack,
+        audioFeatures,
+        yakoaResult,
+        success: true
+      });
+    } catch (error) {
+      console.error("Error uploading track:", error);
+      res.status(500).json({ message: "Failed to upload track" });
+    }
+  });
+
   // Track management routes
   app.post("/api/tracks", isAuthenticated, upload.single('audio'), async (req: any, res) => {
     try {
@@ -357,6 +481,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid track data", errors: error.errors });
       }
       res.status(500).json({ message: "Failed to create track" });
+    }
+  });
+
+  // Search endpoints for track discovery
+  app.get("/api/tracks/search", async (req, res) => {
+    try {
+      const { q: query, genre, status, sortBy, verified } = req.query;
+      
+      let tracks = await db.select().from(tracks).limit(50);
+      
+      // Apply search filters
+      if (query) {
+        tracks = tracks.filter(track => 
+          track.title?.toLowerCase().includes(query.toString().toLowerCase()) ||
+          track.artist?.toLowerCase().includes(query.toString().toLowerCase()) ||
+          track.album?.toLowerCase().includes(query.toString().toLowerCase())
+        );
+      }
+      
+      if (genre) {
+        tracks = tracks.filter(track => track.genre?.toLowerCase() === genre.toString().toLowerCase());
+      }
+      
+      if (status) {
+        tracks = tracks.filter(track => track.status === status);
+      }
+      
+      if (verified === 'true') {
+        tracks = tracks.filter(track => track.status === 'verified' || track.status === 'registered');
+      }
+      
+      // Apply sorting
+      switch (sortBy) {
+        case 'oldest':
+          tracks.sort((a, b) => new Date(a.createdAt!).getTime() - new Date(b.createdAt!).getTime());
+          break;
+        case 'title':
+          tracks.sort((a, b) => a.title.localeCompare(b.title));
+          break;
+        case 'artist':
+          tracks.sort((a, b) => a.artist.localeCompare(b.artist));
+          break;
+        default: // newest
+          tracks.sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime());
+      }
+      
+      res.json(tracks);
+    } catch (error) {
+      console.error("Error searching tracks:", error);
+      res.status(500).json({ message: "Failed to search tracks" });
+    }
+  });
+
+  app.get("/api/tracks/popular", async (req, res) => {
+    try {
+      const tracks = await db.select()
+        .from(tracks)
+        .where(eq(tracks.status, 'verified'))
+        .orderBy(desc(tracks.createdAt))
+        .limit(10);
+      
+      res.json(tracks);
+    } catch (error) {
+      console.error("Error fetching popular tracks:", error);
+      res.status(500).json({ message: "Failed to fetch popular tracks" });
+    }
+  });
+
+  app.get("/api/tracks/recent", async (req, res) => {
+    try {
+      const tracks = await db.select()
+        .from(tracks)
+        .orderBy(desc(tracks.createdAt))
+        .limit(10);
+      
+      res.json(tracks);
+    } catch (error) {
+      console.error("Error fetching recent tracks:", error);
+      res.status(500).json({ message: "Failed to fetch recent tracks" });
     }
   });
 
