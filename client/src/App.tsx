@@ -57,15 +57,9 @@ const LoadingFallback = () => {
 };
 
 function AppRouter() {
-  const { isAuthenticated, isLoading } = useAuth();
-
-  if (isLoading) {
-    return <LoadingFallback />;
-  }
-
   return (
     <Switch>
-      <Route path="/" component={!isAuthenticated ? Index : Dashboard} />
+      <Route path="/" component={Index} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/upload" component={Upload} />
       <Route path="/demo" component={Demo} />
@@ -79,6 +73,7 @@ function AppRouter() {
       <Route path="/about" component={About} />
       <Route path="/whitepaper" component={WhitePaper} />
       <Route path="/invest" component={Invest} />
+      <Route path="/admin" component={Admin} />
       <Route component={NotFound} />
     </Switch>
   );

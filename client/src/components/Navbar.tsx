@@ -9,8 +9,6 @@ import { useWallet } from "@/components/WalletAuth";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [walletConnected, setWalletConnected] = useState(false);
-  const [walletAddress, setWalletAddress] = useState('');
   const [location] = useLocation();
   const isMobile = useIsMobile();
   const { address, isConnected, connectWallet, disconnectWallet } = useWallet();
@@ -68,7 +66,7 @@ const Navbar = () => {
     return (
       <Button 
         className="bg-purple-600 hover:bg-purple-700 text-white font-medium px-6 py-2 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
-        onClick={handleConnect}
+        onClick={connectWallet}
       >
         <Wallet size={16} className="mr-2" />
         Connect
@@ -139,13 +137,7 @@ const Navbar = () => {
 
           {/* Auth Section */}
           <div className="hidden lg:flex items-center">
-            {isLoading ? (
-              <div className="w-8 h-8 animate-spin rounded-full border-2 border-purple-600 border-t-transparent" />
-            ) : isAuthenticated ? (
-              <UserMenu user={user} />
-            ) : (
-              <ConnectButton />
-            )}
+            <ConnectButton />
           </div>
 
           {/* Mobile Menu */}
@@ -183,13 +175,7 @@ const Navbar = () => {
                   ))}
                   
                   <div className="mt-6 pt-4 border-t border-gray-200">
-                    {isLoading ? (
-                      <div className="w-8 h-8 animate-spin rounded-full border-2 border-purple-600 border-t-transparent mx-auto" />
-                    ) : isAuthenticated ? (
-                      <UserMenu user={user} />
-                    ) : (
-                      <ConnectButton />
-                    )}
+                    <ConnectButton />
                   </div>
                 </nav>
               </SheetContent>
