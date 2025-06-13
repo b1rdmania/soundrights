@@ -35,7 +35,7 @@ export interface ZapperPortfolio {
 
 export class ZapperService {
   private readonly apiKey: string;
-  private readonly baseUrl = 'https://api.zapper.fi/v2';
+  private readonly baseUrl = 'https://api.zapper.xyz/v2';
   private readonly demoMode: boolean;
 
   constructor() {
@@ -60,7 +60,6 @@ export class ZapperService {
       headers: {
         'Authorization': `Basic ${Buffer.from(`${this.apiKey}:`).toString('base64')}`,
         'Content-Type': 'application/json',
-        'X-API-KEY': this.apiKey,
         ...options.headers,
       },
     });
@@ -217,7 +216,7 @@ export class ZapperService {
    */
   async getUserPortfolio(address: string): Promise<ZapperPortfolio> {
     try {
-      const response = await this.makeRequest(`/balances/${address}?api_key=${this.apiKey}`);
+      const response = await this.makeRequest(`/balances?addresses[]=${address}`);
       
       // Transform Zapper API response to our portfolio format
       const tokens = response.balances?.map((balance: any) => ({
@@ -394,17 +393,18 @@ export class ZapperService {
 
     try {
       // Test API connection with a simple request
-      const response = await this.makeRequest(`/protocols?api_key=${this.apiKey}`);
+      const response = await this.makeRequest(`/supported/networks?api_key=${this.apiKey}`);
       return {
         status: 'live',
         apiKey: this.apiKey.slice(0, 8) + '...' + this.apiKey.slice(-8),
         message: 'Zapper API connected - live portfolio data available'
       };
     } catch (error) {
+      console.error('Zapper API test failed:', error);
       return {
         status: 'error',
-        apiKey: 'Invalid',
-        message: 'Failed to connect to Zapper API - check API key'
+        apiKey: 'Connection Failed',
+        message: `Zapper API error: ${error instanceof Error ? error.message : 'Unknown error'}`
       };
     }
   }
