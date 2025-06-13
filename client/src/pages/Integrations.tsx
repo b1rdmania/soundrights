@@ -5,6 +5,11 @@ import { Button } from '@/components/ui/button';
 import { ExternalLink, CheckCircle, Shield, Users, BarChart3, Wallet, AlertTriangle, Key } from 'lucide-react';
 
 export default function Integrations() {
+  const { data: integrationStatuses, isLoading } = useQuery({
+    queryKey: ['/api/integration-status'],
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
   const integrations = [
     {
       id: 'yakoa',
@@ -98,6 +103,10 @@ export default function Integrations() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {integrations.map((integration) => {
             const Icon = integration.icon;
+            const status = integrationStatuses?.[integration.id];
+            const isLive = status?.status === 'live';
+            const isDemo = status?.status === 'demo';
+            
             return (
               <Card key={integration.id} className={`hover:shadow-lg transition-all duration-200 border-2 ${getColorClasses(integration.color)}`}>
                 <CardHeader className="pb-4">
@@ -108,10 +117,14 @@ export default function Integrations() {
                       </div>
                       <div>
                         <CardTitle className="text-xl text-gray-900">{integration.name}</CardTitle>
-                        <Badge className={getStatusColor(integration.status)}>
-                          <CheckCircle className="w-3 h-3 mr-1" />
-                          {integration.status}
-                        </Badge>
+                        <div className="flex items-center gap-2 mt-1">
+                          {status && (
+                            <Badge className={isLive ? 'bg-green-100 text-green-800 border-green-200' : 'bg-yellow-100 text-yellow-800 border-yellow-200'}>
+                              {isLive ? <CheckCircle className="w-3 h-3 mr-1" /> : <AlertTriangle className="w-3 h-3 mr-1" />}
+                              {isLive ? 'Live API' : 'Demo Mode'}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -121,17 +134,45 @@ export default function Integrations() {
                 </CardHeader>
                 
                 <CardContent className="space-y-4">
+                  {status && (
+                    <div className={`p-3 rounded-lg border ${isLive ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'}`}>
+                      <p className="text-sm font-medium text-gray-900">Current Status:</p>
+                      <p className="text-sm text-gray-700 mt-1">{status.message}</p>
+                      {status.apiKey && (
+                        <p className="text-xs text-gray-500 mt-1 font-mono">
+                          Key: {status.apiKey}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
                   <div>
-                    <h4 className="font-medium text-gray-900 mb-2">Key Features:</h4>
+                    <h4 className="font-medium text-gray-900 mb-2">
+                      {isLive ? 'Live Features Active:' : 'Available Features:'}
+                    </h4>
                     <ul className="space-y-1">
                       {integration.features.map((feature, index) => (
                         <li key={index} className="flex items-center gap-2 text-sm text-gray-600">
-                          <div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
+                          <div className={`w-1.5 h-1.5 rounded-full ${isLive ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
                           {feature}
                         </li>
                       ))}
                     </ul>
                   </div>
+
+                  {isDemo && (
+                    <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
+                      <div className="flex items-start gap-2">
+                        <Key className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-sm font-medium text-blue-800">Enable Live Features</p>
+                          <p className="text-xs text-blue-700 mt-1">
+                            This integration uses a live demo environment. Contact support for production API access.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="flex gap-3 pt-4">
                     <Button 
@@ -139,7 +180,7 @@ export default function Integrations() {
                       className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
                     >
                       <a href={integration.demoUrl}>
-                        Try Demo
+                        {isLive ? 'Try Live Demo' : 'Try Demo'}
                       </a>
                     </Button>
                     <Button 

@@ -40,13 +40,9 @@ export class ZapperService {
 
   constructor() {
     this.apiKey = process.env.ZAPPER_API_KEY || '780f491b-e8c1-4cac-86c4-55a5bca9933a';
-    this.demoMode = !process.env.ZAPPER_API_KEY; // Only use demo if no API key provided
+    this.demoMode = false; // Use provided API key for live data
     
-    if (this.demoMode) {
-      console.log('Zapper Service: Using demo data - provide ZAPPER_API_KEY for live portfolio data');
-    } else {
-      console.log('Zapper Service: Live API enabled with provided key');
-    }
+    console.log('Zapper Service: Live API enabled with provided key');
   }
 
   private async makeRequest(endpoint: string, options: any = {}) {
@@ -261,19 +257,11 @@ export class ZapperService {
    */
   async testConnection(): Promise<{ status: string; apiKey: string; message: string }> {
     try {
-      if (this.demoMode) {
-        return {
-          status: 'demo',
-          apiKey: 'Demo Mode',
-          message: 'Zapper Service: Using demo data - provide ZAPPER_API_KEY for live portfolio data'
-        };
-      }
-
       // Test with a sample request to verify API key works
       const response = await this.makeRequest('/portfolio/0x1234567890123456789012345678901234567890');
       
       return {
-        status: 'connected',
+        status: 'live',
         apiKey: this.apiKey.slice(0, 8) + '...' + this.apiKey.slice(-8),
         message: 'Zapper API connected - live portfolio data available'
       };

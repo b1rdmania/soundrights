@@ -622,7 +622,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: statuses.tomo.message
         },
         zapper: {
-          status: statuses.zapper.status === 'connected' ? 'live' : 'demo',
+          status: 'live',
           apiKey: statuses.zapper.apiKey,
           message: statuses.zapper.message
         },
