@@ -37,15 +37,35 @@ const Navbar = () => {
 
   const isActive = (path: string) => location === path;
 
-  const ConnectButton = () => (
-    <Button 
-      className="bg-purple-600 hover:bg-purple-700 text-white font-medium px-6 py-2 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
-      onClick={() => window.location.href = '/api/login'}
-    >
-      <Wallet size={16} className="mr-2" />
-      Sign In
-    </Button>
-  );
+  const ConnectButton = () => {
+    const handleConnect = async () => {
+      try {
+        // Use WalletConnect for wallet connection
+        const response = await fetch('/api/wallet/connect', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await response.json();
+        
+        if (data.wallet) {
+          // Wallet connected successfully
+          console.log('Wallet connected:', data.wallet);
+        }
+      } catch (error) {
+        console.error('Wallet connection failed:', error);
+      }
+    };
+
+    return (
+      <Button 
+        className="bg-purple-600 hover:bg-purple-700 text-white font-medium px-6 py-2 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
+        onClick={handleConnect}
+      >
+        <Wallet size={16} className="mr-2" />
+        Connect
+      </Button>
+    );
+  };
 
   const UserMenu = ({ user }: { user: any }) => (
     <div className="flex items-center gap-3">

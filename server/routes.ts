@@ -597,6 +597,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Wallet connection endpoint
+  app.post("/api/wallet/connect", async (req: any, res) => {
+    try {
+      const connectionResult = await walletConnectService.connectWallet();
+      res.json(connectionResult);
+    } catch (error) {
+      console.error("Error connecting wallet:", error);
+      res.status(500).json({ message: "Failed to connect wallet" });
+    }
+  });
+
+  // Wallet disconnection endpoint
+  app.post("/api/wallet/disconnect", async (req: any, res) => {
+    try {
+      await walletConnectService.disconnectWallet();
+      res.json({ message: "Wallet disconnected successfully" });
+    } catch (error) {
+      console.error("Error disconnecting wallet:", error);
+      res.status(500).json({ message: "Failed to disconnect wallet" });
+    }
+  });
+
   // Real-time wallet portfolio endpoint
   app.get("/api/wallet-portfolio/:address", async (req: any, res) => {
     try {
