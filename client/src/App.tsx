@@ -6,8 +6,7 @@ import { Toaster } from "react-hot-toast";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { ErrorBoundary } from 'react-error-boundary';
-import { useAuth } from "@/hooks/useAuth";
-import { Web3Provider } from "@/components/Web3Provider";
+import { WalletProvider } from "@/components/WalletAuth";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Index from "./pages/Index";
@@ -87,7 +86,7 @@ function AppRouter() {
 
 const App = () => {
   return (
-    <Web3Provider>
+    <WalletProvider>
       <QueryClientProvider client={queryClient}>
         <ErrorBoundary FallbackComponent={ErrorFallback}>
           <TooltipProvider>
@@ -105,7 +104,7 @@ const App = () => {
           </TooltipProvider>
         </ErrorBoundary>
       </QueryClientProvider>
-    </Web3Provider>
+    </WalletProvider>
   );
 };
 

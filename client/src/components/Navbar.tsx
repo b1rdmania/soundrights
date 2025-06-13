@@ -5,7 +5,7 @@ import { Menu, LogOut, Wallet, Music, Zap, CheckCircle } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/useAuth";
+import { useWallet } from "@/components/WalletAuth";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -13,7 +13,7 @@ const Navbar = () => {
   const [walletAddress, setWalletAddress] = useState('');
   const [location] = useLocation();
   const isMobile = useIsMobile();
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { address, isConnected, connectWallet, disconnectWallet } = useWallet();
   
   useEffect(() => {
     const handleScroll = () => {
@@ -41,49 +41,21 @@ const Navbar = () => {
   const isActive = (path: string) => location === path;
 
   const ConnectButton = () => {
-    const handleConnect = async () => {
-      try {
-        const response = await fetch('/api/wallet/connect', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' }
-        });
-        const data = await response.json();
-        
-        if (data.wallet) {
-          setWalletConnected(true);
-          setWalletAddress(data.wallet.address);
-        }
-      } catch (error) {
-        console.error('Wallet connection failed:', error);
-      }
-    };
+    const formatAddress = (addr: string) => `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 
-    const handleDisconnect = async () => {
-      try {
-        await fetch('/api/wallet/disconnect', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' }
-        });
-        setWalletConnected(false);
-        setWalletAddress('');
-      } catch (error) {
-        console.error('Wallet disconnection failed:', error);
-      }
-    };
-
-    if (walletConnected) {
+    if (isConnected && address) {
       return (
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 bg-green-50 text-green-700 px-3 py-1 rounded-lg border border-green-200">
             <CheckCircle size={16} />
             <span className="text-sm font-medium">
-              {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+              {formatAddress(address)}
             </span>
           </div>
           <Button 
             variant="outline"
             size="sm"
-            onClick={handleDisconnect}
+            onClick={disconnectWallet}
             className="text-gray-600 hover:text-red-600"
           >
             <LogOut size={16} className="mr-1" />
