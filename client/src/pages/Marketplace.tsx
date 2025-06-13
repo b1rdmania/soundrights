@@ -86,7 +86,7 @@ export default function Marketplace() {
     }
   };
 
-  const filteredLicenses = demoLicenses.filter(license => {
+  const filteredLicenses = activeLicenses.filter((license: License) => {
     const matchesSearch = license.trackTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          license.artist.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter = filterType === 'all' || license.licenseType === filterType;
@@ -175,7 +175,7 @@ export default function Marketplace() {
 
       {/* License Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredLicenses.map((license) => (
+        {filteredLicenses.map((license: License) => (
           <Card key={license.id} className="hover:shadow-lg transition-shadow">
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
@@ -219,7 +219,7 @@ export default function Marketplace() {
               <div>
                 <p className="text-sm font-medium mb-2">Usage Rights:</p>
                 <div className="flex flex-wrap gap-1">
-                  {license.usage.map((use, index) => (
+                  {license.usage.map((use: string, index: number) => (
                     <Badge key={index} variant="outline" className="text-xs">
                       {use}
                     </Badge>
