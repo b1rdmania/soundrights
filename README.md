@@ -1,10 +1,10 @@
 # SoundRights - Web3 Music Licensing Platform
 
-Production-ready blockchain music IP registration platform with authentic sponsor integrations.
+Comprehensive platform for independent record labels to manage licensing, sync royalties, and IP registration on blockchain.
 
 ## Overview
 
-Complete Web3 music licensing platform enabling track upload, originality verification, IP registration, and licensing management. Features dramatic real-time verification showcasing all sponsor technologies.
+SoundRights bridges traditional music licensing with blockchain technology, enabling labels to bulk upload catalogs, establish timestamped IP ownership, and sell licenses as NFTs through seamless account abstraction. Built specifically for independent labels seeking comprehensive licensing and sync royalty management.
 
 ## Status
 
@@ -15,17 +15,24 @@ Complete Web3 music licensing platform enabling track upload, originality verifi
 
 ## Features
 
-**Infrastructure**
-- TypeScript platform with Express backend and React frontend
-- PostgreSQL database with comprehensive schema
-- Replit Authentication with secure session management
-- Audio file upload with real processing and metadata extraction
+**Record Label Platform**
+- Bulk catalog upload with automated MP3 ID3 metadata extraction
+- Discogs API integration for comprehensive track information auto-population
+- Dynamic licensing fee allocation with customizable pricing models
+- Timestamped blockchain registration for verifiable IP ownership
+- NFT-based licensing with account abstraction for seamless purchases
 
-**Music Management**
-- Audio upload with file validation and storage
-- Audio feature analysis: BPM, key, energy, fingerprinting
-- Track similarity detection with confidence scoring
-- Marketplace interface with search and filtering
+**Enhanced Audio Processing**
+- Advanced metadata extraction from MP3 files with ID3 tag support
+- Automatic track information completion via Discogs API
+- Professional audio fingerprinting and similarity detection
+- Comprehensive catalog management and bulk processing capabilities
+
+**Web3 Infrastructure**
+- Story Protocol for immutable IP asset registration and timestamping
+- Smart contract automation for licensing and royalty distribution
+- Account abstraction enabling traditional payment methods for Web3 purchases
+- NFT marketplace integration with transparent ownership tracking
 
 **Sponsor Integrations**
 - Yakoa IP Authentication: Live API with 100% confidence verification

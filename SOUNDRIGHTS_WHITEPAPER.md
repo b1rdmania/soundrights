@@ -3,37 +3,47 @@
 
 ### Executive Summary
 
-SoundRights is a production-ready blockchain-powered music intellectual property registration platform that leverages Story Protocol technology with authentic sponsor integrations. The platform enables musicians to upload tracks, verify originality, register IP assets on-chain, and manage licensing through a comprehensive Web3 infrastructure.
+SoundRights is a comprehensive Web3 platform designed specifically for independent record labels to manage music licensing and sync royalties. The platform provides blockchain-based IP registration through Story Protocol, enabling labels to establish verifiable ownership dates for future IP claims while offering dynamic licensing marketplace integration.
+
+The platform bridges the gap between traditional music licensing and modern blockchain technology, allowing labels to bulk upload catalogs with automated pricing and sell licenses as NFTs through account abstraction - removing technical barriers for buyers.
 
 ### Problem Statement
 
-The music industry faces significant challenges in intellectual property protection and licensing:
-- Complex copyright registration processes
-- Lack of transparent ownership verification
-- Fragmented licensing systems
-- Limited creator control over IP assets
-- Inefficient royalty distribution mechanisms
+Independent record labels face critical challenges in music licensing and IP management:
+- No centralized platform for comprehensive licensing and sync royalty management
+- Lack of timestamped IP ownership verification for future legal claims
+- Complex manual processes for catalog licensing and pricing
+- Fragmented marketplace connections for sync and advertising placements
+- Technical barriers preventing Web3 adoption in traditional music markets
 
 ### Solution Architecture
 
 SoundRights addresses these challenges through a comprehensive Web3 platform combining:
 
-**Blockchain Integration**
-- Story Protocol for IP asset registration and management
-- Hybrid implementation with testnet connectivity and structured fallbacks
-- Smart contract preparation for licensing automation
+**Record Label Platform Features**
+- Bulk catalog upload with automated metadata extraction from MP3 ID3 tags
+- Discogs API integration for comprehensive track information auto-population
+- Dynamic licensing fee allocation with customizable pricing models
+- Timestamped blockchain registration for IP ownership verification
+- NFT-based licensing with account abstraction for seamless buyer experience
 
-**Audio Processing Pipeline**
-- Real audio file upload with validation and storage
-- Advanced feature extraction: BPM, key, energy, acoustic fingerprinting
-- Similarity detection with confidence scoring algorithms
-- Professional metadata management and status tracking
+**Blockchain Integration**
+- Story Protocol for immutable IP asset registration and timestamping
+- Smart contract automation for licensing and royalty distribution
+- NFT marketplace integration with transparent ownership tracking
+- Account abstraction enabling traditional payment methods for Web3 purchases
+
+**Enhanced Audio Processing**
+- Advanced metadata extraction from MP3 files with ID3 tag support
+- Discogs API integration for automatic track information completion
+- Professional audio fingerprinting and similarity detection
+- Comprehensive catalog management and bulk processing capabilities
 
 **Sponsor Technology Integration**
-- Yakoa IP Authentication: Production API providing 100% confidence verification
-- Tomo Social Verification: Buildathon API integration with structured user data
-- Zapper Portfolio Analytics: Live portfolio data and transaction tracking
-- WalletConnect: Full Web3 wallet integration supporting 400+ wallet types
+- Yakoa IP Authentication: Production verification for originality claims
+- Tomo Social Verification: Enhanced user authentication and reputation
+- Zapper Portfolio Analytics: NFT portfolio tracking and transaction history
+- WalletConnect: Seamless Web3 integration with account abstraction support
 
 ### Technical Implementation
 

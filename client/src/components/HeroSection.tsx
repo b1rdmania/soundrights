@@ -29,13 +29,13 @@ const HeroSection = () => {
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-gray-900">
               <span className="block">SoundRights</span>
               <span className="block text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-purple-600 font-semibold mt-2">
-                Web3 Music IP Platform
+                Independent Label Platform
               </span>
             </h1>
             
             <p className="text-lg sm:text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
-              Secure music rights with blockchain technology. Featuring Yakoa verification, 
-              Tomo social authentication, Zapper analytics, and seamless wallet connectivity.
+              Comprehensive licensing and sync royalty management for independent labels. 
+              Bulk catalog upload with blockchain IP registration and dynamic NFT marketplace.
             </p>
           </div>
           
