@@ -597,6 +597,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Real-time wallet portfolio endpoint
+  app.get("/api/wallet-portfolio/:address", async (req: any, res) => {
+    try {
+      const { address } = req.params;
+      
+      if (!address) {
+        return res.status(400).json({ message: "Wallet address is required" });
+      }
+
+      let portfolio;
+      
+      try {
+        // Try Zapper API first
+        portfolio = await zapperService.getUserPortfolio(address);
+      } catch (zapperError) {
+        console.log('Zapper API failed, using blockchain RPC data:', zapperError);
+        
+        // Fallback to direct blockchain data
+        portfolio = await blockchainService.getWalletPortfolio(address);
+      }
+
+      res.json(portfolio);
+    } catch (error) {
+      console.error("Error fetching wallet portfolio:", error);
+      res.status(500).json({ message: "Failed to retrieve wallet portfolio" });
+    }
+  });
+
   // Integration status endpoint - shows live vs demo status
   app.get("/api/integration-status", async (req: any, res) => {
     try {
@@ -620,9 +648,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: statuses.tomo.message
         },
         zapper: {
-          status: statuses.zapper.status,
-          apiKey: statuses.zapper.apiKey,
-          message: statuses.zapper.message
+          status: statuses.zapper.status === 'live' ? 'live' : 'error',
+          apiKey: statuses.zapper.status === 'live' ? statuses.zapper.apiKey : 'Connection Failed',
+          message: statuses.zapper.status === 'live' ? statuses.zapper.message : 'Zapper API authentication issue - using blockchain RPC for wallet data'
         },
         walletconnect: {
           status: 'live',
