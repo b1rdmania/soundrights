@@ -13,8 +13,17 @@ export class StoryProtocolService {
 
   private async initializeClient() {
     try {
-      // Use a service account for server-side operations
-      const privateKey = process.env.STORY_PRIVATE_KEY || '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
+      if (!process.env.STORY_API_KEY) {
+        console.log('Story Protocol: Using testnet configuration - provide STORY_API_KEY for production');
+        return;
+      }
+
+      // Use provided API key for real blockchain operations
+      const privateKey = process.env.STORY_PRIVATE_KEY;
+      if (!privateKey) {
+        throw new Error('STORY_PRIVATE_KEY required for blockchain operations');
+      }
+
       const account = privateKeyToAccount(privateKey as `0x${string}`);
 
       const config: StoryConfig = {
@@ -24,9 +33,10 @@ export class StoryProtocolService {
       };
 
       this.client = StoryClient.newClient(config);
-      console.log('Story Protocol client initialized successfully');
+      console.log('Story Protocol client initialized for testnet blockchain operations');
     } catch (error) {
       console.error('Failed to initialize Story Protocol client:', error);
+      this.client = null;
     }
   }
 
@@ -70,53 +80,53 @@ export class StoryProtocolService {
         metadata: metadata
       });
 
+      if (!this.client) {
+        throw new Error('Story Protocol client not initialized. Please provide STORY_API_KEY and STORY_PRIVATE_KEY environment variables.');
+      }
+
       try {
-        // Register IP Asset using Story Protocol SDK
-        const response = await this.client.ipAsset.register({
-          nftContract: '0x1234567890123456789012345678901234567890' as `0x${string}`,
-          tokenId: BigInt(Math.floor(Math.random() * 1000000)),
+        // Create NFT collection using correct Story Protocol SDK methods
+        const nftCollectionResponse = await this.client.nftClient.createNFTCollection({
+          name: `SoundRights-${data.name}`,
+          symbol: 'SRIGHTS',
+          isPublicMinting: true,
+          mintFee: BigInt(0),
+          mintFeeToken: '0x0000000000000000000000000000000000000000' as `0x${string}`,
+          owner: data.userAddress as `0x${string}`
+        });
+
+        console.log('NFT collection created on Story Protocol:', nftCollectionResponse);
+
+        // Use Story Protocol's SPG NFT for minting
+        const mintResponse = await this.client.nftClient.mintAndRegisterIpAssetAndMakeDerivative({
+          spgNftContract: nftCollectionResponse.spgNftContract,
+          recipient: data.userAddress as `0x${string}`,
           ipMetadata: {
-            ipMetadataURI: '',
+            ipMetadataURI: data.mediaUrl,
             ipMetadataHash: '0x0000000000000000000000000000000000000000000000000000000000000000' as `0x${string}`,
             nftMetadataURI: data.mediaUrl,
             nftMetadataHash: '0x0000000000000000000000000000000000000000000000000000000000000000' as `0x${string}`
           }
         });
 
-        console.log('IP asset registered on blockchain:', response);
+        console.log('IP asset minted and registered on Story Protocol blockchain:', mintResponse);
 
         return {
-          ipId: response.ipId || '',
-          tokenId: response.tokenId?.toString() || '',
+          ipId: mintResponse.ipId || '',
+          tokenId: mintResponse.tokenId?.toString() || '',
           chainId: aeneid.id,
-          txHash: response.txHash || '',
+          txHash: mintResponse.txHash || '',
+          nftContract: nftCollectionResponse.spgNftContract,
           metadata,
-          storyProtocolUrl: `https://explorer.story.foundation/ip/${response.ipId}`,
+          storyProtocolUrl: `https://explorer.story.foundation/ip/${mintResponse.ipId}`,
           blockNumber: 0,
           gasUsed: "150000",
           status: "confirmed",
           registeredAt: new Date().toISOString(),
         };
       } catch (blockchainError) {
-        console.error('Blockchain registration failed, using local tracking:', blockchainError);
-        
-        // Fallback to local tracking if blockchain fails
-        const timestamp = Date.now();
-        const ipId = `sp_${timestamp}_${Math.random().toString(36).substr(2, 9)}`;
-        const txHash = `0x${timestamp.toString(16)}${Math.random().toString(16).substr(2, 40)}`;
-
-        return {
-          ipId,
-          tokenId: Math.floor(Math.random() * 1000000).toString(),
-          chainId: aeneid.id,
-          txHash,
-          metadata,
-          storyProtocolUrl: `https://explorer.story.foundation/ip/${ipId}`,
-          blockNumber: Math.floor(Math.random() * 1000000),
-          gasUsed: "150000",
-          status: "pending",
-          registeredAt: new Date().toISOString(),
-        };
+        console.error('Story Protocol blockchain registration failed:', blockchainError);
+        throw new Error(`Blockchain registration failed: ${blockchainError instanceof Error ? blockchainError.message : 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Story Protocol registration error:', error);

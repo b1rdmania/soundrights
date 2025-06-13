@@ -253,80 +253,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const track = await storage.createTrack(trackData);
       await storage.logUserActivity(userId, 'track_uploaded', 'track', track.id);
 
-      // Analyze audio file for features
+      // Initial analysis only - user must approve before blockchain registration
       let audioFeatures = null;
       try {
         audioFeatures = await audioAnalysis.analyzeAudioFile(file.buffer, file.originalname);
         
-        // Update track with audio features
+        // Update track with audio features but keep processing status
         await storage.updateTrack(track.id, {
           duration: audioFeatures.duration,
           bpm: audioFeatures.bpm,
           key: audioFeatures.key,
-          status: 'analyzed'
+          status: 'processing'
         });
       } catch (error) {
         console.error("Audio analysis failed:", error);
       }
 
-      // Verify authenticity with Yakoa
+      // Verify authenticity with Yakoa but don't auto-proceed
       let yakoaResult = null;
       try {
         yakoaResult = await yakoaService.checkOriginality(trackData.audioUrl || '', metadata);
         
-        if (yakoaResult.isOriginal) {
-          await storage.updateTrack(track.id, {
-            status: 'verified',
-            yakoaTokenId: yakoaResult.tokenId
-          });
-        } else {
-          await storage.updateTrack(track.id, {
-            status: 'rejected',
-            yakoaTokenId: yakoaResult.tokenId
-          });
-        }
+        // Store results but require user approval for next step
+        await storage.updateTrack(track.id, {
+          yakoaTokenId: yakoaResult.yakoaTokenId,
+          yakoaConfidence: yakoaResult.confidence,
+          yakoaInfringements: JSON.stringify(yakoaResult.infringements),
+          status: yakoaResult.isOriginal ? 'verified' : 'failed'
+        });
       } catch (error) {
         console.error("Yakoa verification failed:", error);
-      }
-
-      // Register IP asset on Story Protocol if verified
-      if (yakoaResult?.isOriginal) {
-        try {
-          const ipAsset = await storyService.registerIPAsset({
-            title: track.title,
-            description: track.description || '',
-            mediaUrl: track.audioUrl || '',
-            attributes: {
-              artist: track.artist,
-              genre: track.genre || 'Unknown',
-              duration: audioFeatures?.duration || 0,
-              fingerprint: audioFeatures?.fingerprint || 'unknown'
-            },
-            userAddress: userId,
-          });
-
-          // Store IP asset in database
-          await storage.createIpAsset({
-            trackId: track.id,
-            userId: userId,
-            storyProtocolIpId: ipAsset.ipId || '',
-            tokenId: ipAsset.tokenId,
-            chainId: ipAsset.chainId,
-            txHash: ipAsset.txHash,
-            metadata: ipAsset.metadata,
-            storyProtocolUrl: ipAsset.storyProtocolUrl,
-            status: 'confirmed',
-          });
-
-          await storage.updateTrack(track.id, {
-            status: 'registered',
-            storyProtocolIpId: ipAsset.ipId
-          });
-
-          await storage.logUserActivity(userId, 'ip_registered', 'ip_asset', ipAsset.ipId);
-        } catch (error) {
-          console.error("Story Protocol registration failed:", error);
-        }
+        await storage.updateTrack(track.id, { status: 'failed' });
       }
 
       // Get updated track with all information
@@ -336,11 +293,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
         track: finalTrack,
         audioFeatures,
         yakoaResult,
+        requiresApproval: yakoaResult?.isOriginal, // User must approve blockchain registration
         success: true
       });
     } catch (error) {
       console.error("Error uploading track:", error);
       res.status(500).json({ message: "Failed to upload track" });
+    }
+  });
+
+  // New endpoint for user-approved blockchain registration
+  app.post("/api/tracks/:id/register-blockchain", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id: trackId } = req.params;
+      const { walletAddress } = req.body;
+
+      if (!walletAddress) {
+        return res.status(400).json({ message: "Wallet address required for blockchain registration" });
+      }
+
+      const track = await storage.getTrack(trackId);
+      if (!track) {
+        return res.status(404).json({ message: "Track not found" });
+      }
+
+      if (track.userId !== userId) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+
+      if (track.status !== 'verified') {
+        return res.status(400).json({ message: "Track must be verified before blockchain registration" });
+      }
+
+      // Register IP asset on Story Protocol with user's wallet
+      try {
+        const ipAsset = await storyService.registerIPAsset({
+          name: track.title,
+          description: track.aiDescription || track.title,
+          mediaUrl: track.audioUrl || '',
+          attributes: {
+            artist: track.artist,
+            genre: track.genre || 'Unknown',
+            duration: track.duration || 0,
+            bpm: track.bpm || 0,
+            key: track.key || 'Unknown'
+          },
+          userAddress: walletAddress,
+        });
+
+        // Store IP asset in database
+        const ipAssetRecord = await storage.createIpAsset({
+          trackId: track.id,
+          userId: userId,
+          storyProtocolIpId: ipAsset.ipId || '',
+          tokenId: ipAsset.tokenId,
+          chainId: ipAsset.chainId,
+          txHash: ipAsset.txHash,
+          metadata: ipAsset.metadata,
+          storyProtocolUrl: ipAsset.storyProtocolUrl,
+          status: 'confirmed',
+        });
+
+        await storage.updateTrack(track.id, {
+          status: 'registered',
+          storyProtocolIpId: ipAsset.ipId
+        });
+
+        await storage.logUserActivity(userId, 'ip_registered', 'ip_asset', ipAsset.ipId);
+
+        res.json({
+          success: true,
+          ipAsset: ipAssetRecord,
+          blockchainData: ipAsset,
+          message: "Successfully registered on Story Protocol blockchain"
+        });
+      } catch (error) {
+        console.error("Story Protocol registration failed:", error);
+        res.status(500).json({ 
+          message: "Blockchain registration failed", 
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
+    } catch (error) {
+      console.error("Error in blockchain registration:", error);
+      res.status(500).json({ message: "Failed to register on blockchain" });
     }
   });
 
@@ -833,20 +870,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       let portfolio;
       
-      try {
-        // Try Zapper API first
-        portfolio = await zapperService.getUserPortfolio(address);
-      } catch (zapperError) {
-        console.log('Zapper API failed, using blockchain RPC data:', zapperError);
-        
-        // Fallback to direct blockchain data
+      if (process.env.ZAPPER_API_KEY) {
+        try {
+          // Use authenticated Zapper API for real data
+          portfolio = await zapperService.getUserPortfolio(address);
+          console.log('Portfolio data retrieved from Zapper API');
+        } catch (zapperError) {
+          console.log('Zapper API failed, using blockchain RPC data:', zapperError);
+          portfolio = await blockchainService.getWalletPortfolio(address);
+        }
+      } else {
+        // Use direct blockchain calls when API key not available
         portfolio = await blockchainService.getWalletPortfolio(address);
+        console.log('Portfolio data retrieved via direct blockchain RPC');
       }
 
       res.json(portfolio);
     } catch (error) {
       console.error("Error fetching wallet portfolio:", error);
-      res.status(500).json({ message: "Failed to retrieve wallet portfolio" });
+      res.status(500).json({ 
+        message: "Failed to retrieve wallet portfolio",
+        requiresApiKey: !process.env.ZAPPER_API_KEY
+      });
     }
   });
 
