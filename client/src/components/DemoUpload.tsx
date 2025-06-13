@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Upload, Music, CheckCircle, AlertTriangle, ExternalLink } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { DramaticUploadProcess } from './DramaticUploadProcess';
 
 interface UploadResult {
   id: string;
@@ -26,8 +27,8 @@ export default function DemoUpload() {
     album: '',
     genre: 'Electronic',
   });
-  const [uploading, setUploading] = useState(false);
-  const [result, setResult] = useState<UploadResult | null>(null);
+  const [showDramaticProcess, setShowDramaticProcess] = useState(false);
+  const [verificationResults, setVerificationResults] = useState<any>(null);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
