@@ -11,11 +11,11 @@ SoundRights is a comprehensive web3 music licensing platform serving independent
   - Added `/api/tracks/:id/register-blockchain` endpoint for explicit user consent
   - Users must connect wallet and approve before Story Protocol registration
 
-✓ **Enhanced Story Protocol Integration** - Real testnet connectivity
-  - Fixed SDK method calls for authentic blockchain operations  
-  - Configured for Story Protocol testnet (Aeneid chain)
-  - Requires STORY_API_KEY and STORY_PRIVATE_KEY for production
-  - Uses testnet NFT contract: 0x041B4F29183317Eb2335F2A71ecF8d9d4D21F9a3
+✓ **Story Protocol API Integration** - Live testnet operations
+  - Integrated with Story Protocol API key: MhBsxkU1z9fG6TofE59KqiiWV-YlYE8Q4awlLQehF3U
+  - Configured for testnet (story-aeneid) with proper X-CHAIN headers
+  - API-first approach with SDK fallback for reliable blockchain operations
+  - Real IP asset registration through authenticated Story Protocol endpoints
 
 ✓ **Improved Wallet Portfolio Data** - Real blockchain connectivity
   - Enhanced Zapper API integration with authenticated requests
