@@ -41,9 +41,6 @@ export class TomoService {
   }
 
   private async makeRequest(endpoint: string, options: any = {}) {
-    if (this.demoMode) {
-      return this.getMockResponse(endpoint, options);
-    }
 
     const url = `${this.baseUrl}${endpoint}`;
     const response = await fetch(url, {
