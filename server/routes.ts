@@ -1089,6 +1089,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Wallet portfolio endpoint with enhanced blockchain integration
+  app.get("/api/wallet/portfolio/:address", async (req, res) => {
+    try {
+      const { address } = req.params;
+      
+      if (!address) {
+        return res.status(400).json({ message: "Wallet address is required" });
+      }
+
+      // Use blockchain service for direct wallet data
+      const portfolio = await blockchainService.getWalletPortfolio(address);
+      
+      res.json(portfolio);
+    } catch (error) {
+      console.error("Error fetching wallet portfolio:", error);
+      res.status(500).json({ message: "Failed to fetch wallet portfolio" });
+    }
+  });
+
+  app.get("/api/wallet/portfolio", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // For demo purposes, use a default address or get from user profile
+      const defaultAddress = "0x742d35Cc6634C0532925a3b8D07c68c2b6f5f9E8";
+      
+      const portfolio = await blockchainService.getWalletPortfolio(defaultAddress);
+      
+      res.json(portfolio);
+    } catch (error) {
+      console.error("Error fetching user wallet portfolio:", error);
+      res.status(500).json({ message: "Failed to fetch wallet portfolio" });
+    }
+  });
+
   app.post("/api/zapper/track-registration", isAuthenticated, async (req: any, res) => {
     try {
       const { txHash, userAddress } = req.body;
