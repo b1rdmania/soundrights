@@ -1,11 +1,20 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Music, Upload, Shield, Zap, TrendingUp, Clock, CheckCircle, AlertCircle, Wallet } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Link } from 'wouter';
+import { 
+  Music, 
+  Shield, 
+  CheckCircle, 
+  Clock, 
+  Upload, 
+  AlertCircle, 
+  TrendingUp,
+  Wallet
+} from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Link } from 'wouter';
 import WalletPortfolio from '@/components/WalletPortfolio';
 
 interface Track {
@@ -37,8 +46,6 @@ interface DashboardStats {
 }
 
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState<'overview' | 'tracks' | 'assets'>('overview');
-
   // Fetch user tracks
   const { data: tracks = [], isLoading: tracksLoading } = useQuery({
     queryKey: ['/api/tracks'],
@@ -54,9 +61,9 @@ export default function Dashboard() {
   // Calculate dashboard stats
   const stats: DashboardStats = {
     totalTracks: tracks.length,
-    verifiedTracks: tracks.filter((t: Track) => t.status === 'verified' || t.status === 'registered').length,
+    verifiedTracks: tracks.filter((t: any) => t.status === 'verified' || t.status === 'registered').length,
     registeredAssets: ipAssets.length,
-    totalValue: tracks.length * 250, // Estimated value per track
+    totalValue: tracks.length * 150 // Estimated value per track
   };
 
   const getStatusIcon = (status: string) => {
@@ -177,97 +184,78 @@ export default function Dashboard() {
               </Card>
             </div>
 
-        {/* Tab Navigation */}
-        <div className="border-b border-gray-200 mb-6">
-          <nav className="-mb-px flex space-x-8">
-            {[
-              { key: 'overview', label: 'Overview', icon: TrendingUp },
-              { key: 'tracks', label: 'My Tracks', icon: Music },
-              { key: 'assets', label: 'IP Assets', icon: Shield },
-            ].map(({ key, label, icon: Icon }) => (
-              <button
-                key={key}
-                onClick={() => setActiveTab(key as any)}
-                className={`flex items-center gap-2 py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === key
-                    ? 'border-purple-500 text-purple-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                {label}
-              </button>
-            ))}
-          </nav>
-        </div>
-
-        {/* Tab Content */}
-        {activeTab === 'overview' && (
-          <div className="space-y-6">
+            {/* Recent Activity */}
             <Card>
               <CardHeader>
-                <CardTitle>Recent Activity</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="w-5 h-5" />
+                  Recent Activity
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                {tracks.length === 0 ? (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-lg">
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                      <Shield className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-900">Track "Summer Vibes" registered as IP asset</p>
+                      <p className="text-sm text-gray-600">2 hours ago</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-4 p-4 bg-green-50 rounded-lg">
+                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                      <CheckCircle className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-900">Audio verification completed for "Midnight Blues"</p>
+                      <p className="text-sm text-gray-600">4 hours ago</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-4 p-4 bg-purple-50 rounded-lg">
+                    <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                      <Music className="w-5 h-5 text-purple-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-900">New track "Digital Dreams" uploaded</p>
+                      <p className="text-sm text-gray-600">6 hours ago</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Recent Tracks Preview */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Music className="w-5 h-5" />
+                  Recent Tracks
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {tracksLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                  </div>
+                ) : tracks.length === 0 ? (
                   <div className="text-center py-8">
-                    <Music className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No tracks uploaded yet</h3>
-                    <p className="text-gray-600 mb-4">Start building your music IP portfolio</p>
+                    <Music className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No tracks uploaded yet</h3>
+                    <p className="text-gray-600 mb-4">Upload your first track to get started with IP protection</p>
                     <Link href="/upload">
-                      <Button>Upload Your First Track</Button>
+                      <Button className="bg-purple-600 hover:bg-purple-700">
+                        <Upload className="w-4 h-4 mr-2" />
+                        Upload Track
+                      </Button>
                     </Link>
                   </div>
                 ) : (
-                  <div className="space-y-3">
-                    {tracks.slice(0, 5).map((track: Track) => (
-                      <div key={track.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center gap-3">
-                          {getStatusIcon(track.status)}
-                          <div>
-                            <p className="font-medium text-gray-900">{track.title}</p>
-                            <p className="text-sm text-gray-600">{track.artist}</p>
-                          </div>
-                        </div>
-                        <Badge className={getStatusColor(track.status)}>
-                          {track.status}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {activeTab === 'tracks' && (
-          <div className="space-y-4">
-            {tracksLoading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin w-8 h-8 border-2 border-purple-600 border-t-transparent rounded-full mx-auto"></div>
-                <p className="text-gray-600 mt-2">Loading tracks...</p>
-              </div>
-            ) : tracks.length === 0 ? (
-              <Card>
-                <CardContent className="text-center py-12">
-                  <Music className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-xl font-medium text-gray-900 mb-2">No tracks found</h3>
-                  <p className="text-gray-600 mb-6">Upload your first music track to get started</p>
-                  <Link href="/upload">
-                    <Button className="bg-purple-600 hover:bg-purple-700">
-                      <Upload className="w-4 h-4 mr-2" />
-                      Upload Track
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid gap-4">
-                {tracks.map((track: Track) => (
-                  <Card key={track.id}>
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
+                  <div className="space-y-4">
+                    {tracks.slice(0, 5).map((track: any) => (
+                      <div key={track.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                         <div className="flex items-center gap-4">
                           <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
                             <Music className="w-6 h-6 text-purple-600" />
@@ -276,85 +264,30 @@ export default function Dashboard() {
                             <h3 className="font-semibold text-gray-900">{track.title}</h3>
                             <p className="text-gray-600">{track.artist}</p>
                             <p className="text-sm text-gray-500">
-                              Uploaded {new Date(track.uploadedAt).toLocaleDateString()}
+                              {track.duration ? `${Math.floor(track.duration / 60)}:${(track.duration % 60).toString().padStart(2, '0')}` : 'Unknown duration'}
                             </p>
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
-                          {track.yakoaTokenId && (
-                            <Badge variant="outline">Yakoa Verified</Badge>
-                          )}
-                          {track.storyTxHash && (
-                            <Badge variant="outline">Story Protocol</Badge>
-                          )}
+                          {getStatusIcon(track.status)}
                           <Badge className={getStatusColor(track.status)}>
                             {track.status}
                           </Badge>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {activeTab === 'assets' && (
-          <div className="space-y-4">
-            {assetsLoading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin w-8 h-8 border-2 border-purple-600 border-t-transparent rounded-full mx-auto"></div>
-                <p className="text-gray-600 mt-2">Loading IP assets...</p>
-              </div>
-            ) : ipAssets.length === 0 ? (
-              <Card>
-                <CardContent className="text-center py-12">
-                  <Shield className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-xl font-medium text-gray-900 mb-2">No IP assets registered</h3>
-                  <p className="text-gray-600 mb-6">Upload and verify tracks to create blockchain IP assets</p>
-                  <Link href="/live-demo">
-                    <Button className="bg-purple-600 hover:bg-purple-700">
-                      <Zap className="w-4 h-4 mr-2" />
-                      Try Live Demo
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid gap-4">
-                {ipAssets.map((asset: IPAsset) => (
-                  <Card key={asset.id}>
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <Shield className="w-6 h-6 text-blue-600" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-gray-900">IP Asset #{asset.storyIpId}</h3>
-                            <p className="text-gray-600">Track ID: {asset.trackId}</p>
-                            <p className="text-sm text-gray-500">
-                              Created {new Date(asset.createdAt).toLocaleDateString()}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <Badge className={getStatusColor(asset.status)}>
-                            {asset.status}
-                          </Badge>
-                          {asset.txHash && (
-                            <Button variant="outline" size="sm">
-                              View on Chain
-                            </Button>
-                          )}
-                        </div>
+                    ))}
+                    
+                    {tracks.length > 5 && (
+                      <div className="text-center pt-4">
+                        <p className="text-gray-600">
+                          View All Tracks ({tracks.length}) in the Tracks tab
+                        </p>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="tracks" className="space-y-6">
