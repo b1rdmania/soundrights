@@ -1,0 +1,202 @@
+
+Skip to main content
+Zapper Logo
+Use Cases
+
+Docs
+Pricing
+Sandbox
+andy@cherrygalore.com
+
+    API
+        Getting Started
+        For Agents & LLMs
+        Endpoints
+            Portfolio Data
+            Token Prices & Charts
+            Transactions
+            NFTs
+            Account Identity
+            Farcaster
+            Search
+            Utility
+        Supported Chains
+        Resources
+    Interpretation
+
+    APIGetting Started
+
+Getting Started
+
+Access powerful onchain data across 50+ chains with a GraphQL API.
+Portfolio Data
+
+Token balances, DeFi, and NFTs in a single call across 50+ chains.
+Token Prices & Charts
+
+A price for every token that has an onchain market, including historical data.
+Human-Readable Transactions
+
+Build rich transaction views with simple and human-friendly descriptions.
+Onchain Search
+
+Comprehensive search results across multiple chains and entity types with a single query.
+NFTs
+
+Rich NFT metadata with media, traits, holders, valuations and more.
+Account Identity
+
+Surface identity primitives such as avatars, ENS, Basenames, Farcaster, and Lens.
+Farcaster
+Farcaster
+
+Complete onchain portfolio & transaction history for any Farcaster user
+Quickstart
+1) Get an API key
+2) Start building
+
+Below are examples for working with the Zapper API across different languages and frameworks. Each example shows how to fetch portfolio data for provided addresses, across the chosen chains. Additionally, our API Sandbox lets you try our endpoints in one click.
+
+If you are working with an AI agent, we also recommend providing our customized prompt to start building efficiently.
+
+    React
+    Node.js
+    cURL
+    Python
+    Ruby
+
+Setup
+
+    Create new React project: npm create vite@latest my-app -- --template react-ts
+    Navigate to your new directory : cd my-app
+    Install dependencies: npm install @apollo/client graphql
+    Replace src/App.tsx with code below
+    Replace YOUR_API_KEY with your actual key
+    Run: npm run dev
+
+New to React? Get started with Create React App or Next.js.
+
+import { ApolloClient, InMemoryCache, createHttpLink, gql, useQuery, ApolloProvider } from '@apollo/client';
+import { setContext } from '@apollo/client/link/context';
+
+interface TokenNode {
+  balance: number;
+  balanceRaw: string;
+  balanceUSD: number;
+  symbol: string;
+  name: string;
+}
+
+interface TokenEdge {
+  node: TokenNode;
+}
+
+interface PortfolioV2Data {
+  portfolioV2: {
+    tokenBalances: {
+      byToken: {
+        edges: TokenEdge[];
+      }
+    }
+  };
+}
+
+// Set up Apollo Client
+const httpLink = createHttpLink({
+  uri: 'https://public.zapper.xyz/graphql',
+});
+
+const API_KEY = 'YOUR_API_KEY';
+
+const authLink = setContext((_, { headers }) => {
+  return {
+    headers: {
+      ...headers,
+      'x-zapper-api-key': API_KEY,
+    },
+  };
+});
+
+const client = new ApolloClient({
+  link: authLink.concat(httpLink),
+  cache: new InMemoryCache(),
+});
+
+const PortfolioV2Query = gql`
+  query PortfolioV2($addresses: [Address!]!, $networks: [Network!]) {
+    portfolioV2(addresses: $addresses, networks: $networks) {
+      tokenBalances {
+        byToken {
+          edges {
+            node {
+              balance
+              balanceRaw
+              balanceUSD
+              symbol
+              name
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+function Portfolio() {
+  const { loading, error, data } = useQuery<PortfolioV2Data>(PortfolioV2Query, {
+    variables: {
+      addresses: ['0x3d280fde2ddb59323c891cf30995e1862510342f'],
+      networks: ['ETHEREUM_MAINNET'],
+    },
+  });
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+  if (!data) return <div>No data found</div>;
+
+  return (
+    <div className="p-4">
+      {data.portfolioV2.tokenBalances.byToken.edges.map((edge, index) => (
+        <div key={`${edge.node.symbol}-${index}`} className="mb-4 p-4 border rounded">
+          <p>Token: {edge.node.name}</p>
+          <p>Symbol: {edge.node.symbol}</p>
+          <p>Balance: {edge.node.balance}</p>
+          <p>Raw Balance: {edge.node.balanceRaw}</p>
+          <p>Value (USD): ${edge.node.balanceUSD.toFixed(2)}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <ApolloProvider client={client}>
+      <Portfolio />
+    </ApolloProvider>
+  );
+}
+
+export default App;
+
+3) Buy Credits
+
+Zapper API uses a credit system to manage how many queries an API key can perform. Each query made costs a certain amount of credits which can be found by visiting Pricing.
+
+Track API usage and purchase additional credits via the API Dashboard.
+info
+
+If you are a client of the legacy REST API, you have access to the new GraphQL endpoints with your existing API key, after signing in to the new Dashboard with the email associated with your existing account. Please contact us at api@zapper.xyz to get your purchased points migrated to the new GraphQL API.
+Edit this page
+Next
+For Agents & LLMs
+
+    Quickstart
+        1) Get an API key
+        2) Start building
+        3) Buy Credits
+
+X
+·Warpcast·Discord
+·API Support·Terms & Conditions
+Zapper

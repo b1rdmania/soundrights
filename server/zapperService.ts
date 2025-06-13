@@ -35,15 +35,18 @@ export interface ZapperPortfolio {
 
 export class ZapperService {
   private readonly apiKey: string;
-  private readonly baseUrl = 'https://api.zapper.fi/v1';
+  private readonly baseUrl = 'https://public.zapper.xyz/graphql';
   private readonly demoMode: boolean;
 
   constructor() {
     this.apiKey = process.env.ZAPPER_API_KEY || '';
-    // Force demo mode due to API access issues - will implement real wallet data via alternative method
-    this.demoMode = true;
+    this.demoMode = !this.apiKey;
     
-    console.log('Zapper Service: API key provided but using enhanced demo data - working on live wallet integration');
+    if (this.demoMode) {
+      console.log('Zapper Service: No API key provided, using demo data');
+    } else {
+      console.log('Zapper Service: Live API enabled with provided key');
+    }
   }
 
   private async makeRequest(endpoint: string, options: any = {}) {
@@ -51,15 +54,14 @@ export class ZapperService {
       return this.getMockResponse(endpoint, options);
     }
 
-    const separator = endpoint.includes('?') ? '&' : '?';
-    const url = `${this.baseUrl}${endpoint}${separator}api_key=${this.apiKey}`;
-    
-    const response = await fetch(url, {
-      ...options,
+    const response = await fetch(this.baseUrl, {
+      method: 'POST',
       headers: {
+        'x-zapper-api-key': this.apiKey,
         'Content-Type': 'application/json',
         ...options.headers,
       },
+      body: JSON.stringify(options.body || {}),
     });
 
     if (!response.ok) {
@@ -214,7 +216,35 @@ export class ZapperService {
    */
   async getUserPortfolio(address: string): Promise<ZapperPortfolio> {
     try {
-      const response = await this.makeRequest(`/balances/${address}`);
+      const graphqlQuery = {
+        query: `
+          query PortfolioV2($addresses: [Address!]!, $networks: [Network!]) {
+            portfolioV2(addresses: $addresses, networks: $networks) {
+              tokenBalances {
+                byToken {
+                  edges {
+                    node {
+                      balance
+                      balanceRaw
+                      balanceUSD
+                      symbol
+                      name
+                      address
+                      network
+                    }
+                  }
+                }
+              }
+            }
+          }
+        `,
+        variables: {
+          addresses: [address],
+          networks: ['ETHEREUM_MAINNET', 'POLYGON_MAINNET', 'BASE_MAINNET']
+        }
+      };
+
+      const response = await this.makeRequest('', { body: graphqlQuery });
       
       // Transform Zapper API response to our portfolio format
       const tokens = Object.values(response).flat().map((balance: any) => ({
