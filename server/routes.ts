@@ -891,6 +891,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
+  // User Profile and Activity API endpoints
+  app.get('/api/tracks/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const tracks = await storage.getUserTracks(userId);
+      res.json(tracks);
+    } catch (error) {
+      console.error("Error fetching user tracks:", error);
+      res.status(500).json({ message: "Failed to fetch user tracks" });
+    }
+  });
+
+  app.get('/api/licenses/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const licenses = await storage.getUserLicenses(userId);
+      res.json(licenses);
+    } catch (error) {
+      console.error("Error fetching user licenses:", error);
+      res.status(500).json({ message: "Failed to fetch user licenses" });
+    }
+  });
+
+  app.get('/api/user/activities', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      // Get recent activities for the user
+      const activities = await db.select()
+        .from(userActivities)
+        .where(eq(userActivities.userId, userId))
+        .orderBy(desc(userActivities.createdAt))
+        .limit(100);
+      
+      res.json(activities);
+    } catch (error) {
+      console.error("Error fetching user activities:", error);
+      res.status(500).json({ message: "Failed to fetch user activities" });
+    }
+  });
+
+  app.get('/api/user/ip-assets', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const ipAssets = await storage.getUserIpAssets(userId);
+      res.json(ipAssets);
+    } catch (error) {
+      console.error("Error fetching user IP assets:", error);
+      res.status(500).json({ message: "Failed to fetch user IP assets" });
+    }
+  });
+
+  app.post('/api/user/export-data', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Collect all user data
+      const [user, tracks, licenses, activities, ipAssets] = await Promise.all([
+        storage.getUser(userId),
+        storage.getUserTracks(userId),
+        storage.getUserLicenses(userId),
+        db.select().from(userActivities).where(eq(userActivities.userId, userId)),
+        storage.getUserIpAssets(userId)
+      ]);
+
+      const exportData = {
+        user,
+        tracks,
+        licenses,
+        activities,
+        ipAssets,
+        exportedAt: new Date().toISOString(),
+        platform: 'SoundRights',
+        version: '1.0.0'
+      };
+
+      // Log the export activity
+      await storage.logUserActivity(userId, 'data_exported', 'user_data', userId);
+
+      res.json(exportData);
+    } catch (error) {
+      console.error("Error exporting user data:", error);
+      res.status(500).json({ message: "Failed to export user data" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

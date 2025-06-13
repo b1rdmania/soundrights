@@ -85,14 +85,14 @@ export default function Analytics() {
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
   };
 
-  // Prepare chart data
-  const portfolioChartData = portfolio?.tokens?.slice(0, 5).map((token: any) => ({
+  // Prepare chart data with proper type checking
+  const portfolioChartData = (portfolio as any)?.tokens?.slice(0, 5).map((token: any) => ({
     name: token.collection_name || token.name,
     value: token.estimated_value || 0,
     tokens: 1
   })) || [];
 
-  const transactionChartData = transactions?.slice(0, 10).map((tx: any, index: number) => ({
+  const transactionChartData = (transactions as any)?.slice(0, 10).map((tx: any, index: number) => ({
     date: new Date(tx.timestamp).toLocaleDateString(),
     value: parseFloat(tx.value) || 0,
     type: tx.type,
@@ -100,9 +100,9 @@ export default function Analytics() {
   })) || [];
 
   const ipAssetDistribution = ipAnalytics ? [
-    { name: 'Story Protocol Assets', value: ipAnalytics.story_assets || 0 },
-    { name: 'Music NFTs', value: ipAnalytics.music_nfts || 0 },
-    { name: 'Other IP', value: ipAnalytics.other_ip || 0 },
+    { name: 'Story Protocol Assets', value: (ipAnalytics as any)?.story_assets || 0 },
+    { name: 'Music NFTs', value: (ipAnalytics as any)?.music_nfts || 0 },
+    { name: 'Other IP', value: (ipAnalytics as any)?.other_ip || 0 },
   ] : [];
 
   return (
@@ -193,7 +193,7 @@ export default function Analytics() {
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold">
-                        {portfolioLoading ? '...' : formatCurrency(portfolio?.total_value || 0)}
+                        {portfolioLoading ? '...' : formatCurrency((portfolio as any)?.total_value || 0)}
                       </div>
                       <p className="text-xs text-muted-foreground">
                         Powered by Zapper API
@@ -209,7 +209,7 @@ export default function Analytics() {
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold">
-                        {portfolioLoading ? '...' : portfolio?.tokens?.length || 0}
+                        {portfolioLoading ? '...' : (portfolio as any)?.tokens?.length || 0}
                       </div>
                       <p className="text-xs text-muted-foreground">
                         NFTs and tokens
