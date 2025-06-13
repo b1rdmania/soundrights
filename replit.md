@@ -11,6 +11,12 @@ SoundRights is a comprehensive web3 music licensing platform serving independent
   - Added `/api/tracks/:id/register-blockchain` endpoint for explicit user consent
   - Users must connect wallet and approve before Story Protocol registration
 
+✓ **Tomo Social Authentication** - Live OAuth integration fixed
+  - Implemented proper OAuth callback flow for social login
+  - Fixed authentication URL generation with correct redirect URIs
+  - Added both GET and POST callback handlers for flexible OAuth
+  - Real API integration using buildathon key for live authentication
+
 ✓ **Story Protocol API Integration** - Live testnet operations
   - Integrated with Story Protocol API key: MhBsxkU1z9fG6TofE59KqiiWV-YlYE8Q4awlLQehF3U
   - Configured for testnet (story-aeneid) with proper X-CHAIN headers

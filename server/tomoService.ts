@@ -138,25 +138,33 @@ export class TomoService {
   }
 
   /**
-   * Authenticate user via social login - placeholder for full implementation
+   * Authenticate user via social login
    */
   async authenticateUser(provider: string, code: string): Promise<TomoAuthResponse> {
-    // Return demonstration response showing integration capability
-    return {
-      access_token: `tomo_buildathon_${Date.now()}`,
-      refresh_token: `refresh_buildathon_${Date.now()}`,
-      user: {
-        id: `buildathon_user_${Math.random().toString(36).substr(2, 9)}`,
-        email: 'hackathon@example.com',
-        wallet_address: '0x1234567890123456789012345678901234567890',
-        social_profiles: {
-          twitter: '@buildathon_demo'
-        },
-        verified: true,
-        created_at: new Date().toISOString()
-      },
-      expires_in: 3600
-    };
+    try {
+      const response = await this.makeRequest('/auth/token', {
+        method: 'POST',
+        body: JSON.stringify({
+          grant_type: 'authorization_code',
+          code,
+          provider,
+          redirect_uri: this.getRedirectUri()
+        })
+      });
+
+      console.log('Tomo authentication successful:', { provider, userId: response.user?.id });
+      return response;
+    } catch (error) {
+      console.error('Tomo authentication failed:', error);
+      throw new Error(`Tomo authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  private getRedirectUri(): string {
+    const baseUrl = process.env.REPLIT_DOMAINS ? 
+      `https://${process.env.REPLIT_DOMAINS.split(',')[0]}` : 
+      'http://localhost:5000';
+    return `${baseUrl}/api/tomo/callback`;
   }
 
   /**
@@ -189,23 +197,21 @@ export class TomoService {
    * Generate social login URL
    */
   generateAuthUrl(provider: 'twitter' | 'discord' | 'github'): string {
-    if (this.demoMode) {
-      return `/api/auth/tomo/demo?provider=${provider}`;
-    }
-
-    const baseUrl = process.env.REPLIT_DOMAINS ? 
-      `https://${process.env.REPLIT_DOMAINS.split(',')[0]}` : 
-      'http://localhost:5000';
+    const redirectUri = this.getRedirectUri();
     
     const params = new URLSearchParams({
       client_id: this.apiKey,
       response_type: 'code',
-      redirect_uri: `${baseUrl}/api/auth/tomo/callback`,
+      redirect_uri: redirectUri,
       scope: 'profile wallets',
-      provider
+      provider,
+      state: `soundrights_${Date.now()}`
     });
 
-    return `${this.baseUrl}/auth/authorize?${params.toString()}`;
+    const authUrl = `${this.baseUrl}/auth/authorize?${params.toString()}`;
+    console.log('Generated Tomo auth URL:', { provider, authUrl });
+    
+    return authUrl;
   }
 
   /**

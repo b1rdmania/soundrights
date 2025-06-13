@@ -1052,6 +1052,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // OAuth callback route for Tomo redirects
+  app.get("/api/tomo/callback", async (req: any, res) => {
+    try {
+      const { code, state, provider } = req.query;
+      
+      if (!code) {
+        return res.status(400).send('Authorization code missing');
+      }
+
+      // Extract provider from state or use default
+      const authProvider = provider || 'twitter';
+      const authResult = await tomoService.authenticateUser(authProvider, code);
+      
+      // Redirect to frontend with auth success
+      const successUrl = `/?tomo_auth=success&user_id=${authResult.user.id}`;
+      res.redirect(successUrl);
+    } catch (error) {
+      console.error("Error processing Tomo OAuth callback:", error);
+      const errorUrl = `/?tomo_auth=error&message=${encodeURIComponent(error instanceof Error ? error.message : 'Authentication failed')}`;
+      res.redirect(errorUrl);
+    }
+  });
+
   app.get("/api/tomo/profile/:userId", isAuthenticated, async (req: any, res) => {
     try {
       const { userId } = req.params;
