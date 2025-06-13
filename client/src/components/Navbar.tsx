@@ -71,45 +71,55 @@ const Navbar = () => {
       className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
         isScrolled 
-          ? "bg-white/90 backdrop-blur-lg shadow-sm" 
+          ? "bg-white/90 backdrop-blur-lg shadow-sm dark:bg-gray-900/90" 
           : "bg-transparent"
       )}
     >
       <div className="container flex items-center justify-between h-16 px-4 md:px-6">
         <Link 
           href="/" 
-          className="flex items-center space-x-2 text-xl font-semibold"
+          className="flex items-center space-x-2 text-xl font-semibold shrink-0"
         >
           <span className="text-2xl">🎵</span>
-          <span>SoundRights</span>
+          <span className="hidden sm:block">SoundRights</span>
         </Link>
         
         {/* Desktop navigation */}
-        {!isMobile ? (
-          <nav className="flex items-center space-x-5 lg:space-x-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                href={link.path}
-                className={cn(
-                  "text-sm font-medium transition-all hover:text-primary flex items-center gap-2 relative",
-                  isActive(link.path) 
-                    ? "text-primary" 
-                    : "text-muted-foreground"
-                )}
-              >
-                <span className="opacity-60 group-hover:opacity-100 transition-opacity">{link.icon}</span>
-                {link.label}
-                <span className={cn(
-                  "absolute -bottom-1 left-0 w-full h-0.5 bg-primary scale-x-0 origin-left transition-transform duration-300 group-hover:scale-x-100",
-                  isActive(link.path) && "scale-x-100"
-                )}></span>
-              </Link>
-            ))}
-            {/* Tomo Connect Button for Desktop */}
+        <nav className="hidden lg:flex items-center space-x-4 flex-grow justify-center max-w-2xl mx-4">
+          {navLinks.map((link) => (
+            <Link
+              key={link.path}
+              href={link.path}
+              className={cn(
+                "text-sm font-medium transition-all hover:text-primary flex items-center gap-2 relative group",
+                isActive(link.path) 
+                  ? "text-primary" 
+                  : "text-muted-foreground"
+              )}
+            >
+              <span className="opacity-60 group-hover:opacity-100 transition-opacity">{link.icon}</span>
+              {link.label}
+              <span className={cn(
+                "absolute -bottom-1 left-0 w-full h-0.5 bg-primary scale-x-0 origin-left transition-transform duration-300 group-hover:scale-x-100",
+                isActive(link.path) && "scale-x-100"
+              )}></span>
+            </Link>
+          ))}
+        </nav>
+
+        {/* Auth Section */}
+        <div className="hidden lg:flex items-center">
+          {isLoading ? (
+            <div className="w-8 h-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          ) : isAuthenticated ? (
+            <UserMenu user={user} />
+          ) : (
             <ConnectButton />
-          </nav>
-        ) : (
+          )}
+        </div>
+
+        {/* Mobile menu */}
+        {isMobile && (
           <Sheet>
             <SheetTrigger asChild>
               <button 
@@ -142,9 +152,15 @@ const Navbar = () => {
                     <span>{link.label}</span>
                   </Link>
                 ))}
-                {/* Tomo Connect Button for Mobile Sheet */}
+                {/* Auth Section for Mobile */}
                 <div className="mt-auto pt-4 border-t border-border">
-                  <ConnectButton />
+                  {isLoading ? (
+                    <div className="w-8 h-8 animate-spin rounded-full border-2 border-primary border-t-transparent mx-auto" />
+                  ) : isAuthenticated ? (
+                    <UserMenu user={user} />
+                  ) : (
+                    <ConnectButton />
+                  )}
                 </div>
               </nav>
             </SheetContent>
