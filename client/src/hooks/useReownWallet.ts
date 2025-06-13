@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getWalletKit, initializeWalletKit, connectWallet, disconnectWallet, signMessage, sendTransaction, getWalletSessions } from '@/lib/reownConfig';
+import { connectWallet, disconnectWallet, getWalletStatus, signMessage, sendTransaction } from '@/lib/walletConnect';
 
 interface WalletState {
   address: string | null;
@@ -18,57 +18,26 @@ export function useReownWallet() {
     error: null
   });
 
-  // Initialize WalletKit and check for existing sessions
+  // Check for existing wallet connection on mount
   useEffect(() => {
-    const initializeAndCheck = async () => {
+    const checkWalletStatus = async () => {
       try {
-        await initializeWalletKit();
-        const sessions = getWalletSessions();
-        const sessionKeys = Object.keys(sessions);
-        
-        if (sessionKeys.length > 0) {
-          const session = sessions[sessionKeys[0]] as any;
-          if (session && session.namespaces?.eip155) {
-            const address = session.namespaces.eip155.accounts[0]?.split(':')[2];
-            const chainId = parseInt(session.namespaces.eip155.chains[0]?.split(':')[1] || '11155111');
-            
-            setWalletState({
-              address,
-              chainId,
-              connected: true,
-              connecting: false,
-              error: null
-            });
-          }
-        }
-
-        // Set up event listeners
-        const kit = getWalletKit();
-        if (kit) {
-          kit.on('session_proposal', (event: any) => {
-            console.log('Session proposal:', event);
-          });
-
-          kit.on('session_request', (event: any) => {
-            console.log('Session request:', event);
-          });
-
-          kit.on('session_delete', () => {
-            setWalletState({
-              address: null,
-              chainId: null,
-              connected: false,
-              connecting: false,
-              error: null
-            });
+        const status = await getWalletStatus();
+        if (status.connected && status.wallet) {
+          setWalletState({
+            address: status.wallet.address,
+            chainId: status.wallet.chainId,
+            connected: true,
+            connecting: false,
+            error: null
           });
         }
       } catch (error) {
-        console.error('WalletKit initialization failed:', error);
+        console.error('Failed to check wallet status:', error);
       }
     };
 
-    initializeAndCheck();
+    checkWalletStatus();
   }, []);
 
   const connect = async () => {
