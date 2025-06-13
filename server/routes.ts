@@ -2,9 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { db } from "./db";
-import * as schema from "@shared/schema";
-import { desc, eq } from "drizzle-orm";
+// Database imports already available from other modules
 import { storyService } from "./storyProtocol";
 import { audioAnalysis } from "./audioAnalysis";
 import { yakoaService } from "./yakoaService";
