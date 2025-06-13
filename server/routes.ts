@@ -2,7 +2,9 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-// Database imports already available from other modules
+import { db } from "./db";
+import { users, tracks, ipAssets, userActivities, licenses } from "@shared/schema";
+import { desc, eq } from "drizzle-orm";
 import { storyService } from "./storyProtocol";
 import { audioAnalysis } from "./audioAnalysis";
 import { yakoaService } from "./yakoaService";
@@ -988,10 +990,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Admin access required" });
       }
 
-      const [users, tracks, ipAssets] = await Promise.all([
-        db.select().from(schema.users),
-        db.select().from(schema.tracks),
-        db.select().from(schema.ipAssets)
+      const [usersData, tracksData, ipAssetsData] = await Promise.all([
+        db.select().from(users),
+        db.select().from(tracks),
+        db.select().from(ipAssets)
       ]);
 
       const today = new Date().toISOString().split('T')[0];

@@ -36,7 +36,7 @@ const HeroSection = () => {
           </h1>
           
           <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto text-balance">
-            Empowering audio creators with transparent IP registration and programmable licensing, built on Story Protocol.
+            Complete music IP management platform with Yakoa verification, Tomo social auth, Zapper analytics, and Reown wallet connectivity.
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2 sm:pt-4">
