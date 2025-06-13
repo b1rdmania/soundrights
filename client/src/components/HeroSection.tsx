@@ -5,60 +5,89 @@ import { ArrowRight, Music } from 'lucide-react';
 
 const HeroSection = () => {
   return (
-    <section className="relative pt-24 sm:pt-28 pb-16 sm:pb-20 overflow-hidden">
-      {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-secondary/50 to-background pointer-events-none" />
+    <section className="relative pt-24 sm:pt-32 pb-20 sm:pb-28 overflow-hidden bg-gradient-to-br from-gray-50 via-white to-purple-50">
+      {/* Professional background pattern */}
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-50/30 via-blue-50/20 to-white pointer-events-none" />
       
-      {/* Static background circles */}
+      {/* Geometric background elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute top-[10%] left-[5%] w-32 sm:w-64 h-32 sm:h-64 rounded-full bg-primary/5" />
-        <div className="absolute top-[40%] right-[10%] w-48 sm:w-96 h-48 sm:h-96 rounded-full bg-primary/5" />
-        <div className="absolute bottom-[10%] left-[30%] w-24 sm:w-48 h-24 sm:h-48 rounded-full bg-primary/5" />
+        <div className="absolute top-[15%] left-[8%] w-24 sm:w-48 h-24 sm:h-48 rounded-full bg-purple-100/40" />
+        <div className="absolute top-[35%] right-[12%] w-32 sm:w-64 h-32 sm:h-64 rounded-full bg-blue-100/30" />
+        <div className="absolute bottom-[20%] left-[25%] w-20 sm:w-40 h-20 sm:h-40 rounded-full bg-emerald-100/40" />
       </div>
       
-      {/* Static, bigger, more transparent musical notes */}
-      <div className="absolute top-[15%] left-[10%] text-[30px] sm:text-[40px] text-primary/10">🎵</div>
-      <div className="absolute bottom-[20%] right-[15%] text-[36px] sm:text-[48px] text-primary/10">🎶</div>
-      <div className="absolute top-[40%] left-[25%] text-[28px] sm:text-[36px] text-primary/10">🎼</div>
-      <div className="absolute bottom-[40%] right-[25%] text-[32px] sm:text-[42px] text-primary/10">🎧</div>
-      
-      <div className="container relative px-4 md:px-6">
-        <div className="max-w-3xl mx-auto text-center space-y-6 sm:space-y-8">
-          <div className="inline-block px-3 py-1 rounded-full bg-secondary text-xs font-medium text-secondary-foreground mb-4 shadow-inner">
-            Built on Story Protocol
+      <div className="container relative px-4 md:px-6 max-w-6xl mx-auto">
+        <div className="text-center space-y-8 sm:space-y-12">
+          {/* Status badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-100 text-purple-800 text-sm font-medium shadow-sm">
+            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+            Powered by Story Protocol Blockchain
           </div>
           
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-balance relative">
-            <span className="absolute -top-6 -left-2 sm:-top-8 sm:-left-4 text-[28px] sm:text-[36px] text-primary/20">🎵</span>
-            SoundRights
-            <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl mt-2">Secure Your Licenses On-Chain</div>
-            <span className="absolute -bottom-4 -right-2 sm:-bottom-6 sm:-right-4 text-[28px] sm:text-[36px] text-primary/20">🎶</span>
-          </h1>
+          {/* Main heading */}
+          <div className="space-y-6">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-gray-900">
+              <span className="block">SoundRights</span>
+              <span className="block text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-purple-600 font-semibold mt-2">
+                Web3 Music IP Platform
+              </span>
+            </h1>
+            
+            <p className="text-lg sm:text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
+              Secure music rights with blockchain technology. Featuring Yakoa verification, 
+              Tomo social authentication, Zapper analytics, and seamless wallet connectivity.
+            </p>
+          </div>
           
-          <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto text-balance">
-            Complete music IP management platform with Yakoa verification, Tomo social auth, Zapper analytics, and Reown wallet connectivity.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2 sm:pt-4">
+          {/* Action buttons */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
             <Link
-              href="/demo"
-              className="inline-flex items-center justify-center px-6 py-3 rounded-full text-base font-medium bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-all duration-300 hover:scale-105 hover:shadow-xl gap-2 w-full sm:w-auto relative overflow-hidden group"
+              href="/live-demo"
+              className="inline-flex items-center justify-center px-8 py-4 rounded-xl text-lg font-semibold bg-purple-600 text-white shadow-lg hover:bg-purple-700 transition-all duration-200 hover:scale-105 hover:shadow-xl gap-3 w-full sm:w-auto"
             >
-              <span className="absolute inset-0 w-full h-full bg-gradient-to-b from-white/20 to-transparent"></span>
-              <span className="absolute inset-0 w-full h-0 bg-white/10 transition-all duration-300 group-hover:h-full"></span>
-              <Music className="w-4 h-4 group-hover:animate-pulse" />
-              Try the Demo
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              <Music className="w-5 h-5" />
+              Try Live Demo
+              <ArrowRight className="w-5 h-5" />
             </Link>
             
             <Link
               href="/sponsors"
-              className="inline-flex items-center justify-center px-6 py-3 rounded-full text-base font-medium bg-secondary hover:bg-secondary/80 transition-all duration-300 hover:scale-105 hover:shadow-lg gap-2 w-full sm:w-auto relative overflow-hidden group"
+              className="inline-flex items-center justify-center px-8 py-4 rounded-xl text-lg font-semibold bg-white text-purple-600 border-2 border-purple-200 hover:border-purple-300 hover:bg-purple-50 transition-all duration-200 hover:scale-105 gap-3 w-full sm:w-auto"
             >
-              <span className="absolute inset-0 w-full h-full bg-gradient-to-b from-white/10 to-transparent"></span>
-              <span className="absolute inset-0 w-full h-0 bg-white/5 transition-all duration-300 group-hover:h-full"></span>
-              ⛓️ View Integrations
+              View Integrations
             </Link>
+          </div>
+          
+          {/* Feature highlights */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-12 max-w-4xl mx-auto">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                <Music className="w-6 h-6 text-purple-600" />
+              </div>
+              <h3 className="font-semibold text-gray-900">IP Registration</h3>
+              <p className="text-sm text-gray-600">Blockchain verification</p>
+            </div>
+            <div className="text-center">
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                <span className="text-blue-600 font-bold">Y</span>
+              </div>
+              <h3 className="font-semibold text-gray-900">Yakoa Auth</h3>
+              <p className="text-sm text-gray-600">Content verification</p>
+            </div>
+            <div className="text-center">
+              <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                <span className="text-emerald-600 font-bold">T</span>
+              </div>
+              <h3 className="font-semibold text-gray-900">Tomo Social</h3>
+              <p className="text-sm text-gray-600">Social authentication</p>
+            </div>
+            <div className="text-center">
+              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                <span className="text-orange-600 font-bold">Z</span>
+              </div>
+              <h3 className="font-semibold text-gray-900">Zapper Analytics</h3>
+              <p className="text-sm text-gray-600">Portfolio tracking</p>
+            </div>
           </div>
         </div>
       </div>

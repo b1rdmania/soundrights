@@ -40,132 +40,136 @@ const Navbar = () => {
 
   const ConnectButton = () => (
     <Button 
-      className="btn-primary flex items-center gap-2"
+      className="bg-purple-600 hover:bg-purple-700 text-white font-medium px-6 py-2 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
       onClick={() => window.location.href = '/api/login'}
     >
-      <Wallet size={16} />
+      <Wallet size={16} className="mr-2" />
       Sign In
     </Button>
   );
 
   const UserMenu = ({ user }: { user: any }) => (
     <div className="flex items-center gap-3">
-      <span className="text-sm font-medium">
-        {user.firstName || user.email || 'User'}
-      </span>
+      <span className="text-sm font-medium text-gray-700">Welcome back!</span>
       <Button 
-        variant="outline" 
-        size={isMobile ? "lg" : "sm"}
+        variant="outline"
+        size="sm"
         onClick={() => window.location.href = '/api/logout'}
-        className="flex items-center gap-2"
+        className="text-gray-600 hover:text-red-600 border-gray-300"
       >
-        <LogOut size={16} /> Sign Out
+        <LogOut size={16} className="mr-1" />
+        Sign Out
       </Button>
     </div>
   );
 
   return (
-    <header 
-      className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-        isScrolled 
-          ? "bg-white/90 backdrop-blur-lg shadow-sm dark:bg-gray-900/90" 
-          : "bg-transparent"
-      )}
-    >
-      <div className="container flex items-center justify-between h-16 px-4 md:px-6">
-        <Link 
-          href="/" 
-          className="flex items-center space-x-2 text-xl font-semibold shrink-0"
-        >
-          <span className="text-2xl">🎵</span>
-          <span className="hidden sm:block">SoundRights</span>
-        </Link>
-        
-        {/* Desktop navigation */}
-        <nav className="hidden lg:flex items-center space-x-4 flex-grow justify-center max-w-2xl mx-4">
-          {navLinks.map((link) => (
-            <Link
-              key={link.path}
-              href={link.path}
-              className={cn(
-                "text-sm font-medium transition-all hover:text-primary flex items-center gap-2 relative group",
-                isActive(link.path) 
-                  ? "text-primary" 
-                  : "text-muted-foreground"
-              )}
-            >
-              <span className="opacity-60 group-hover:opacity-100 transition-opacity">{link.icon}</span>
-              {link.label}
-              <span className={cn(
-                "absolute -bottom-1 left-0 w-full h-0.5 bg-primary scale-x-0 origin-left transition-transform duration-300 group-hover:scale-x-100",
-                isActive(link.path) && "scale-x-100"
-              )}></span>
-            </Link>
-          ))}
-        </nav>
+    <nav className={cn(
+      "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+      isScrolled 
+        ? "bg-white/95 backdrop-blur-sm shadow-lg border-b border-purple-100" 
+        : "bg-white/80 backdrop-blur-sm"
+    )}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Brand Logo */}
+          <Link href="/" className="flex items-center space-x-3 group">
+            <div className="relative">
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform duration-200 shadow-md">
+                <Music className="text-white" size={20} />
+              </div>
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></div>
+            </div>
+            <div className="flex flex-col">
+              <span className="font-bold text-xl text-gray-900 group-hover:text-purple-600 transition-colors">
+                SoundRights
+              </span>
+              <span className="text-xs text-gray-500 font-medium">Web3 Music IP</span>
+            </div>
+          </Link>
 
-        {/* Auth Section */}
-        <div className="hidden lg:flex items-center">
-          {isLoading ? (
-            <div className="w-8 h-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          ) : isAuthenticated ? (
-            <UserMenu user={user} />
-          ) : (
-            <ConnectButton />
+          {/* Desktop Navigation */}
+          <nav className="hidden lg:flex items-center space-x-8">
+            {navLinks.map((link) => (
+              <Link
+                key={link.path}
+                href={link.path}
+                className={cn(
+                  "text-sm font-medium transition-all duration-200 hover:text-purple-600 relative group px-3 py-2 rounded-lg",
+                  isActive(link.path) 
+                    ? "text-purple-600 bg-purple-50" 
+                    : "text-gray-700 hover:bg-gray-50"
+                )}
+              >
+                {link.label}
+                {isActive(link.path) && (
+                  <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-purple-600 rounded-full"></span>
+                )}
+              </Link>
+            ))}
+          </nav>
+
+          {/* Auth Section */}
+          <div className="hidden lg:flex items-center">
+            {isLoading ? (
+              <div className="w-8 h-8 animate-spin rounded-full border-2 border-purple-600 border-t-transparent" />
+            ) : isAuthenticated ? (
+              <UserMenu user={user} />
+            ) : (
+              <ConnectButton />
+            )}
+          </div>
+
+          {/* Mobile Menu */}
+          {isMobile && (
+            <Sheet>
+              <SheetTrigger asChild>
+                <button 
+                  className="flex items-center justify-center h-10 w-10 rounded-lg bg-purple-100 hover:bg-purple-200 transition-colors"
+                  aria-label="Toggle menu"
+                >
+                  <Menu size={20} className="text-purple-600" />
+                </button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[300px] bg-white">
+                <SheetHeader>
+                  <SheetTitle className="flex items-center gap-2 text-left">
+                    <Music className="text-purple-600" size={20} />
+                    <span className="text-gray-900">SoundRights</span>
+                  </SheetTitle>
+                </SheetHeader>
+                <nav className="mt-8 flex flex-col gap-2">
+                  {navLinks.map((link) => (
+                    <Link
+                      key={link.path}
+                      href={link.path}
+                      className={cn(
+                        "flex items-center px-4 py-3 text-base rounded-lg transition-all duration-200",
+                        isActive(link.path) 
+                          ? "bg-purple-50 text-purple-600 font-medium border-l-4 border-purple-600" 
+                          : "text-gray-700 hover:bg-gray-50"
+                      )}
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                  
+                  <div className="mt-6 pt-4 border-t border-gray-200">
+                    {isLoading ? (
+                      <div className="w-8 h-8 animate-spin rounded-full border-2 border-purple-600 border-t-transparent mx-auto" />
+                    ) : isAuthenticated ? (
+                      <UserMenu user={user} />
+                    ) : (
+                      <ConnectButton />
+                    )}
+                  </div>
+                </nav>
+              </SheetContent>
+            </Sheet>
           )}
         </div>
-
-        {/* Mobile menu */}
-        {isMobile && (
-          <Sheet>
-            <SheetTrigger asChild>
-              <button 
-                className="flex items-center justify-center h-10 w-10 rounded-full bg-secondary hover:bg-secondary/80 transition-colors hover:rotate-[5deg] hover:scale-105"
-                aria-label="Toggle menu"
-              >
-                <Menu size={20} />
-              </button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-[75vw] sm:w-[350px]">
-              <SheetHeader>
-                <SheetTitle className="flex items-center gap-2">
-                  <span className="text-xl">🎵</span>
-                  <span>SoundRights Menu</span>
-                </SheetTitle>
-              </SheetHeader>
-              <nav className="mt-8 flex flex-col gap-4">
-                {navLinks.map((link) => (
-                  <Link
-                    key={link.path}
-                    href={link.path}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2 text-base rounded-md transition-all duration-200",
-                      isActive(link.path) 
-                        ? "bg-primary/10 text-primary font-medium" 
-                        : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
-                    )}
-                  >
-                    <span className="text-xl">{link.icon}</span>
-                    <span>{link.label}</span>
-                  </Link>
-                ))}
-                {/* Auth Section for Mobile */}
-                <div className="mt-auto pt-4 border-t border-border">
-                  {isLoading ? (
-                    <div className="w-8 h-8 animate-spin rounded-full border-2 border-primary border-t-transparent mx-auto" />
-                  ) : isAuthenticated ? (
-                    <UserMenu user={user} />
-                  ) : (
-                    <ConnectButton />
-                  )}
-                </div>
-              </nav>
-            </SheetContent>
-          </Sheet>
-        )}
       </div>
-    </header>
+    </nav>
   );
 };
 
