@@ -200,22 +200,83 @@ export default function Integrations() {
           })}
         </div>
 
-        {/* Additional Info */}
-        <div className="mt-16 text-center">
-          <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+        {/* Integration Status Summary */}
+        <div className="mt-16">
+          <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
             <CardContent className="pt-8 pb-6">
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                Real Integration Data
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+                Live Integration Status
               </h3>
-              <p className="text-gray-600 max-w-2xl mx-auto mb-6">
-                All integrations use authentic APIs with real project credentials. 
-                Experience the complete workflow from IP verification to blockchain registration.
-              </p>
-              <Button asChild className="bg-purple-600 hover:bg-purple-700 text-white">
-                <a href="/live-demo">
-                  Experience Live Demo
-                </a>
-              </Button>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <CheckCircle className="w-8 h-8 text-green-600" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900">Tomo</h4>
+                  <p className="text-sm text-green-600">Live API Active</p>
+                  <p className="text-xs text-gray-500 mt-1">Buildathon credentials</p>
+                </div>
+                
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <CheckCircle className="w-8 h-8 text-green-600" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900">Zapper</h4>
+                  <p className="text-sm text-green-600">Live API Active</p>
+                  <p className="text-xs text-gray-500 mt-1">Live portfolio data</p>
+                </div>
+                
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <CheckCircle className="w-8 h-8 text-green-600" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900">WalletConnect</h4>
+                  <p className="text-sm text-green-600">Live API Active</p>
+                  <p className="text-xs text-gray-500 mt-1">400+ wallets supported</p>
+                </div>
+                
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Shield className="w-8 h-8 text-yellow-600" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900">Yakoa</h4>
+                  <p className="text-sm text-yellow-600">Live Sandbox</p>
+                  <p className="text-xs text-gray-500 mt-1">Demo environment</p>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-lg p-6 border border-gray-200 mb-6">
+                <h4 className="font-semibold text-gray-900 mb-3">Integration Authenticity</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="font-medium text-green-600 mb-2">✓ Live APIs (3/4)</p>
+                    <ul className="space-y-1 text-gray-600">
+                      <li>• Tomo: Real social verification</li>
+                      <li>• Zapper: Live portfolio tracking</li>
+                      <li>• WalletConnect: Real wallet connections</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <p className="font-medium text-yellow-600 mb-2">⚡ Sandbox Environment (1/4)</p>
+                    <ul className="space-y-1 text-gray-600">
+                      <li>• Yakoa: Live sandbox for IP verification</li>
+                      <li>• Full functionality with test data</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-center">
+                <p className="text-gray-600 mb-6">
+                  Experience authentic sponsor integrations with live APIs and real-time verification.
+                </p>
+                <Button asChild className="bg-purple-600 hover:bg-purple-700 text-white">
+                  <a href="/live-demo">
+                    Test Live Integrations
+                  </a>
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
