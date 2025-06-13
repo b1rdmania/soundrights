@@ -93,8 +93,28 @@ export const getWalletSessions = () => {
 
 export const signMessage = async (message: string, address: string) => {
   try {
-    // Demo implementation for message signing
-    return `0x${'a'.repeat(130)}`; // Mock signature
+    const kit = getWalletKit();
+    if (!kit) throw new Error('WalletKit not initialized');
+
+    const sessions = kit.getActiveSessions();
+    const sessionKeys = Object.keys(sessions);
+    
+    if (sessionKeys.length === 0) {
+      throw new Error('No active wallet sessions');
+    }
+
+    const session = sessions[sessionKeys[0]] as any;
+    
+    const result = await kit.request({
+      topic: session.topic,
+      chainId: 'eip155:11155111',
+      request: {
+        method: 'personal_sign',
+        params: [message, address]
+      }
+    });
+
+    return result;
   } catch (error) {
     console.error('Message signing failed:', error);
     throw error;
@@ -103,10 +123,30 @@ export const signMessage = async (message: string, address: string) => {
 
 export const sendTransaction = async (transaction: any) => {
   try {
-    // Demo implementation for transaction sending
-    return { 
-      txHash: `0x${'b'.repeat(64)}`, 
-      status: 'pending' as const 
+    const kit = getWalletKit();
+    if (!kit) throw new Error('WalletKit not initialized');
+
+    const sessions = kit.getActiveSessions();
+    const sessionKeys = Object.keys(sessions);
+    
+    if (sessionKeys.length === 0) {
+      throw new Error('No active wallet sessions');
+    }
+
+    const session = sessions[sessionKeys[0]] as any;
+    
+    const result = await kit.request({
+      topic: session.topic,
+      chainId: 'eip155:11155111',
+      request: {
+        method: 'eth_sendTransaction',
+        params: [transaction]
+      }
+    });
+
+    return {
+      hash: result,
+      status: 'pending' as const
     };
   } catch (error) {
     console.error('Transaction failed:', error);
