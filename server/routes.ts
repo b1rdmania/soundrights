@@ -787,8 +787,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Zapper Analytics API routes
-  app.get("/api/zapper/portfolio/:address", isAuthenticated, async (req: any, res) => {
+  // Zapper Analytics API routes (public for demo)
+  app.get("/api/zapper/portfolio/:address", async (req: any, res) => {
     try {
       const { address } = req.params;
       const portfolio = await zapperService.getUserPortfolio(address);
@@ -802,7 +802,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/zapper/transactions/:address", isAuthenticated, async (req: any, res) => {
+  app.get("/api/zapper/transactions/:address", async (req: any, res) => {
     try {
       const { address } = req.params;
       const limit = parseInt(req.query.limit as string) || 50;
@@ -817,14 +817,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/zapper/ip-analytics/:address", isAuthenticated, async (req: any, res) => {
+  app.get("/api/zapper/ip-analytics/:address", async (req: any, res) => {
     try {
       const { address } = req.params;
       const analytics = await zapperService.getIPAssetAnalytics(address);
       
-      // Log analytics access
-      const userId = req.user.claims.sub;
-      await storage.logUserActivity(userId, 'analytics_viewed', 'zapper_analytics', address);
+      // Log analytics access if user is authenticated
+      if (req.user && req.user.claims) {
+        const userId = req.user.claims.sub;
+        await storage.logUserActivity(userId, 'analytics_viewed', 'zapper_analytics', address);
+      }
       
       res.json(analytics);
     } catch (error) {
