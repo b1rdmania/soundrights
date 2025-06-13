@@ -41,6 +41,8 @@ SoundRights is a comprehensive web3 music licensing platform serving independent
 - Account abstraction hiding web3 complexity from users
 - Real-time wallet connectivity with portfolio visualization
 - User approval workflow for blockchain registration
+- Enhanced integrations page with live API testing console
+- Dashboard removed from MVP to focus on demo functionality
 
 **Backend (Express + Node.js)**
 - PostgreSQL database with Drizzle ORM
@@ -48,6 +50,7 @@ SoundRights is a comprehensive web3 music licensing platform serving independent
 - Real Story Protocol testnet integration
 - Authentic Zapper API portfolio data
 - Direct blockchain RPC fallbacks
+- Production-only error handling (no demo fallbacks)
 
 **Blockchain Integration**
 - Story Protocol for IP asset registration as NFTs
