@@ -277,8 +277,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Store results but require user approval for next step
         await storage.updateTrack(track.id, {
           yakoaTokenId: yakoaResult.yakoaTokenId,
-          yakoaConfidence: yakoaResult.confidence,
-          yakoaInfringements: JSON.stringify(yakoaResult.infringements),
           status: yakoaResult.isOriginal ? 'verified' : 'failed'
         });
       } catch (error) {
@@ -356,8 +354,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
 
         await storage.updateTrack(track.id, {
-          status: 'registered',
-          storyProtocolIpId: ipAsset.ipId
+          status: 'registered'
         });
 
         await storage.logUserActivity(userId, 'ip_registered', 'ip_asset', ipAsset.ipId);

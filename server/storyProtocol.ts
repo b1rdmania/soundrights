@@ -85,22 +85,10 @@ export class StoryProtocolService {
       }
 
       try {
-        // Create NFT collection using correct Story Protocol SDK methods
-        const nftCollectionResponse = await this.client.nftClient.createNFTCollection({
-          name: `SoundRights-${data.name}`,
-          symbol: 'SRIGHTS',
-          isPublicMinting: true,
-          mintFee: BigInt(0),
-          mintFeeToken: '0x0000000000000000000000000000000000000000' as `0x${string}`,
-          owner: data.userAddress as `0x${string}`
-        });
-
-        console.log('NFT collection created on Story Protocol:', nftCollectionResponse);
-
-        // Use Story Protocol's SPG NFT for minting
-        const mintResponse = await this.client.nftClient.mintAndRegisterIpAssetAndMakeDerivative({
-          spgNftContract: nftCollectionResponse.spgNftContract,
-          recipient: data.userAddress as `0x${string}`,
+        // Register IP Asset using simplified Story Protocol approach
+        const ipRegistrationResponse = await this.client.ipAsset.register({
+          nftContract: '0x041B4F29183317Eb2335F2A71ecF8d9d4D21F9a3' as `0x${string}`, // Story testnet NFT contract
+          tokenId: BigInt(Math.floor(Math.random() * 1000000)), // Generate unique token ID
           ipMetadata: {
             ipMetadataURI: data.mediaUrl,
             ipMetadataHash: '0x0000000000000000000000000000000000000000000000000000000000000000' as `0x${string}`,
@@ -109,24 +97,24 @@ export class StoryProtocolService {
           }
         });
 
-        console.log('IP asset minted and registered on Story Protocol blockchain:', mintResponse);
+        console.log('IP asset registered on Story Protocol testnet:', ipRegistrationResponse);
 
         return {
-          ipId: mintResponse.ipId || '',
-          tokenId: mintResponse.tokenId?.toString() || '',
+          ipId: ipRegistrationResponse.ipId || '',
+          tokenId: ipRegistrationResponse.tokenId?.toString() || '',
           chainId: aeneid.id,
-          txHash: mintResponse.txHash || '',
-          nftContract: nftCollectionResponse.spgNftContract,
+          txHash: ipRegistrationResponse.txHash || '',
+          nftContract: '0x041B4F29183317Eb2335F2A71ecF8d9d4D21F9a3',
           metadata,
-          storyProtocolUrl: `https://explorer.story.foundation/ip/${mintResponse.ipId}`,
+          storyProtocolUrl: `https://explorer.story.foundation/ip/${ipRegistrationResponse.ipId}`,
           blockNumber: 0,
           gasUsed: "150000",
           status: "confirmed",
           registeredAt: new Date().toISOString(),
         };
       } catch (blockchainError) {
-        console.error('Story Protocol blockchain registration failed:', blockchainError);
-        throw new Error(`Blockchain registration failed: ${blockchainError instanceof Error ? blockchainError.message : 'Unknown error'}`);
+        console.error('Story Protocol testnet registration failed:', blockchainError);
+        throw new Error(`Testnet registration failed: ${blockchainError instanceof Error ? blockchainError.message : 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Story Protocol registration error:', error);
