@@ -63,12 +63,28 @@ export default function WalletPortfolio({ walletAddress }: WalletPortfolioProps)
     return <LoadingSpinner message="Loading portfolio data..." />;
   }
 
-  if (error || !portfolio) {
+  if (error) {
+    const errorMessage = error?.message || 'Unknown error';
+    const isCredentialsError = errorMessage.includes('credentials') || errorMessage.includes('API access');
+    
     return (
       <EmptyState
         icon={Wallet}
-        title="Unable to load portfolio"
-        description="Please check your wallet connection and try again"
+        title={isCredentialsError ? "API Access Required" : "Unable to load portfolio"}
+        description={isCredentialsError ? 
+          "Portfolio analytics require updated Zapper API credentials. Contact support for access." : 
+          "Please check your wallet connection and try again"
+        }
+      />
+    );
+  }
+
+  if (!portfolio) {
+    return (
+      <EmptyState
+        icon={Wallet}
+        title="No portfolio data"
+        description="No portfolio information found for this wallet address"
       />
     );
   }

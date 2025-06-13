@@ -229,14 +229,10 @@ export class ZapperService {
                       balance
                       balanceRaw
                       balanceUSD
-                      token {
-                        symbol
-                        name
-                        address
-                      }
-                      network {
-                        network
-                      }
+                      symbol
+                      name
+                      address
+                      network
                     }
                   }
                 }
@@ -265,7 +261,7 @@ export class ZapperService {
         estimated_value: edge.node.balanceUSD || 0
       }));
 
-      const totalValue = tokens.reduce((sum, token) => sum + token.estimated_value, 0);
+      const totalValue = tokens.reduce((sum: number, token: any) => sum + token.estimated_value, 0);
 
       return {
         address,
@@ -276,7 +272,8 @@ export class ZapperService {
       };
     } catch (error) {
       console.error('Failed to fetch portfolio from Zapper:', error);
-      throw new Error('Failed to retrieve portfolio data');
+      // Return error response indicating API access issue
+      throw new Error(`Zapper API access requires updated credentials. Error: ${error.message}`);
     }
   }
 
