@@ -158,15 +158,48 @@ export class ZapperService {
     if (endpoint.includes('/transactions')) {
       return [
         {
-          hash: '0xabcdef1234567890',
+          hash: '0xabc123def456789012345678901234567890abcd',
           from: '0x0000000000000000000000000000000000000000',
           to: '0x1234567890123456789012345678901234567890',
           value: '0',
-          gas_used: '150000',
-          gas_price: '20000000000',
-          timestamp: new Date().toISOString(),
+          gas_used: '180000',
+          gas_price: '25000000000',
+          timestamp: new Date(Date.now() - 86400000).toISOString(),
           status: 'success',
           type: 'mint'
+        },
+        {
+          hash: '0xdef456789012345678901234567890abcdef123',
+          from: '0x1234567890123456789012345678901234567890',
+          to: '0x9876543210987654321098765432109876543210',
+          value: '1500000000000000000',
+          gas_used: '120000',
+          gas_price: '22000000000',
+          timestamp: new Date(Date.now() - 172800000).toISOString(),
+          status: 'success',
+          type: 'sale'
+        },
+        {
+          hash: '0x123456789abcdef0123456789abcdef0123456789',
+          from: '0x0000000000000000000000000000000000000000',
+          to: '0x1234567890123456789012345678901234567890',
+          value: '0',
+          gas_used: '165000',
+          gas_price: '20000000000',
+          timestamp: new Date(Date.now() - 259200000).toISOString(),
+          status: 'success',
+          type: 'mint'
+        },
+        {
+          hash: '0x789abcdef0123456789abcdef0123456789abcdef',
+          from: '0x1234567890123456789012345678901234567890',
+          to: '0x5678901234567890123456789012345678901234',
+          value: '750000000000000000',
+          gas_used: '110000',
+          gas_price: '21000000000',
+          timestamp: new Date(Date.now() - 345600000).toISOString(),
+          status: 'success',
+          type: 'transfer'
         }
       ];
     }
@@ -276,9 +309,10 @@ export class ZapperService {
       
       // Filter for Story Protocol related assets
       const ipAssets = portfolio.tokens.filter(token => 
-        token.collection_name?.toLowerCase().includes('story') ||
-        token.collection_name?.toLowerCase().includes('ip') ||
-        token.description?.toLowerCase().includes('intellectual property')
+        token.collection_name?.includes('SoundRights') ||
+        token.collection_name?.includes('Music') ||
+        token.description?.includes('Story Protocol') ||
+        token.description?.includes('IP asset')
       );
 
       const recentTransactions = portfolio.transactions.filter(tx => 
