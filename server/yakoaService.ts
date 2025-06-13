@@ -47,27 +47,22 @@ export class YakoaService {
   private readonly demoMode: boolean;
 
   constructor() {
-    this.apiKey = process.env.YAKOA_API_KEY || '';
-    // Use Yakoa demo environment for testing
-    this.demoMode = !this.apiKey;
-    
-    if (this.demoMode) {
-      console.log('Yakoa Service: Using live demo sandbox - provide YAKOA_API_KEY for production features');
-    } else {
-      console.log('Yakoa Service: Live API enabled with production key');
-    }
+    this.apiKey = 'MhBsxkU1z9fG6TofE59KqiiWV-YlYE8Q4awlLQehF3U';
+    this.demoMode = false;
+    console.log('Yakoa Service: Live API enabled with provided credentials');
   }
 
   private async makeRequest(endpoint: string, options: any = {}) {
-    if (this.demoMode) {
-      return this.getMockResponse(endpoint, options);
+    if (!this.apiKey) {
+      throw new Error('YAKOA_API_KEY required for IP verification. Please provide your Yakoa API key.');
     }
 
     const url = `${this.baseUrl}${endpoint}`;
     const response = await fetch(url, {
       ...options,
       headers: {
-        'Authorization': `Bearer ${this.apiKey}`,
+        'X-API-Key': this.apiKey,
+        'X-CHAIN': 'story-aeneid',
         'Content-Type': 'application/json',
         ...options.headers,
       },

@@ -46,8 +46,8 @@ export class ZapperService {
   }
 
   private async makeRequest(endpoint: string, options: any = {}) {
-    if (this.demoMode) {
-      return this.getMockResponse(endpoint, options);
+    if (!this.apiKey) {
+      throw new Error('ZAPPER_API_KEY required for portfolio data. Please provide your Zapper API key.');
     }
 
     const response = await fetch(this.baseUrl, {
