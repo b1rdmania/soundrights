@@ -1,0 +1,74 @@
+I'll help you search through the codebase to understand the current state and requirements for integrating Reown WalletKit.
+
+Let me search for relevant code first:
+
+Search files...
+Based on the codebase search, I can see that your project is currently using RainbowKit for wallet connections, but you want to switch to Reown WalletKit. Let me help you understand what needs to be done.
+
+Currently, your project has:
+1. A `Web3Provider` component using RainbowKit
+2. Wallet connection components and services
+3. WalletConnect integration for transactions
+
+To integrate Reown WalletKit, you'll need to:
+
+1. First, install the required dependencies:
+```bash
+npm i @reown/walletkit @walletconnect/utils @walletconnect/core
+```
+
+2. Replace the current wallet connection implementation with Reown WalletKit. Here's what you'll need to modify:
+
+```typescript:client/src/lib/web3Config.ts
+// Replace the current RainbowKit config with Reown WalletKit
+import { WalletKit } from '@reown/walletkit';
+
+export const walletKit = new WalletKit({
+  projectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || 'demo-project-id',
+  chains: [sepolia, polygonMumbai],
+  // Add any additional configuration options from Reown docs
+});
+```
+
+```typescript:client/src/components/Web3Provider.tsx
+import { WalletKitProvider } from '@reown/walletkit';
+
+export function Web3Provider({ children }: { children: React.ReactNode }) {
+  return (
+    <WalletKitProvider walletKit={walletKit}>
+      {children}
+    </WalletKitProvider>
+  );
+}
+```
+
+```typescript:client/src/components/WalletConnection.tsx
+import { useWalletKit } from '@reown/walletkit';
+
+export function WalletConnection({ onConnected, showStoryProtocolStatus = true }: WalletConnectionProps) {
+  const { connect, disconnect, address, isConnected } = useWalletKit();
+  
+  // Rest of your component logic using Reown's hooks
+  // ...
+}
+```
+
+3. Update your environment variables:
+```env
+VITE_WALLETCONNECT_PROJECT_ID=your_project_id_here
+```
+
+4. Update your server-side wallet connection service to use Reown's backend SDK if available.
+
+The main benefits of switching to Reown WalletKit would be:
+- Simplified wallet connection flow
+- Built-in support for multiple chains
+- Better TypeScript support
+- More modern API design
+
+However, before proceeding with the migration, I recommend:
+1. Testing Reown WalletKit in a development environment first
+2. Ensuring all your current wallet functionality (transactions, signing, etc.) is supported
+3. Planning for a gradual migration to minimize disruption
+
+Would you like me to help you with any specific part of the migration process?
