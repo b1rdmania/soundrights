@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
 import { cn } from "@/lib/utils";
-import { Menu, LogOut, Wallet, Music, Zap } from 'lucide-react';
+import { Menu, LogOut, Wallet, Music, Zap, CheckCircle } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,8 @@ import { useAuth } from "@/hooks/useAuth";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [walletConnected, setWalletConnected] = useState(false);
+  const [walletAddress, setWalletAddress] = useState('');
   const [location] = useLocation();
   const isMobile = useIsMobile();
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -40,7 +42,6 @@ const Navbar = () => {
   const ConnectButton = () => {
     const handleConnect = async () => {
       try {
-        // Use WalletConnect for wallet connection
         const response = await fetch('/api/wallet/connect', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' }
@@ -48,13 +49,48 @@ const Navbar = () => {
         const data = await response.json();
         
         if (data.wallet) {
-          // Wallet connected successfully
-          console.log('Wallet connected:', data.wallet);
+          setWalletConnected(true);
+          setWalletAddress(data.wallet.address);
         }
       } catch (error) {
         console.error('Wallet connection failed:', error);
       }
     };
+
+    const handleDisconnect = async () => {
+      try {
+        await fetch('/api/wallet/disconnect', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        setWalletConnected(false);
+        setWalletAddress('');
+      } catch (error) {
+        console.error('Wallet disconnection failed:', error);
+      }
+    };
+
+    if (walletConnected) {
+      return (
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 bg-green-50 text-green-700 px-3 py-1 rounded-lg border border-green-200">
+            <CheckCircle size={16} />
+            <span className="text-sm font-medium">
+              {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+            </span>
+          </div>
+          <Button 
+            variant="outline"
+            size="sm"
+            onClick={handleDisconnect}
+            className="text-gray-600 hover:text-red-600"
+          >
+            <LogOut size={16} className="mr-1" />
+            Disconnect
+          </Button>
+        </div>
+      );
+    }
 
     return (
       <Button 
