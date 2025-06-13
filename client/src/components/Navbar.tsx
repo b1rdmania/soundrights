@@ -30,8 +30,7 @@ const Navbar = () => {
     { path: '/live-demo', label: 'Live Demo' },
     { path: '/marketplace', label: 'Marketplace' },
     { path: '/analytics', label: 'Analytics' },
-    { path: '/sponsors', label: 'Integrations' },
-    { path: '/admin', label: 'Admin' },
+    { path: '/integrations', label: 'Integrations' },
     { path: '/whitepaper', label: 'White Paper' },
     { path: '/about', label: 'About' },
   ];

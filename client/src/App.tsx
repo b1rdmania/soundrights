@@ -19,6 +19,7 @@ import Invest from "./pages/Invest";
 import Demo from "./pages/Demo";
 import LiveDemo from "./pages/LiveDemo";
 import Sponsors from "./pages/Sponsors";
+import Integrations from "./pages/Integrations";
 import Marketplace from "./pages/Marketplace";
 import Analytics from "./pages/Analytics";
 import Profile from "./pages/Profile";
@@ -69,10 +70,10 @@ function AppRouter() {
       <Route path="/demo" component={Demo} />
       <Route path="/live-demo" component={LiveDemo} />
       <Route path="/sponsors" component={Sponsors} />
+      <Route path="/integrations" component={Integrations} />
       <Route path="/marketplace" component={Marketplace} />
       <Route path="/analytics" component={Analytics} />
       <Route path="/profile" component={Profile} />
-      <Route path="/admin" component={Admin} />
       <Route path="/results" component={Results} />
       <Route path="/about" component={About} />
       <Route path="/whitepaper" component={WhitePaper} />
