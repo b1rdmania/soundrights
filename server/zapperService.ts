@@ -73,28 +73,80 @@ export class ZapperService {
       const address = endpoint.split('/')[2];
       return {
         address,
-        total_value: 1250.75,
+        total_value: 15420.85,
         tokens: [
           {
-            contract_address: '0x1234567890123456789012345678901234567890',
-            token_id: '1',
-            name: 'Demo Music NFT',
-            description: 'A registered music IP asset on Story Protocol',
-            collection_name: 'SoundRights IP Assets',
+            contract_address: '0x1A2B3C4D5E6F7890123456789ABCDEF012345678',
+            token_id: '101',
+            name: 'Electric Dreams - Single',
+            description: 'Synthwave track registered as Story Protocol IP asset',
+            collection_name: 'SoundRights Music Catalog',
             owner: address,
             blockchain: 'ethereum',
-            estimated_value: 0.5
+            estimated_value: 2450.30
+          },
+          {
+            contract_address: '0x2B3C4D5E6F7890123456789ABCDEF0123456789A',
+            token_id: '102',
+            name: 'Midnight Jazz - Album',
+            description: 'Full jazz album with 12 tracks, licensing rights included',
+            collection_name: 'SoundRights Music Catalog',
+            owner: address,
+            blockchain: 'ethereum',
+            estimated_value: 8970.25
+          },
+          {
+            contract_address: '0x3C4D5E6F7890123456789ABCDEF0123456789AB',
+            token_id: '103',
+            name: 'Acoustic Sessions - EP',
+            description: '4-track acoustic EP with sync licensing potential',
+            collection_name: 'SoundRights Music Catalog',
+            owner: address,
+            blockchain: 'ethereum',
+            estimated_value: 3200.15
+          },
+          {
+            contract_address: '0x4D5E6F7890123456789ABCDEF0123456789ABC',
+            token_id: '104',
+            name: 'Corporate Intro Theme',
+            description: 'Licensed background music for commercial use',
+            collection_name: 'SoundRights Music Catalog',
+            owner: address,
+            blockchain: 'ethereum',
+            estimated_value: 800.15
           }
         ],
         transactions: [
           {
-            hash: '0xabcdef1234567890',
+            hash: '0xabc123def456789012345678901234567890abcd',
             from: '0x0000000000000000000000000000000000000000',
             to: address,
             value: '0',
-            gas_used: '150000',
+            gas_used: '180000',
+            gas_price: '25000000000',
+            timestamp: new Date(Date.now() - 86400000).toISOString(),
+            status: 'success' as const,
+            type: 'mint' as const
+          },
+          {
+            hash: '0xdef456789012345678901234567890abcdef123',
+            from: address,
+            to: '0x9876543210987654321098765432109876543210',
+            value: '1500000000000000000',
+            gas_used: '120000',
+            gas_price: '22000000000',
+            timestamp: new Date(Date.now() - 172800000).toISOString(),
+            status: 'success' as const,
+            type: 'sale' as const
+          },
+          {
+            hash: '0x123456789abcdef0123456789abcdef0123456789',
+            from: '0x0000000000000000000000000000000000000000',
+            to: address,
+            value: '0',
+            gas_used: '165000',
             gas_price: '20000000000',
-            timestamp: new Date().toISOString(),
+            timestamp: new Date(Date.now() - 259200000).toISOString(),
             status: 'success' as const,
             type: 'mint' as const
           }
@@ -256,22 +308,11 @@ export class ZapperService {
    * Test API connection and get service status
    */
   async testConnection(): Promise<{ status: string; apiKey: string; message: string }> {
-    try {
-      // Test with a sample request to verify API key works
-      const response = await this.makeRequest('/portfolio/0x1234567890123456789012345678901234567890');
-      
-      return {
-        status: 'live',
-        apiKey: this.apiKey.slice(0, 8) + '...' + this.apiKey.slice(-8),
-        message: 'Zapper API connected - live portfolio data available'
-      };
-    } catch (error) {
-      return {
-        status: 'live',
-        apiKey: this.apiKey.slice(0, 8) + '...' + this.apiKey.slice(-8),
-        message: 'Zapper Service: Live API enabled with provided key'
-      };
-    }
+    return {
+      status: 'demo',
+      apiKey: 'Demo Analytics',
+      message: 'Zapper Analytics: Using comprehensive demo data for portfolio visualization'
+    };
   }
 }
 
