@@ -1,0 +1,118 @@
+I can provide a thorough review of the stack and a checklist for testing all major features and integrations, but I do not have the ability to directly interact with your live production environment (e.g., click through the UI, connect wallets, or upload files). However, I can guide you through a comprehensive manual test plan and review the stack based on your codebase and deployment status.
+
+---
+
+## 1. **Stack Review**
+
+### **Frontend**
+- **Framework:** React.js (TypeScript)
+- **Styling:** Tailwind CSS, shadcn/ui
+- **Routing:** wouter
+- **State Management:** TanStack Query
+- **Wallet Integration:** Reown WalletKit (400+ wallets, message signing)
+- **Animations:** Framer Motion
+- **Pages/Features:** Dramatic upload, marketplace, analytics, admin, profile, live demo
+
+### **Backend**
+- **Framework:** Express.js (TypeScript)
+- **Database:** PostgreSQL (Drizzle ORM)
+- **Authentication:** Replit Auth (OpenID Connect, session management)
+- **API Integrations:** Yakoa, Tomo, Story Protocol, Zapper, Reown
+- **Security:** Middleware for route protection, session storage in PostgreSQL
+
+### **DevOps/Deployment**
+- **Environment Variables:** All required for production (see previous messages)
+- **Database Migrations:** Drizzle ORM (`npm run db:push`)
+- **Build:** Vite for frontend, Node for backend
+- **Production Readiness:** Confirmed in your handover
+
+---
+
+## 2. **Comprehensive Manual Test Plan**
+
+### **A. Wallet Integration (Reown WalletKit)**
+- [ ] Connect with MetaMask, WalletConnect mobile, and at least one other wallet
+- [ ] Sign a message and verify signature
+- [ ] Disconnect and reconnect wallet
+- [ ] Test wallet connection persistence (refresh, new session)
+
+### **B. Sponsor Integrations**
+- [ ] Yakoa: Upload a track, check originality/confidence score, verify token ID
+- [ ] Tomo: Test social verification (demo and, if possible, real OAuth)
+- [ ] Story Protocol: Register IP asset, check blockchain transaction hash, test on testnet
+- [ ] Zapper: View portfolio, check NFT/DeFi data, verify creator credibility
+
+### **C. Dramatic Upload Process**
+- [ ] Go to `/live-demo`
+- [ ] Upload a track, step through all 6 verification stages
+- [ ] Confirm real-time feedback and sponsor branding
+- [ ] Test fallback states (e.g., network timeout)
+
+### **D. Marketplace & Licensing**
+- [ ] List tracks, filter/search, view details
+- [ ] Create and view licenses
+- [ ] Purchase/license a track (if enabled)
+
+### **E. Analytics & Admin**
+- [ ] View analytics dashboard, check data visualizations
+- [ ] Test admin panel: user management, activity logs, system monitoring
+- [ ] Test admin filtering with large datasets
+
+### **F. User Management**
+- [ ] Register/login/logout
+- [ ] View/edit profile
+- [ ] GDPR compliance: request data, delete account
+
+### **G. General UI/UX**
+- [ ] Test on desktop, tablet, mobile
+- [ ] Switch between dark/light mode
+- [ ] Navigate all major pages
+- [ ] Check for error messages and loading states
+
+### **H. API Endpoints**
+- [ ] `/api/yakoa/check-originality`
+- [ ] `/api/tomo/test`
+- [ ] `/api/sponsors/status`
+- [ ] `/api/marketplace/licenses`
+- [ ] `/api/auth/user`
+- [ ] All CRUD for tracks, licenses, IP assets
+
+### **I. Security & Session**
+- [ ] Test session expiration and renewal
+- [ ] Attempt unauthorized access to protected routes
+- [ ] Check for secure cookie/session handling
+
+---
+
+## 3. **Known Issues to Watch For**
+- TypeScript warnings in analytics/profile (should not block functionality)
+- Admin dashboard query performance with large data
+- Tomo OAuth is demo-mode unless fully enabled
+
+---
+
+## 4. **Automated Testing**
+If you want to add automated tests:
+- Use Jest/React Testing Library for frontend
+- Use Supertest/Jest for backend API
+- Add Cypress or Playwright for end-to-end flows
+
+---
+
+## 5. **Stack Recommendations**
+- **Monitoring:** Add Sentry or similar for error tracking in production
+- **Analytics:** Use PostHog, Plausible, or similar for user analytics
+- **Performance:** Enable caching for heavy API endpoints if needed
+- **Security:** Periodically review dependencies for vulnerabilities
+
+---
+
+## 6. **How to Proceed**
+- Run through the manual test plan above in your production environment.
+- If you want, I can help you write scripts for automated API or UI testing.
+- Let me know if you want a deployment checklist for a specific cloud provider.
+
+---
+
+**If you encounter any issues during testing, paste the error or describe the problem and I’ll help you debug it!**  
+Would you like a printable checklist, or help with any specific test or automation?
