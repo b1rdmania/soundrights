@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
 import { cn } from "@/lib/utils";
-import { Menu, LogOut, Wallet } from 'lucide-react';
+import { Menu, LogOut, Wallet, Music, Zap } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -26,27 +26,25 @@ const Navbar = () => {
   }, []);
   
   const navLinks = [
-    { path: '/', label: 'Home', icon: '🏠' },
-    { path: '/demo', label: 'Demo', icon: '🎵' },
-    { path: '/marketplace', label: 'Marketplace', icon: '🛒' },
-    { path: '/analytics', label: 'Analytics', icon: '📊' },
-    { path: '/profile', label: 'Profile', icon: '👤' },
-    { path: '/sponsors', label: 'Integrations', icon: '⛓️' },
-    { path: '/upload', label: 'Upload', icon: '📤' },
-    { path: '/whitepaper', label: 'White Paper', icon: '📜' },
-    { path: '/about', label: 'About', icon: '🎧' },
+    { path: '/', label: 'Home' },
+    { path: '/live-demo', label: 'Live Demo' },
+    { path: '/marketplace', label: 'Marketplace' },
+    { path: '/analytics', label: 'Analytics' },
+    { path: '/sponsors', label: 'Integrations' },
+    { path: '/admin', label: 'Admin' },
+    { path: '/whitepaper', label: 'White Paper' },
+    { path: '/about', label: 'About' },
   ];
 
   const isActive = (path: string) => location === path;
 
   const ConnectButton = () => (
     <Button 
-      variant="outline" 
-      size={isMobile ? "lg" : "sm"}
+      className="btn-primary flex items-center gap-2"
       onClick={() => window.location.href = '/api/login'}
-      className="flex items-center gap-2"
     >
-      <Wallet size={16} /> Sign In
+      <Wallet size={16} />
+      Sign In
     </Button>
   );
 
