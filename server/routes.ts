@@ -622,9 +622,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: statuses.tomo.message
         },
         zapper: {
-          status: 'demo',
-          apiKey: 'Demo Analytics',
-          message: 'Zapper Analytics: Using comprehensive demo data for portfolio visualization'
+          status: statuses.zapper.status,
+          apiKey: statuses.zapper.apiKey,
+          message: statuses.zapper.message
         },
         walletconnect: {
           status: 'live',

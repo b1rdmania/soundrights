@@ -39,10 +39,14 @@ export class ZapperService {
   private readonly demoMode: boolean;
 
   constructor() {
-    this.apiKey = process.env.ZAPPER_API_KEY || '780f491b-e8c1-4cac-86c4-55a5bca9933a';
-    this.demoMode = true; // Use demo data - Zapper API endpoints need verification
+    this.apiKey = process.env.ZAPPER_API_KEY || '';
+    this.demoMode = !this.apiKey; // Use live data when API key is available
     
-    console.log('Zapper Service: Using demo data for Analytics display');
+    if (this.demoMode) {
+      console.log('Zapper Service: No API key provided, using demo data');
+    } else {
+      console.log('Zapper Service: Live API enabled with provided key');
+    }
   }
 
   private async makeRequest(endpoint: string, options: any = {}) {
@@ -56,6 +60,7 @@ export class ZapperService {
       headers: {
         'Authorization': `Basic ${Buffer.from(`${this.apiKey}:`).toString('base64')}`,
         'Content-Type': 'application/json',
+        'X-API-KEY': this.apiKey,
         ...options.headers,
       },
     });
@@ -212,8 +217,27 @@ export class ZapperService {
    */
   async getUserPortfolio(address: string): Promise<ZapperPortfolio> {
     try {
-      const response = await this.makeRequest(`/portfolio/${address}`);
-      return response;
+      const response = await this.makeRequest(`/balances/${address}?api_key=${this.apiKey}`);
+      
+      // Transform Zapper API response to our portfolio format
+      const tokens = response.balances?.map((balance: any) => ({
+        contract_address: balance.token?.contractAddress || 'unknown',
+        token_id: balance.token?.tokenId || '0',
+        name: balance.token?.name || 'Unknown Token',
+        description: balance.token?.symbol || '',
+        collection_name: balance.token?.collection?.name || 'Portfolio Assets',
+        owner: address,
+        blockchain: balance.network || 'ethereum',
+        estimated_value: balance.balanceUSD || 0
+      })) || [];
+
+      return {
+        address,
+        total_value: response.meta?.total || 0,
+        tokens,
+        transactions: [], // Will be populated separately
+        updated_at: new Date().toISOString()
+      };
     } catch (error) {
       console.error('Failed to fetch portfolio from Zapper:', error);
       throw new Error('Failed to retrieve portfolio data');
@@ -225,12 +249,30 @@ export class ZapperService {
    */
   async getTransactionHistory(address: string, limit: number = 50): Promise<ZapperTransaction[]> {
     try {
-      const response = await this.makeRequest(`/transactions/${address}?limit=${limit}`);
-      return response;
+      const response = await this.makeRequest(`/transactions/${address}?api_key=${this.apiKey}&limit=${limit}`);
+      
+      // Transform Zapper transaction data to our format
+      return response.data?.map((tx: any) => ({
+        hash: tx.hash,
+        from: tx.from,
+        to: tx.to,
+        value: tx.value || '0',
+        gas_used: tx.gasUsed || '0',
+        gas_price: tx.gasPrice || '0',
+        timestamp: tx.timeStamp ? new Date(parseInt(tx.timeStamp) * 1000).toISOString() : new Date().toISOString(),
+        status: tx.isError === '0' ? 'success' : 'failed',
+        type: this.determineTransactionType(tx)
+      })) || [];
     } catch (error) {
       console.error('Failed to fetch transactions from Zapper:', error);
       throw new Error('Failed to retrieve transaction history');
     }
+  }
+
+  private determineTransactionType(tx: any): 'mint' | 'transfer' | 'sale' {
+    if (tx.from === '0x0000000000000000000000000000000000000000') return 'mint';
+    if (tx.value && parseInt(tx.value) > 0) return 'sale';
+    return 'transfer';
   }
 
   /**
@@ -342,11 +384,29 @@ export class ZapperService {
    * Test API connection and get service status
    */
   async testConnection(): Promise<{ status: string; apiKey: string; message: string }> {
-    return {
-      status: 'demo',
-      apiKey: 'Demo Analytics',
-      message: 'Zapper Analytics: Using comprehensive demo data for portfolio visualization'
-    };
+    if (this.demoMode) {
+      return {
+        status: 'demo',
+        apiKey: 'Demo Analytics',
+        message: 'Zapper Analytics: Using comprehensive demo data for portfolio visualization'
+      };
+    }
+
+    try {
+      // Test API connection with a simple request
+      const response = await this.makeRequest(`/protocols?api_key=${this.apiKey}`);
+      return {
+        status: 'live',
+        apiKey: this.apiKey.slice(0, 8) + '...' + this.apiKey.slice(-8),
+        message: 'Zapper API connected - live portfolio data available'
+      };
+    } catch (error) {
+      return {
+        status: 'error',
+        apiKey: 'Invalid',
+        message: 'Failed to connect to Zapper API - check API key'
+      };
+    }
   }
 }
 
