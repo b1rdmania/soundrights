@@ -101,7 +101,7 @@ Successfully delivered a comprehensive Web3 music IP platform with authentic spo
 3. **Admin Filtering**: Some database query optimizations needed for large datasets
 
 ### Environment Dependencies
-1. **WALLETCONNECT_PROJECT_ID**: Set this to enable full wallet connectivity
+1. **WalletConnect**: Fully operational with your project ID `1c6eba6fc7f6b210609dbd6cccef8199`
 2. **Story Protocol Mainnet**: Currently on testnet, easy switch for production
 3. **Tomo OAuth**: Framework ready for full OAuth implementation when needed
 

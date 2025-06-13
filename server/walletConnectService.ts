@@ -23,14 +23,11 @@ export class WalletConnectService {
   private connectedWallet: WalletState | null = null;
 
   constructor() {
-    this.projectId = process.env.WALLETCONNECT_PROJECT_ID || '';
-    this.demoMode = !this.projectId;
+    // Use your provided project ID
+    this.projectId = process.env.WALLETCONNECT_PROJECT_ID || '1c6eba6fc7f6b210609dbd6cccef8199';
+    this.demoMode = false; // Enable full functionality with your project ID
     
-    if (this.demoMode) {
-      console.log('WalletConnect Service running in demo mode - provide WALLETCONNECT_PROJECT_ID for full integration');
-    } else {
-      console.log('WalletConnect Service initialized with project ID');
-    }
+    console.log(`WalletConnect Service initialized with project ID: ${this.projectId.slice(0, 8)}...`);
   }
 
   /**
