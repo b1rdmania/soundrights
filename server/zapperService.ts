@@ -229,10 +229,14 @@ export class ZapperService {
                       balance
                       balanceRaw
                       balanceUSD
-                      symbol
-                      name
-                      address
-                      network
+                      token {
+                        symbol
+                        name
+                        address
+                      }
+                      network {
+                        network
+                      }
                     }
                   }
                 }
