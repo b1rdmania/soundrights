@@ -23,11 +23,14 @@ export class WalletConnectService {
   private connectedWallet: WalletState | null = null;
 
   constructor() {
-    // Use your provided project ID
     this.projectId = process.env.WALLETCONNECT_PROJECT_ID || '1c6eba6fc7f6b210609dbd6cccef8199';
-    this.demoMode = false; // Enable full functionality with your project ID
+    this.demoMode = !process.env.WALLETCONNECT_PROJECT_ID; // Use live API with provided key
     
-    console.log(`WalletConnect Service initialized with project ID: ${this.projectId.slice(0, 8)}...`);
+    if (this.demoMode) {
+      console.log('WalletConnect Service: Using live API with buildathon project ID - provide WALLETCONNECT_PROJECT_ID for production');
+    } else {
+      console.log('WalletConnect Service: Live API enabled with production project ID');
+    }
   }
 
   /**

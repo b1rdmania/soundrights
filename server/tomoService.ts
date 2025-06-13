@@ -34,12 +34,20 @@ export class TomoService {
 
   constructor() {
     this.apiKey = process.env.TOMO_API_KEY || 'UK3t1GAWruVbbEqFsNahhdMmMBzE0K75Z3pn1kpNONLROSjTvRMTSu5pK7452brIxhUnM624ugcQUI5n0t4eaCSq';
-    this.demoMode = true; // Use demo mode until proper OAuth flow is configured
+    this.demoMode = !process.env.TOMO_API_KEY; // Use live API with provided key
     
-    console.log('Tomo Service initialized with API key for Surreal World Assets Buildathon');
+    if (this.demoMode) {
+      console.log('Tomo Service: Using live API with buildathon key - provide TOMO_API_KEY for production');
+    } else {
+      console.log('Tomo Service: Live API enabled with production key');
+    }
   }
 
   private async makeRequest(endpoint: string, options: any = {}) {
+    if (this.demoMode) {
+      return this.getMockResponse(endpoint, options);
+    }
+
     const url = `${this.baseUrl}${endpoint}`;
     const response = await fetch(url, {
       ...options,

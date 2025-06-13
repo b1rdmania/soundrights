@@ -40,9 +40,13 @@ export class ZapperService {
 
   constructor() {
     this.apiKey = process.env.ZAPPER_API_KEY || '780f491b-e8c1-4cac-86c4-55a5bca9933a';
-    this.demoMode = false; // Use real API with provided key
+    this.demoMode = !process.env.ZAPPER_API_KEY; // Only use demo if no API key provided
     
-    console.log('Zapper Service initialized with provided API key');
+    if (this.demoMode) {
+      console.log('Zapper Service: Using demo data - provide ZAPPER_API_KEY for live portfolio data');
+    } else {
+      console.log('Zapper Service: Live API enabled with provided key');
+    }
   }
 
   private async makeRequest(endpoint: string, options: any = {}) {

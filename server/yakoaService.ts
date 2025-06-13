@@ -52,9 +52,9 @@ export class YakoaService {
     this.demoMode = !this.apiKey;
     
     if (this.demoMode) {
-      console.log('Yakoa Service running in demo environment - register at docs.yakoa.io for demo API key');
+      console.log('Yakoa Service: Using live demo sandbox - provide YAKOA_API_KEY for production features');
     } else {
-      console.log('Yakoa Service initialized with API key');
+      console.log('Yakoa Service: Live API enabled with production key');
     }
   }
 
