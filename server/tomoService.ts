@@ -30,13 +30,14 @@ export interface TomoAuthResponse {
 export class TomoService {
   private readonly apiKey: string;
   private readonly baseUrl = 'https://api.tomo.inc/v1';
-  private readonly demoMode: boolean;
 
   constructor() {
     this.apiKey = process.env.TOMO_API_KEY || 'UK3t1GAWruVbbEqFsNahhdMmMBzE0K75Z3pn1kpNONLROSjTvRMTSu5pK7452brIxhUnM624ugcQUI5n0t4eaCSq';
-    this.demoMode = false; // Use live API with provided buildathon key
-    
-    console.log('Tomo Service: Live API enabled with buildathon key');
+    if (!this.apiKey) {
+      console.error('TOMO_API_KEY not configured - social authentication will fail');
+    } else {
+      console.log('Tomo Service: Production API configured');
+    }
   }
 
   private async makeRequest(endpoint: string, options: any = {}) {

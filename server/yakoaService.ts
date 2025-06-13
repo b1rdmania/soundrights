@@ -172,21 +172,8 @@ export class YakoaService {
         message: 'Token registered successfully with Yakoa IP authentication'
       };
     } catch (error) {
-      console.error('Failed to register token with Yakoa:', error);
-      
-      // Return demo response if API fails
-      return {
-        token: {
-          id: `yakoa_demo_${Date.now()}`,
-          status: 'complete',
-          media_url: data.media_url,
-          metadata: data.metadata,
-          infringements: { total: 0, high_confidence: 0, results: [] },
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        },
-        message: 'Demo IP authentication check completed - register at docs.yakoa.io for full API access'
-      };
+      console.error('Yakoa API registration failed:', error);
+      throw new Error(`Yakoa IP verification failed: ${error instanceof Error ? error.message : 'Unknown error'}. Check API configuration and network connectivity.`);
     }
   }
 

@@ -36,13 +36,14 @@ export interface ZapperPortfolio {
 export class ZapperService {
   private readonly apiKey: string;
   private readonly baseUrl = 'https://public.zapper.xyz/graphql';
-  private readonly demoMode: boolean;
 
   constructor() {
     this.apiKey = process.env.ZAPPER_API_KEY || '';
-    this.demoMode = false; // Using live API with your credentials
-    
-    console.log('Zapper Service: Live API enabled with your credentials');
+    if (!this.apiKey) {
+      console.error('ZAPPER_API_KEY not configured - portfolio features will fail');
+    } else {
+      console.log('Zapper Service: Production API configured');
+    }
   }
 
   private async makeRequest(endpoint: string, options: any = {}) {
