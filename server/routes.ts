@@ -1005,24 +1005,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // API test endpoints for integrations page
+  // API test endpoints for integrations page - REAL functionality tests
   app.post("/api/yakoa/test", async (req: any, res) => {
     try {
-      const result = await yakoaService.testConnection();
+      // Test actual IP verification with a real audio URL
+      const testData = {
+        media_url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
+        metadata: {
+          title: 'Test Audio Sample',
+          creator: 'SoundRights Demo',
+          description: 'Testing IP verification functionality',
+          platform: 'SoundRights'
+        }
+      };
+      
+      const registration = await yakoaService.registerToken(testData);
+      
       res.json({
         success: true,
         service: 'yakoa',
-        status: result.status,
-        message: 'IP verification API test successful',
-        details: result
+        message: 'Real IP verification test completed',
+        details: {
+          token_id: registration.token.id,
+          status: registration.token.status,
+          media_url: testData.media_url,
+          verification_started: new Date().toISOString(),
+          api_response: registration.message
+        }
       });
     } catch (error) {
-      console.error("Yakoa test failed:", error);
+      console.error("Yakoa real test failed:", error);
       res.status(500).json({ 
         success: false,
         service: 'yakoa',
-        message: "Yakoa API test failed",
-        error: error instanceof Error ? error.message : "Connection failed"
+        message: "Real IP verification test failed",
+        error: error instanceof Error ? error.message : "API connection failed"
       });
     }
   });
