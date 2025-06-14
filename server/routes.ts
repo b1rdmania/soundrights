@@ -1066,7 +1066,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           transaction_hash: registration.txHash,
           blockchain: 'Story Protocol Testnet',
           registered_at: new Date().toISOString(),
-          asset_title: testAsset.title,
+          asset_title: testAsset.name,
           registration_status: 'confirmed'
         }
       });
