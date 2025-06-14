@@ -21,20 +21,29 @@ export default function Integrations() {
   // Test API integrations
   const yakoaTest = useMutation({
     mutationFn: async () => await apiRequest('/api/yakoa/test', { method: 'POST' }),
-    onSuccess: () => toast.success('Yakoa API test successful - IP verification working'),
-    onError: (error) => toast.error(`Yakoa test failed: ${error.message}`)
+    onSuccess: (data) => {
+      toast.success(`Real IP verification test completed - Token ${data.details?.token_id || 'created'} on Yakoa platform`);
+      setTestResults(prev => ({ ...prev, yakoa: data }));
+    },
+    onError: (error) => toast.error(`Real IP verification failed: ${error.message}`)
   });
 
   const zapperTest = useMutation({
     mutationFn: async () => await apiRequest(`/api/zapper/test`),
-    onSuccess: () => toast.success('Zapper API test successful - Portfolio data retrieved'),
-    onError: (error) => toast.error(`Zapper test failed: ${error.message}`)
+    onSuccess: (data) => {
+      toast.success(`Real wallet portfolio retrieved - ${data.details?.token_count || 0} tokens found worth $${data.details?.total_value || 0}`);
+      setTestResults(prev => ({ ...prev, zapper: data }));
+    },
+    onError: (error) => toast.error(`Real portfolio test failed: ${error.message}`)
   });
 
   const storyTest = useMutation({
     mutationFn: async () => await apiRequest('/api/story/test', { method: 'POST' }),
-    onSuccess: () => toast.success('Story Protocol test successful - Blockchain connection verified'),
-    onError: (error) => toast.error(`Story Protocol test failed: ${error.message}`)
+    onSuccess: (data) => {
+      toast.success(`Real blockchain IP registration completed - Asset ${data.details?.ip_asset_id || 'registered'} on Story Protocol`);
+      setTestResults(prev => ({ ...prev, story: data }));
+    },
+    onError: (error) => toast.error(`Real blockchain test failed: ${error.message}`)
   });
 
   const getStatusBadge = (serviceKey: string) => {

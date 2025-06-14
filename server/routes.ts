@@ -1046,27 +1046,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/story/test", async (req: any, res) => {
     try {
-      // Test Story Protocol connection
-      const testResult = {
-        blockchain: 'story-testnet',
-        rpc_status: 'connected',
-        api_key: 'configured',
-        message: 'Story Protocol blockchain connection verified'
+      // Test real IP asset registration on Story Protocol testnet
+      const testAsset = {
+        name: 'SoundRights Demo Track',
+        description: 'Demonstrating blockchain IP registration functionality',
+        mediaUrl: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
+        attributes: { creator: 'SoundRights Platform', type: 'audio' },
+        userAddress: '0x0000000000000000000000000000000000000000'
       };
+      
+      const registration = await storyService.registerIPAsset(testAsset);
       
       res.json({
         success: true,
         service: 'story_protocol',
-        status: 'live',
-        message: 'Blockchain registration API test successful',
-        details: testResult
+        message: 'Blockchain IP registration test completed',
+        details: {
+          ip_asset_id: registration.ipId,
+          transaction_hash: registration.txHash,
+          blockchain: 'Story Protocol Testnet',
+          registered_at: new Date().toISOString(),
+          asset_title: testAsset.title,
+          registration_status: 'confirmed'
+        }
       });
     } catch (error) {
-      console.error("Story Protocol test failed:", error);
+      console.error("Story Protocol real test failed:", error);
       res.status(500).json({ 
         success: false,
         service: 'story_protocol',
-        message: "Story Protocol test failed",
+        message: "Blockchain IP registration test failed",
         error: error instanceof Error ? error.message : "Blockchain connection failed"
       });
     }
@@ -1074,21 +1083,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/zapper/test", async (req: any, res) => {
     try {
-      const result = await zapperService.testConnection();
+      // Test real wallet portfolio data with a known wallet address
+      const testWallet = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'; // Vitalik's wallet
+      const portfolio = await zapperService.getUserPortfolio(testWallet);
+      
       res.json({
         success: true,
         service: 'zapper',
-        status: result.status,
-        message: 'Portfolio analytics API test successful',
-        details: result
+        message: 'Real wallet portfolio test completed',
+        details: {
+          wallet_address: testWallet,
+          total_value: portfolio.total_value,
+          token_count: portfolio.tokens.length,
+          recent_transactions: portfolio.transactions.slice(0, 3),
+          last_updated: portfolio.updated_at,
+          data_source: 'Live blockchain data'
+        }
       });
     } catch (error) {
-      console.error("Zapper test failed:", error);
+      console.error("Zapper real test failed:", error);
       res.status(500).json({ 
         success: false,
         service: 'zapper',
-        message: "Zapper API test failed",
-        error: error instanceof Error ? error.message : "Portfolio service unavailable"
+        message: "Real wallet portfolio test failed",
+        error: error instanceof Error ? error.message : "Blockchain portfolio service unavailable"
       });
     }
   });
