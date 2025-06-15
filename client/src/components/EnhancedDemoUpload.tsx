@@ -185,7 +185,7 @@ export default function EnhancedDemoUpload() {
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-4">
-            SoundRights Demo Upload
+            SoundRights Upload
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Experience comprehensive IP verification using 5 cutting-edge sponsor technologies in real-time
