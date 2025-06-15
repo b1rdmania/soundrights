@@ -82,7 +82,7 @@ export default function EnhancedIPVerification() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          mediaUrl: formData.mediaUrl || 'https://example.com/demo-audio.mp3',
+          mediaUrl: formData.mediaUrl,
           metadata: {
             title: formData.title,
             creator: formData.artist,

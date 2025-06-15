@@ -162,10 +162,10 @@ export default function IntegrationStatus() {
 
                   <div>
                     <h4 className="font-medium text-gray-900 mb-2">
-                      {isLive ? 'Live Features Active:' : 'Demo Features:'}
+                      {isLive ? 'Live Features Active:' : 'Production Requirements:'}
                     </h4>
                     <ul className="space-y-1">
-                      {(isLive ? integration.liveFeatures : integration.demoFeatures).map((feature, index) => (
+                      {(isLive ? integration.liveFeatures : integration.productionFeatures).map((feature, index) => (
                         <li key={index} className="flex items-center gap-2 text-sm text-gray-600">
                           <div className={`w-1.5 h-1.5 rounded-full ${isLive ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
                           {feature}
@@ -229,9 +229,9 @@ export default function IntegrationStatus() {
               </div>
               <div>
                 <div className="text-3xl font-bold text-yellow-600 mb-2">
-                  {integrationStatuses ? Object.values(integrationStatuses).filter((s: any) => s.status === 'demo').length : 0}
+                  {integrationStatuses ? Object.values(integrationStatuses).filter((s: any) => s.status === 'requires_api_key').length : 0}
                 </div>
-                <p className="text-gray-600">Demo Mode</p>
+                <p className="text-gray-600">Require API Keys</p>
               </div>
               <div>
                 <div className="text-3xl font-bold text-blue-600 mb-2">

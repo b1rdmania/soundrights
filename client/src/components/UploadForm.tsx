@@ -352,7 +352,7 @@ const UploadForm: React.FC<UploadFormProps> = ({ onUpload, mode, isWalletConnect
                         Commercial Use
                       </Label>
                       <p className="text-sm text-muted-foreground">
-                        Allow commercial usage with specified terms (demo only)
+                        Allow commercial usage with specified terms
                       </p>
                     </div>
                   </div>

@@ -165,7 +165,7 @@ export function DramaticUploadProcess({ file, onComplete, onReset }: DramaticUpl
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              mediaUrl: 'demo-upload',
+              mediaUrl: file?.name || 'audio-file',
               metadata: {
                 title: file?.name?.split('.')[0] || 'Unknown',
                 artist: 'Demo User'

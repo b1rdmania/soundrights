@@ -147,7 +147,7 @@ export default function DemoUpload() {
       data.append('label', formData.label);
       data.append('catalogNumber', formData.catalogNumber);
 
-      const response = await fetch('/api/tracks/demo', {
+      const response = await fetch('/api/tracks', {
         method: 'POST',
         body: data,
       });
