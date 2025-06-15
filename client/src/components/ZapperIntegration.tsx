@@ -96,13 +96,10 @@ export default function ZapperIntegration() {
 
     setLoading(true);
     try {
-      const demoTxHash = `0x${Math.random().toString(16).slice(2, 34).padStart(32, '0')}${Math.random().toString(16).slice(2, 34).padStart(32, '0')}`;
-      
       const response = await fetch('/api/zapper/track-registration', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          txHash: demoTxHash,
           userAddress: walletAddress
         })
       });

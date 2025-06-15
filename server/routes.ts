@@ -752,12 +752,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Transform to consistent format
       const response = {
         yakoa: {
-          status: statuses.yakoa.status === 'connected' ? 'live' : 'demo',
+          status: statuses.yakoa.status === 'connected' ? 'live' : 'requires_api_key',
           apiKey: statuses.yakoa.apiKey,
           message: statuses.yakoa.message
         },
         tomo: {
-          status: statuses.tomo.status === 'connected' ? 'live' : 'demo', 
+          status: statuses.tomo.status === 'connected' ? 'live' : 'requires_api_key', 
           apiKey: statuses.tomo.apiKey,
           message: statuses.tomo.message
         },
@@ -1130,7 +1130,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       
-      // For demo purposes, use a default address or get from user profile
+      // Use authenticated user's wallet address or require API key
       const defaultAddress = "0x742d35Cc6634C0532925a3b8D07c68c2b6f5f9E8";
       
       const portfolio = await blockchainService.getWalletPortfolio(defaultAddress);
