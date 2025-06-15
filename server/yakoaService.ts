@@ -113,10 +113,7 @@ export class YakoaService {
           url: data.media_url,
           hash: null,
           trust_reason: {
-            type: "trusted_platform",
-            trusted_platform: {
-              platform_name: "SoundRights"
-            }
+            type: "no_licenses"
           }
         }]
       };
