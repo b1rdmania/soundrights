@@ -86,13 +86,14 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
 
       // Fallback to MetaMask check
-      if (typeof window.ethereum !== 'undefined') {
-        const accounts = await window.ethereum.request({
+      const ethereum = (window as any).ethereum as EthereumProvider;
+      if (ethereum) {
+        const accounts = await ethereum.request({
           method: 'eth_accounts',
         });
 
         if (accounts.length > 0) {
-          const chainId = await window.ethereum.request({
+          const chainId = await ethereum.request({
             method: 'eth_chainId',
           });
           setAddress(accounts[0]);
@@ -124,7 +125,8 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
 
     // MetaMask fallback listeners
-    if (typeof window.ethereum !== 'undefined') {
+    const ethereum = (window as any).ethereum as EthereumProvider;
+    if (ethereum) {
       const handleAccountsChanged = (accounts: string[]) => {
         if (accounts.length === 0) {
           setAddress(null);
@@ -138,15 +140,13 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         setChainId(parseInt(chainId, 16));
       };
 
-      window.ethereum.on('accountsChanged', handleAccountsChanged);
-      window.ethereum.on('chainChanged', handleChainChanged);
+      ethereum.on('accountsChanged', handleAccountsChanged);
+      ethereum.on('chainChanged', handleChainChanged);
 
       return () => {
         unsubscribeAppKit?.();
-        if (window.ethereum) {
-          window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
-          window.ethereum.removeListener('chainChanged', handleChainChanged);
-        }
+        ethereum.removeListener('accountsChanged', handleAccountsChanged);
+        ethereum.removeListener('chainChanged', handleChainChanged);
       };
     }
 
