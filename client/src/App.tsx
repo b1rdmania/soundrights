@@ -2,12 +2,14 @@ import { queryClient } from "@/lib/queryClient";
 import { Switch, Route } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import ProductionHome from "./pages/ProductionHome";
+import Dashboard from "./pages/Dashboard";
 import SimpleNavbar from "./components/SimpleNavbar";
 
 function AppRouter() {
   return (
     <Switch>
       <Route path="/" component={ProductionHome} />
+      <Route path="/dashboard" component={Dashboard} />
       <Route>
         <div className="min-h-screen flex items-center justify-center bg-gray-100">
           <div className="text-center">

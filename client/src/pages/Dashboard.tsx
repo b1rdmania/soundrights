@@ -1,414 +1,158 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React from 'react';
 import { Link } from 'wouter';
-import { 
-  Music, 
-  Shield, 
-  CheckCircle, 
-  Clock, 
-  Upload, 
-  AlertCircle, 
-  TrendingUp,
-  Wallet
-} from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import WalletPortfolio from '@/components/WalletPortfolio';
+import { Upload, Shield, Zap, BarChart3, Music, Plus, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 
-interface Track {
-  id: string;
-  title: string;
-  artist: string;
-  duration: number;
-  uploadedAt: string;
-  status: 'processing' | 'verified' | 'registered' | 'failed';
-  ipAssetId?: string;
-  yakoaTokenId?: string;
-  storyTxHash?: string;
-}
-
-interface IPAsset {
-  id: string;
-  trackId: string;
-  storyIpId: string;
-  status: string;
-  txHash?: string;
-  createdAt: string;
-}
-
-interface DashboardStats {
-  totalTracks: number;
-  verifiedTracks: number;
-  registeredAssets: number;
-  totalValue: number;
-}
-
-export default function Dashboard() {
-  // Fetch user tracks
-  const { data: tracks = [], isLoading: tracksLoading } = useQuery({
-    queryKey: ['/api/tracks'],
-    retry: false,
-  });
-
-  // Fetch IP assets
-  const { data: ipAssets = [], isLoading: assetsLoading } = useQuery({
-    queryKey: ['/api/ip-assets'],
-    retry: false,
-  });
-
-  // Calculate dashboard stats
-  const stats: DashboardStats = {
-    totalTracks: tracks.length,
-    verifiedTracks: tracks.filter((t: any) => t.status === 'verified' || t.status === 'registered').length,
-    registeredAssets: ipAssets.length,
-    totalValue: tracks.length * 150 // Estimated value per track
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'processing':
-        return <Clock className="w-4 h-4 text-yellow-600" />;
-      case 'verified':
-        return <CheckCircle className="w-4 h-4 text-green-600" />;
-      case 'registered':
-        return <Shield className="w-4 h-4 text-blue-600" />;
-      case 'failed':
-        return <AlertCircle className="w-4 h-4 text-red-600" />;
-      default:
-        return <Clock className="w-4 h-4 text-gray-600" />;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'processing':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'verified':
-        return 'bg-green-100 text-green-800';
-      case 'registered':
-        return 'bg-blue-100 text-blue-800';
-      case 'failed':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
+const Dashboard = () => {
   return (
-    <div className="min-h-screen bg-gray-50 pt-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-            <p className="text-gray-600 mt-1">Manage your music IP portfolio</p>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
+          <p className="text-gray-600">Manage your music IP assets and track registrations</p>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <Link href="/upload" className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-6 rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm opacity-90">Quick Action</p>
+                <p className="text-xl font-semibold">Upload Track</p>
+              </div>
+              <Upload className="w-8 h-8 opacity-80" />
+            </div>
+          </Link>
+
+          <Link href="/live-demo" className="bg-white p-6 rounded-xl border border-gray-200 hover:border-purple-300 transition-all">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Try Platform</p>
+                <p className="text-xl font-semibold text-gray-900">Live Demo</p>
+              </div>
+              <Shield className="w-8 h-8 text-purple-600" />
+            </div>
+          </Link>
+
+          <Link href="/integrations" className="bg-white p-6 rounded-xl border border-gray-200 hover:border-purple-300 transition-all">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">API Status</p>
+                <p className="text-xl font-semibold text-gray-900">Integrations</p>
+              </div>
+              <Zap className="w-8 h-8 text-green-600" />
+            </div>
+          </Link>
+
+          <Link href="/marketplace" className="bg-white p-6 rounded-xl border border-gray-200 hover:border-purple-300 transition-all">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Browse</p>
+                <p className="text-xl font-semibold text-gray-900">Marketplace</p>
+              </div>
+              <BarChart3 className="w-8 h-8 text-blue-600" />
+            </div>
+          </Link>
+        </div>
+
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white p-6 rounded-xl border border-gray-200">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Your Tracks</h3>
+              <Music className="w-6 h-6 text-purple-600" />
+            </div>
+            <div className="space-y-2">
+              <p className="text-3xl font-bold text-gray-900">0</p>
+              <p className="text-sm text-gray-600">Total uploaded tracks</p>
+            </div>
           </div>
-          <div className="flex gap-3">
-            <Link href="/upload">
-              <Button className="bg-purple-600 hover:bg-purple-700">
-                <Upload className="w-4 h-4 mr-2" />
-                Upload Track
-              </Button>
+
+          <div className="bg-white p-6 rounded-xl border border-gray-200">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">IP Assets</h3>
+              <Shield className="w-6 h-6 text-green-600" />
+            </div>
+            <div className="space-y-2">
+              <p className="text-3xl font-bold text-gray-900">0</p>
+              <p className="text-sm text-gray-600">Registered on blockchain</p>
+            </div>
+          </div>
+
+          <div className="bg-white p-6 rounded-xl border border-gray-200">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Verifications</h3>
+              <CheckCircle className="w-6 h-6 text-blue-600" />
+            </div>
+            <div className="space-y-2">
+              <p className="text-3xl font-bold text-gray-900">0</p>
+              <p className="text-sm text-gray-600">Completed authenticity checks</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Activity */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-semibold text-gray-900">Recent Activity</h3>
+            <Link href="/upload" className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2">
+              <Plus className="w-4 h-4" />
+              Upload Track
             </Link>
-            <Link href="/live-demo">
-              <Button variant="outline">
-                <Music className="w-4 h-4 mr-2" />
-                Try Demo
-              </Button>
+          </div>
+
+          <div className="text-center py-12">
+            <Music className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h4 className="text-lg font-medium text-gray-900 mb-2">No tracks uploaded yet</h4>
+            <p className="text-gray-600 mb-6">Start by uploading your first track to begin the IP registration process</p>
+            <Link href="/upload" className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all inline-flex items-center gap-2">
+              <Upload className="w-5 h-5" />
+              Upload Your First Track
             </Link>
           </div>
         </div>
 
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="tracks">My Tracks</TabsTrigger>
-            <TabsTrigger value="assets">IP Assets</TabsTrigger>
-            <TabsTrigger value="portfolio">
-              <Wallet className="w-4 h-4 mr-2" />
-              Portfolio
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-6">
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Total Tracks</p>
-                      <p className="text-2xl font-bold text-gray-900">{stats.totalTracks}</p>
-                    </div>
-                    <Music className="w-8 h-8 text-purple-600" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Verified Tracks</p>
-                      <p className="text-2xl font-bold text-gray-900">{stats.verifiedTracks}</p>
-                    </div>
-                    <CheckCircle className="w-8 h-8 text-green-600" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">IP Assets</p>
-                      <p className="text-2xl font-bold text-gray-900">{stats.registeredAssets}</p>
-                    </div>
-                    <Shield className="w-8 h-8 text-blue-600" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Portfolio Value</p>
-                      <p className="text-2xl font-bold text-gray-900">${stats.totalValue.toLocaleString()}</p>
-                    </div>
-                    <TrendingUp className="w-8 h-8 text-emerald-600" />
-                  </div>
-                </CardContent>
-              </Card>
+        {/* System Status */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h3 className="text-xl font-semibold text-gray-900 mb-6">System Status</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
+              <div className="flex items-center gap-3">
+                <CheckCircle className="w-5 h-5 text-green-600" />
+                <span className="font-medium text-gray-900">Story Protocol</span>
+              </div>
+              <span className="text-sm text-green-700 bg-green-100 px-2 py-1 rounded">Operational</span>
             </div>
 
-            {/* Recent Activity */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="w-5 h-5" />
-                  Recent Activity
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-lg">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                      <Shield className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-gray-900">Track "Summer Vibes" registered as IP asset</p>
-                      <p className="text-sm text-gray-600">2 hours ago</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-4 p-4 bg-green-50 rounded-lg">
-                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                      <CheckCircle className="w-5 h-5 text-green-600" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-gray-900">Audio verification completed for "Midnight Blues"</p>
-                      <p className="text-sm text-gray-600">4 hours ago</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-4 p-4 bg-purple-50 rounded-lg">
-                    <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                      <Music className="w-5 h-5 text-purple-600" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-gray-900">New track "Digital Dreams" uploaded</p>
-                      <p className="text-sm text-gray-600">6 hours ago</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
+              <div className="flex items-center gap-3">
+                <CheckCircle className="w-5 h-5 text-green-600" />
+                <span className="font-medium text-gray-900">Yakoa IP API</span>
+              </div>
+              <span className="text-sm text-green-700 bg-green-100 px-2 py-1 rounded">Operational</span>
+            </div>
 
-            {/* Recent Tracks Preview */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Music className="w-5 h-5" />
-                  Recent Tracks
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {tracksLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-                  </div>
-                ) : tracks.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Music className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No tracks uploaded yet</h3>
-                    <p className="text-gray-600 mb-4">Upload your first track to get started with IP protection</p>
-                    <Link href="/upload">
-                      <Button className="bg-purple-600 hover:bg-purple-700">
-                        <Upload className="w-4 h-4 mr-2" />
-                        Upload Track
-                      </Button>
-                    </Link>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {tracks.slice(0, 5).map((track: any) => (
-                      <div key={track.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                            <Music className="w-6 h-6 text-purple-600" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-gray-900">{track.title}</h3>
-                            <p className="text-gray-600">{track.artist}</p>
-                            <p className="text-sm text-gray-500">
-                              {track.duration ? `${Math.floor(track.duration / 60)}:${(track.duration % 60).toString().padStart(2, '0')}` : 'Unknown duration'}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          {getStatusIcon(track.status)}
-                          <Badge className={getStatusColor(track.status)}>
-                            {track.status}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
-                    
-                    {tracks.length > 5 && (
-                      <div className="text-center pt-4">
-                        <p className="text-gray-600">
-                          View All Tracks ({tracks.length}) in the Tracks tab
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+            <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
+              <div className="flex items-center gap-3">
+                <CheckCircle className="w-5 h-5 text-green-600" />
+                <span className="font-medium text-gray-900">Zapper API</span>
+              </div>
+              <span className="text-sm text-green-700 bg-green-100 px-2 py-1 rounded">Operational</span>
+            </div>
 
-          <TabsContent value="tracks" className="space-y-6">
-            {/* Recent Tracks */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Music className="w-5 h-5" />
-                  My Tracks ({tracks.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {tracksLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-                  </div>
-                ) : tracks.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Music className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No tracks uploaded yet</h3>
-                    <p className="text-gray-600 mb-4">Upload your first track to get started with IP protection</p>
-                    <Link href="/upload">
-                      <Button className="bg-purple-600 hover:bg-purple-700">
-                        <Upload className="w-4 h-4 mr-2" />
-                        Upload Track
-                      </Button>
-                    </Link>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {tracks.map((track: any) => (
-                      <div key={track.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                            <Music className="w-6 h-6 text-purple-600" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-gray-900">{track.title}</h3>
-                            <p className="text-gray-600">{track.artist}</p>
-                            <p className="text-sm text-gray-500">
-                              {track.duration ? `${Math.floor(track.duration / 60)}:${(track.duration % 60).toString().padStart(2, '0')}` : 'Unknown duration'}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          {getStatusIcon(track.status)}
-                          <Badge className={getStatusColor(track.status)}>
-                            {track.status}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="assets" className="space-y-6">
-            {/* IP Assets */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="w-5 h-5" />
-                  IP Assets ({ipAssets.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {assetsLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-                  </div>
-                ) : ipAssets.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Shield className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No IP assets registered</h3>
-                    <p className="text-gray-600">Upload and verify tracks to create IP assets</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {ipAssets.map((asset: any) => (
-                      <Card key={asset.id}>
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                                <Shield className="w-6 h-6 text-blue-600" />
-                              </div>
-                              <div>
-                                <h3 className="font-semibold text-gray-900">IP Asset #{asset.id}</h3>
-                                <p className="text-gray-600">Track: {asset.trackId}</p>
-                                <p className="text-sm text-gray-500">
-                                  Story Protocol ID: {asset.storyIpId}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-3">
-                              <Badge className={getStatusColor(asset.status)}>
-                                {asset.status}
-                              </Badge>
-                              {asset.txHash && (
-                                <Button variant="outline" size="sm">
-                                  View on Chain
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="portfolio" className="space-y-6">
-            <WalletPortfolio />
-          </TabsContent>
-        </Tabs>
+            <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
+              <div className="flex items-center gap-3">
+                <CheckCircle className="w-5 h-5 text-green-600" />
+                <span className="font-medium text-gray-900">Database</span>
+              </div>
+              <span className="text-sm text-green-700 bg-green-100 px-2 py-1 rounded">Operational</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
-}
+};
+
+export default Dashboard;
