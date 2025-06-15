@@ -63,7 +63,7 @@ export class YakoaService {
     const response = await fetch(url, {
       ...options,
       headers: {
-        'X-API-Key': this.apiKey,
+        'Authorization': `HMAC-SHA256 api_key=${this.apiKey}`,
         'Content-Type': 'application/json',
         'X-Subdomain': 'docs-demo',
         'X-Network': 'docs-demo',
@@ -86,6 +86,10 @@ export class YakoaService {
    * Register a digital audio asset for IP authentication using Yakoa API
    */
   async registerToken(data: YakoaRegistrationRequest): Promise<YakoaRegistrationResponse> {
+    if (!this.apiKey) {
+      throw new Error('YAKOA_API_KEY required for IP verification. Please provide your Yakoa API key.');
+    }
+
     try {
       // Format according to Yakoa API documentation
       const registrationData = {
@@ -138,6 +142,12 @@ export class YakoaService {
       };
     } catch (error) {
       console.error('Yakoa API registration failed:', error);
+      
+      // Authentication error - requires proper API key format
+      if (error instanceof Error && error.message.includes('Authentication')) {
+        throw new Error(`Yakoa API authentication failed. The API key format or endpoint configuration needs verification with the service provider. Error: ${error.message}`);
+      }
+      
       throw new Error(`Yakoa IP verification failed: ${error instanceof Error ? error.message : 'Unknown error'}. Check API configuration and network connectivity.`);
     }
   }
