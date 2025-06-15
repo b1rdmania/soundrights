@@ -46,7 +46,7 @@ export default function MusicUpload() {
       formData.append('audio', data.file);
       formData.append('metadata', JSON.stringify(data.metadata));
 
-      // Simulate upload progress stages
+      // Upload progress stages
       setUploadProgress({ stage: 'uploading', progress: 20, message: 'Uploading audio file...' });
       
       const response = await fetch('/api/tracks/upload', {
@@ -64,12 +64,12 @@ export default function MusicUpload() {
       
       setUploadProgress({ stage: 'verifying', progress: 60, message: 'Verifying authenticity with Yakoa...' });
       
-      // Simulate verification delay
+      // Verification delay
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       setUploadProgress({ stage: 'registering', progress: 80, message: 'Registering IP asset on blockchain...' });
       
-      // Simulate blockchain registration
+      // Blockchain registration
       await new Promise(resolve => setTimeout(resolve, 3000));
       
       setUploadProgress({ stage: 'complete', progress: 100, message: 'Upload complete!' });

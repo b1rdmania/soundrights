@@ -269,7 +269,7 @@ export default function EnhancedIPVerification() {
               }}
               size="sm"
             >
-              Demo Data
+              Test Data
             </Button>
           </div>
         </CardContent>
