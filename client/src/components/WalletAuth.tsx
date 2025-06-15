@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Wallet, Check, AlertCircle } from 'lucide-react';
-import { connectWallet as reownConnect, disconnectWallet as reownDisconnect } from '@/lib/reownConfig';
 
 interface WalletContextType {
   address: string | null;
@@ -39,12 +38,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const connectWallet = async () => {
     setIsConnecting(true);
     try {
-      const result = await reownConnect();
-      setAddress(result.address);
-      setChainId(result.chainId);
-    } catch (error) {
-      console.error('Failed to connect wallet:', error);
-      // Fallback to MetaMask if WalletConnect fails
+      // Try MetaMask first
       const ethereum = (window as any).ethereum as EthereumProvider;
       if (ethereum) {
         try {
@@ -67,12 +61,13 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const disconnectWallet = async () => {
     try {
-      await reownDisconnect();
+      setAddress(null);
+      setChainId(null);
     } catch (error) {
-      console.error('WalletConnect disconnect failed:', error);
+      console.error('Wallet disconnect failed:', error);
+      setAddress(null);
+      setChainId(null);
     }
-    setAddress(null);
-    setChainId(null);
   };
 
   const checkConnection = async () => {

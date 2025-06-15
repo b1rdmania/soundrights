@@ -1,47 +1,93 @@
 
-import React from "react";
+import { Switch, Route } from "wouter";
+import { queryClient } from "@/lib/queryClient";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "react-hot-toast";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { ErrorBoundary } from 'react-error-boundary';
+import { WalletProvider } from "@/components/WalletAuth";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import Index from "./pages/Index";
+import Upload from "./pages/Upload";
+import Results from "./pages/Results";
+import About from "./pages/About";
+import WhitePaper from "./pages/WhitePaper";
+import Invest from "./pages/Invest";
+import Demo from "./pages/Demo";
+import LiveDemo from "./pages/LiveDemo";
+import Sponsors from "./pages/Sponsors";
+import Integrations from "./pages/Integrations";
+import Marketplace from "./pages/Marketplace";
+import Analytics from "./pages/Analytics";
+import Profile from "./pages/Profile";
+import Dashboard from "./pages/Dashboard";
+import Admin from "./pages/Admin";
+import NotFound from "./pages/NotFound";
+
+// Error boundary component
+const ErrorFallback = ({ error }: { error: Error }) => {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="text-center p-8">
+        <h2 className="text-2xl font-bold text-red-600 mb-4">Something went wrong</h2>
+        <p className="text-gray-600 mb-4">{error.message}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark"
+        >
+          Reload Page
+        </button>
+      </div>
+    </div>
+  );
+};
+
+function AppRouter() {
+  return (
+    <Switch>
+      <Route path="/" component={Index} />
+      <Route path="/dashboard" component={Dashboard} />
+      <Route path="/upload" component={Upload} />
+      <Route path="/demo" component={Demo} />
+      <Route path="/live-demo" component={LiveDemo} />
+      <Route path="/sponsors" component={Sponsors} />
+      <Route path="/integrations" component={Integrations} />
+      <Route path="/marketplace" component={Marketplace} />
+      <Route path="/analytics" component={Analytics} />
+      <Route path="/profile" component={Profile} />
+      <Route path="/results" component={Results} />
+      <Route path="/about" component={About} />
+      <Route path="/whitepaper" component={WhitePaper} />
+      <Route path="/invest" component={Invest} />
+      <Route path="/admin" component={Admin} />
+      <Route component={NotFound} />
+    </Switch>
+  );
+}
 
 const App = () => {
   return (
-    <div className="min-h-screen bg-white">
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-purple-600 mb-4">SoundRights</h1>
-          <p className="text-xl text-gray-600">Web3 Music IP Registration Platform</p>
-          <div className="mt-4 p-4 bg-green-100 border border-green-400 rounded">
-            <p className="text-green-700 font-semibold">✅ Production Ready - All APIs Operational</p>
-          </div>
-        </div>
-        
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-blue-50 p-6 rounded-lg">
-            <h3 className="font-bold text-blue-900 mb-2">IP Registration</h3>
-            <p className="text-blue-700">Register music IP on Story Protocol blockchain</p>
-          </div>
-          <div className="bg-purple-50 p-6 rounded-lg">
-            <h3 className="font-bold text-purple-900 mb-2">Yakoa Verification</h3>
-            <p className="text-purple-700">Authentic IP verification via live API</p>
-          </div>
-          <div className="bg-green-50 p-6 rounded-lg">
-            <h3 className="font-bold text-green-900 mb-2">Wallet Analytics</h3>
-            <p className="text-green-700">Live blockchain portfolio data via Zapper</p>
-          </div>
-        </div>
-
-        <div className="text-center">
-          <div className="bg-gray-100 p-6 rounded-lg">
-            <h3 className="font-bold text-gray-900 mb-4">Platform Status</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-              <div className="text-green-600">✅ Story Protocol</div>
-              <div className="text-green-600">✅ Yakoa API</div>
-              <div className="text-green-600">✅ Zapper API</div>
-              <div className="text-green-600">✅ WalletConnect</div>
+    <WalletProvider>
+      <QueryClientProvider client={queryClient}>
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <TooltipProvider>
+            <div className="flex flex-col min-h-screen">
+              <Toaster position="top-right" />
+              <Sonner />
+              <Navbar />
+              
+              <main className="flex-grow">
+                <AppRouter />
+              </main>
+              
+              <Footer />
             </div>
-            <p className="text-gray-600 mt-4">All integrations verified with authentic data</p>
-          </div>
-        </div>
-      </div>
-    </div>
+          </TooltipProvider>
+        </ErrorBoundary>
+      </QueryClientProvider>
+    </WalletProvider>
   );
 };
 
