@@ -30,50 +30,39 @@ const ErrorFallback = ({ error }: { error: Error }) => {
   );
 };
 
+// Minimal test router to identify mounting issue
+const TestHomePage = () => (
+  <div className="min-h-screen bg-white flex items-center justify-center">
+    <div className="text-center">
+      <h1 className="text-4xl font-bold text-purple-600 mb-4">SoundRights</h1>
+      <p className="text-xl text-gray-600 mb-8">Production Platform - Testing Mount</p>
+      <div className="bg-green-100 p-4 rounded-lg">
+        <p className="text-green-800 font-semibold">React App Successfully Mounted</p>
+      </div>
+    </div>
+  </div>
+);
+
 function AppRouter() {
   return (
     <Switch>
-      <Route path="/" component={Index} />
-      <Route path="/dashboard" component={Dashboard} />
-      <Route path="/upload" component={Upload} />
-      <Route path="/demo" component={Demo} />
-      <Route path="/live-demo" component={LiveDemo} />
-      <Route path="/sponsors" component={Sponsors} />
-      <Route path="/integrations" component={Integrations} />
-      <Route path="/marketplace" component={Marketplace} />
-      <Route path="/analytics" component={Analytics} />
-      <Route path="/profile" component={Profile} />
-      <Route path="/results" component={Results} />
-      <Route path="/about" component={About} />
-      <Route path="/whitepaper" component={WhitePaper} />
-      <Route path="/invest" component={Invest} />
-      <Route path="/admin" component={Admin} />
-      <Route component={NotFound} />
+      <Route path="/" component={TestHomePage} />
+      <Route>
+        <div className="min-h-screen flex items-center justify-center">
+          <p>Page not found - <a href="/" className="text-purple-600">Go Home</a></p>
+        </div>
+      </Route>
     </Switch>
   );
 }
 
 const App = () => {
   return (
-    <WalletProvider>
-      <QueryClientProvider client={queryClient}>
-        <ErrorBoundary FallbackComponent={ErrorFallback}>
-          <TooltipProvider>
-            <div className="flex flex-col min-h-screen">
-              <Toaster position="top-right" />
-              <Sonner />
-              <SafeNavbar />
-              
-              <main className="flex-grow">
-                <AppRouter />
-              </main>
-              
-              <SafeFooter />
-            </div>
-          </TooltipProvider>
-        </ErrorBoundary>
-      </QueryClientProvider>
-    </WalletProvider>
+    <QueryClientProvider client={queryClient}>
+      <div className="flex flex-col min-h-screen">
+        <AppRouter />
+      </div>
+    </QueryClientProvider>
   );
 };
 
