@@ -79,23 +79,15 @@ function AppRouter() {
 
 const App = () => {
   return (
-    <ErrorBoundary FallbackComponent={ErrorFallback}>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <div className="flex flex-col min-h-screen">
-            <Toaster position="top-right" />
-            <Sonner />
-            <Navbar />
-            
-            <main className="flex-grow">
-              <AppRouter />
-            </main>
-            
-            <Footer />
-          </div>
-        </TooltipProvider>
-      </QueryClientProvider>
-    </ErrorBoundary>
+    <div className="flex flex-col min-h-screen">
+      <Navbar />
+      
+      <main className="flex-grow">
+        <AppRouter />
+      </main>
+      
+      <Footer />
+    </div>
   );
 };
 
