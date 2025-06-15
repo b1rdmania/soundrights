@@ -63,10 +63,9 @@ export class YakoaService {
     const response = await fetch(url, {
       ...options,
       headers: {
-        'Authorization': `HMAC-SHA256 api_key=${this.apiKey}`,
-        'Content-Type': 'application/json',
-        'X-Subdomain': 'docs-demo',
-        'X-Network': 'docs-demo',
+        'accept': 'application/json',
+        'content-type': 'application/json',
+        'X-API-KEY': this.apiKey,
         ...options.headers,
       },
     });
@@ -91,20 +90,16 @@ export class YakoaService {
     }
 
     try {
-      // Format according to Yakoa API documentation
+      // Format according to Yakoa API requirements
       const registrationData = {
-        id: {
-          chain: "story-aeneid",
-          contract_address: "0x041b4f29183317eb2335f2a71ecf8d9d4d21f9a3",
-          token_id: `${Date.now()}`
-        },
-        registration_tx: {
+        id: `0x041b4f29183317eb2335f2a71ecf8d9d4d21f9a3:${Date.now()}`,
+        mint_tx: {
           hash: `0x${Math.random().toString(16).slice(2, 34).padStart(32, '0')}${Math.random().toString(16).slice(2, 34).padStart(32, '0')}`,
           block_number: Math.floor(Math.random() * 1000000),
           timestamp: new Date().toISOString(),
           chain: "story-aeneid"
         },
-        creator_id: data.metadata.creator,
+        creator_id: `0x${'0'.repeat(40)}`, // Placeholder creator address
         metadata: {
           name: data.metadata.title,
           description: data.metadata.description || `Audio track: ${data.metadata.title} by ${data.metadata.creator}`,
@@ -117,13 +112,14 @@ export class YakoaService {
           media_id: `media_${Date.now()}`,
           url: data.media_url,
           hash: null,
-          trust_reason: "platform_upload"
-        }],
-        authorizations: data.authorizations || [],
-        license_parents: []
+          trust_reason: {
+            type: "platform_upload",
+            source: "SoundRights"
+          }
+        }]
       };
 
-      const response = await this.makeRequest('/register-token', {
+      const response = await this.makeRequest('/token', {
         method: 'POST',
         body: JSON.stringify(registrationData),
       });
