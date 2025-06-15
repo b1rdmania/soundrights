@@ -792,7 +792,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const ipAsset = await storyService.registerIPAsset({
         name,
         description,
-        mediaUrl: mediaUrl || "https://example.com/test.mp3",
+        mediaUrl: mediaUrl,
         attributes: attributes || {},
         userAddress: "test_user_" + Date.now(),
       });

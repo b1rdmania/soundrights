@@ -203,19 +203,9 @@ export class YakoaService {
         };
       }
 
-      // Test API connection with a sample request
-      const testData: YakoaRegistrationRequest = {
-        media_url: 'https://example.com/test.mp3',
-        metadata: {
-          title: 'API Test',
-          creator: 'Test User',
-          description: 'Connection test'
-        }
-      };
-
-      await this.makeRequest('/tokens', {
-        method: 'POST',
-        body: JSON.stringify(testData)
+      // Test API connection without registering dummy content
+      await this.makeRequest('/health', {
+        method: 'GET'
       });
 
       return {
@@ -225,9 +215,9 @@ export class YakoaService {
       };
     } catch (error) {
       return {
-        status: 'demo',
-        apiKey: this.apiKey ? this.apiKey.slice(0, 8) + '...' : 'Demo Sandbox',
-        message: 'Yakoa Service: Using live demo sandbox - API connection not verified'
+        status: 'error',
+        apiKey: this.apiKey ? this.apiKey.slice(0, 8) + '...' : 'missing',
+        message: 'Yakoa API connection failed - verify API key and network access'
       };
     }
   }

@@ -56,7 +56,7 @@ export default function SponsorIntegrations() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           test: true,
-          mediaUrl: 'https://example.com/test-audio.mp3',
+          mediaUrl: formData.mediaUrl,
           metadata: { title: 'Test Track', artist: 'Test Artist' }
         })
       });
