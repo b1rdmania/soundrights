@@ -4,10 +4,7 @@ import { queryClient } from "@/lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Toaster as Sonner } from "@/components/ui/sonner";
 import { ErrorBoundary } from 'react-error-boundary';
-import { WalletProvider } from "@/components/WalletAuth";
-import MobileDetector from "@/components/MobileDetector";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Index from "./pages/Index";
@@ -81,43 +78,25 @@ function AppRouter() {
 }
 
 const App = () => {
-  try {
-    return (
-      <ErrorBoundary FallbackComponent={ErrorFallback}>
-        <QueryClientProvider client={queryClient}>
-          <TooltipProvider>
-            <div className="flex flex-col min-h-screen">
-              <Toaster position="top-right" />
-              <Sonner />
-              <Navbar />
-              
-              <main className="flex-grow">
-                <AppRouter />
-              </main>
-              
-              <Footer />
-            </div>
-          </TooltipProvider>
-        </QueryClientProvider>
-      </ErrorBoundary>
-    );
-  } catch (error) {
-    console.error('App rendering error:', error);
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center p-8">
-          <h2 className="text-2xl font-bold text-red-600 mb-4">Application Error</h2>
-          <p className="text-gray-600 mb-4">Failed to load the application</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark"
-          >
-            Reload Page
-          </button>
-        </div>
-      </div>
-    );
-  }
+  return (
+    <ErrorBoundary FallbackComponent={ErrorFallback}>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <div className="flex flex-col min-h-screen">
+            <Toaster position="top-right" />
+            <Sonner />
+            <Navbar />
+            
+            <main className="flex-grow">
+              <AppRouter />
+            </main>
+            
+            <Footer />
+          </div>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
+  );
 };
 
 export default App;
