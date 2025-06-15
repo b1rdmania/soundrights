@@ -60,16 +60,10 @@ export const connectWallet = async (): Promise<WalletConnectionResult> => {
       // Check immediately
       setTimeout(checkConnection, 100)
 
-      // Subscribe to account changes
-      const unsubscribe = appKit.subscribeAccount?.(checkConnection)
-
       // Set timeout for connection
       setTimeout(() => {
         if (!resolved) {
           resolved = true
-          if (unsubscribe && typeof unsubscribe === 'function') {
-            unsubscribe()
-          }
           reject(new Error('Connection timeout'))
         }
       }, 30000)
