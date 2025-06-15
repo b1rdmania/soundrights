@@ -149,7 +149,7 @@ export class StoryProtocolService {
             tokenId: ipRegistrationResponse.tokenId?.toString() || Math.floor(Math.random() * 1000000).toString(),
             chainId: aeneid.id,
             txHash: ipRegistrationResponse.txHash || `0x${Date.now().toString(16)}${Math.random().toString(16).substr(2, 40)}`,
-            nftContract: '0x041B4F29183317Eb2335F2A71ecF8d9d4D21F9a3',
+            nftContract: '0x041b4f29183317eb2335f2a71ecf8d9d4d21f9a3',
             metadata,
             storyProtocolUrl: `https://explorer.story.foundation/ip/${ipRegistrationResponse.ipId}`,
             blockNumber: Math.floor(Math.random() * 1000000),
