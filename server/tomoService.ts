@@ -41,6 +41,9 @@ export class TomoService {
   }
 
   private async makeRequest(endpoint: string, options: any = {}) {
+    if (!this.apiKey) {
+      throw new Error('TOMO_API_KEY required for social authentication. Please configure your Tomo API key.');
+    }
 
     const url = `${this.baseUrl}${endpoint}`;
     const response = await fetch(url, {

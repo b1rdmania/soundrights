@@ -37,14 +37,10 @@ export class WalletConnectService {
    * Check current wallet connection status
    */
   async getConnectionStatus(): Promise<{ connected: boolean; wallet?: WalletState }> {
-    if (this.demoMode) {
-      return {
-        connected: !!this.connectedWallet,
-        wallet: this.connectedWallet || undefined
-      };
+    if (!this.projectId) {
+      throw new Error('WalletConnect project ID required for wallet connections. Please configure WALLETCONNECT_PROJECT_ID.');
     }
 
-    // In production, this would check actual WalletConnect session
     return {
       connected: !!this.connectedWallet,
       wallet: this.connectedWallet || undefined
@@ -55,22 +51,8 @@ export class WalletConnectService {
    * Initiate wallet connection using WalletConnect protocol
    */
   async connectWallet(): Promise<{ wallet: WalletState; uri?: string }> {
-    if (this.demoMode) {
-      // Simulate successful connection in demo mode
-      const demoWallet: WalletState = {
-        address: '0x742B24aB32B6f9b6E2170df9b21845a7Ad5B6fDa',
-        chainId: 1,
-        chainName: 'Ethereum Mainnet',
-        balance: '1.2345',
-        connected: true
-      };
-      
-      this.connectedWallet = demoWallet;
-      
-      return {
-        wallet: demoWallet,
-        uri: 'wc:demo-uri-for-testing@2?relay-protocol=irn&symKey=demo-key'
-      };
+    if (!this.projectId) {
+      throw new Error('WalletConnect project ID required for wallet connections. Please configure WALLETCONNECT_PROJECT_ID.');
     }
 
     // In production, this would use actual WalletConnect SDK

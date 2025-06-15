@@ -44,12 +44,14 @@ export interface YakoaRegistrationResponse {
 export class YakoaService {
   private readonly apiKey: string;
   private readonly baseUrl = 'https://docs-demo.ip-api-sandbox.yakoa.io/docs-demo';
-  private readonly demoMode: boolean;
 
   constructor() {
-    this.apiKey = 'MhBsxkU1z9fG6TofE59KqiiWV-YlYE8Q4awlLQehF3U';
-    this.demoMode = false;
-    console.log('Yakoa Service: Live API enabled with provided credentials');
+    this.apiKey = process.env.YAKOA_API_KEY || '';
+    if (!this.apiKey) {
+      console.log('Yakoa Service: YAKOA_API_KEY required for IP verification functionality');
+    } else {
+      console.log('Yakoa Service: Live API enabled with authenticated credentials');
+    }
   }
 
   private async makeRequest(endpoint: string, options: any = {}) {
@@ -193,11 +195,11 @@ export class YakoaService {
    */
   async testConnection(): Promise<{ status: string; apiKey: string; message: string }> {
     try {
-      if (this.demoMode) {
+      if (!this.apiKey) {
         return {
-          status: 'demo',
-          apiKey: 'Demo Sandbox',
-          message: 'Yakoa Service: Using live demo sandbox - provide YAKOA_API_KEY for production features'
+          status: 'error',
+          apiKey: 'missing',
+          message: 'YAKOA_API_KEY required for IP verification functionality'
         };
       }
 
