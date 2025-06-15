@@ -1,0 +1,143 @@
+Jump to Content
+yakoa-ip-api
+Yakoa IP API
+
+    Getting Started
+    Key Concepts
+    Demo Environment
+    Token
+
+Register Tokenpost
+Get Tokenget
+Token Media
+Token Authorization
+
+Powered by 
+Register Token
+post https://{subdomain}.ip-api-sandbox.yakoa.io/{network}/token
+Registers a new Token or registers new metadata for an existing Token.
+
+This is the primary endpoint for introducing Token data into the Yakoa IP system or modifying it. When you POST data to this endpoint:
+
+    The system checks if a Token with the given id (contract address and on-chain token ID, on the specified chain) already exists.
+    If new: The Token is registered with all provided details:
+        registration_tx: Transaction details of its creation/minting.
+        creator_id: The associated Creator.
+        metadata: Its descriptive metadata.
+        media: A list of its associated media files (images, videos, etc.).
+        license_parents (optional): Any parent tokens it derives rights from.
+        authorizations (optional): Any pre-existing direct authorizations for this Token.
+    If existing: The Token's information is updated.
+        The system compares the block_number of the provided registration_tx with the existing one.
+        If the new registration_tx is more recent (higher block number), the Token's record (including media, metadata etc.) is updated with the new data.
+        If the existing registration_tx is more recent or the same, the existing core data is preserved
+    Infringement Check: After registration or update, an IP infringement check is initiated for the Token's media. The results can be retrieved by subsequent calls to the Token GET endpoint.
+
+Key Request Body Fields:
+
+    id (string, required): Token identifier (e.g., contract_address:token_id).
+    registration_tx (object, required): Transaction details.
+    creator_id (string, required): Creator's identifier.
+    metadata (object, required): Token metadata.
+    media (array of objects, required): Media items associated with the Token. Each must have media_id and url. If the media is coming from a non-proveable location, it must include a hash to ensure the content that Yakoa fetches and processes matches that expected by the platform. If the content fetched by Yakoa does not match the expected hash, the media will get a hash_mismatch status and no infringement checks will be run. If the media comes from a proveable location (e.g., IPFS), the hash is not required. Media can optionally include a trust_reason.
+    license_parents (array, optional): Parent license information.
+    authorizations (array, optional): Direct brand authorizations for this token.
+
+Use Cases:
+
+    Registering a newly minted NFT on a marketplace.
+    Updating a Token's metadata or media if it changes on-chain or in its source.
+    Adding new brand authorizations directly to a Token.
+
+Important Notes:
+
+    Media URLs must be publicly accessible.
+    If an existing token is updated with a registration_tx that is older than the stored one, the response will be a 200 OK with the existing token data, rather than a 201 Created.
+
+Query Params
+other_data
+Body Params
+id
+string
+required
+registration_tx
+object
+required
+creator_id
+string
+required
+metadata
+object
+required
+media
+array of objects
+required
+license_parents
+authorizations
+Responses
+
+Updated 18 days ago
+Demo Environment
+Get Token
+Did this page help you?
+Language
+Credentials
+Header
+URL
+Request
+
+1
+
+import requests
+
+2
+
+​
+
+3
+
+url = "https://docs-demo.ip-api-sandbox.yakoa.io/docs-demo/token"
+
+4
+
+​
+
+5
+
+headers = {
+
+6
+
+    "accept": "application/json",
+
+7
+
+    "content-type": "application/json",
+
+8
+
+    "X-API-KEY": "xkqHa0MQ9L1UCa2PzkkMl9le75bquRDwaUzYx6GB"
+
+9
+
+}
+
+10
+
+​
+
+11
+
+response = requests.post(url, headers=headers)
+
+12
+
+​
+
+13
+
+print(response.text)
+
+Click Try It! to start a request and see the response here! Or choose an example:
+application/json
+

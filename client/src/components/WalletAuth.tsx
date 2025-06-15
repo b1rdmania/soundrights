@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Wallet, Check, AlertCircle } from 'lucide-react';
+import { connectWallet as reownConnect, disconnectWallet as reownDisconnect } from '@/lib/reownConfig';
 
 interface WalletContextType {
   address: string | null;
@@ -10,7 +11,14 @@ interface WalletContextType {
   isConnected: boolean;
   isConnecting: boolean;
   connectWallet: () => Promise<void>;
-  disconnectWallet: () => void;
+  disconnectWallet: () => Promise<void>;
+}
+
+// Type for ethereum provider
+interface EthereumProvider {
+  request: (args: { method: string; params?: any[] }) => Promise<any>;
+  on: (event: string, handler: (...args: any[]) => void) => void;
+  removeListener: (event: string, handler: (...args: any[]) => void) => void;
 }
 
 const WalletContext = createContext<WalletContextType | null>(null);
@@ -29,59 +37,96 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [isConnecting, setIsConnecting] = useState(false);
 
   const connectWallet = async () => {
-    if (typeof window.ethereum === 'undefined') {
-      alert('Please install MetaMask or another Web3 wallet');
-      return;
-    }
-
     setIsConnecting(true);
     try {
-      const accounts = await window.ethereum.request({
-        method: 'eth_requestAccounts',
-      });
-
-      const chainId = await window.ethereum.request({
-        method: 'eth_chainId',
-      });
-
-      setAddress(accounts[0]);
-      setChainId(parseInt(chainId, 16));
+      const result = await reownConnect();
+      setAddress(result.address);
+      setChainId(result.chainId);
     } catch (error) {
       console.error('Failed to connect wallet:', error);
+      // Fallback to MetaMask if WalletConnect fails
+      const ethereum = (window as any).ethereum as EthereumProvider;
+      if (ethereum) {
+        try {
+          const accounts = await ethereum.request({
+            method: 'eth_requestAccounts',
+          });
+          const chainId = await ethereum.request({
+            method: 'eth_chainId',
+          });
+          setAddress(accounts[0]);
+          setChainId(parseInt(chainId, 16));
+        } catch (fallbackError) {
+          console.error('MetaMask fallback failed:', fallbackError);
+        }
+      }
     } finally {
       setIsConnecting(false);
     }
   };
 
-  const disconnectWallet = () => {
+  const disconnectWallet = async () => {
+    try {
+      await reownDisconnect();
+    } catch (error) {
+      console.error('WalletConnect disconnect failed:', error);
+    }
     setAddress(null);
     setChainId(null);
   };
 
   const checkConnection = async () => {
-    if (typeof window.ethereum !== 'undefined') {
-      try {
-        const accounts = await window.ethereum.request({
+    try {
+      // Check AppKit connection first
+      const account = (window as any).appKit?.getAccount?.();
+      if (account?.isConnected && account?.address) {
+        setAddress(account.address);
+        setChainId(1); // Default to mainnet
+        return;
+      }
+
+      // Fallback to MetaMask check
+      const ethereum = (window as any).ethereum as EthereumProvider;
+      if (ethereum) {
+        const accounts = await ethereum.request({
           method: 'eth_accounts',
         });
 
         if (accounts.length > 0) {
-          const chainId = await window.ethereum.request({
+          const chainId = await ethereum.request({
             method: 'eth_chainId',
           });
           setAddress(accounts[0]);
           setChainId(parseInt(chainId, 16));
         }
-      } catch (error) {
-        console.error('Failed to check wallet connection:', error);
       }
+    } catch (error) {
+      console.error('Failed to check wallet connection:', error);
     }
   };
 
   useEffect(() => {
     checkConnection();
 
-    if (typeof window.ethereum !== 'undefined') {
+    // Subscribe to AppKit account changes
+    let unsubscribeAppKit: (() => void) | undefined;
+    try {
+      unsubscribeAppKit = (window as any).appKit?.subscribeAccount?.((account: any) => {
+        if (account?.isConnected && account?.address) {
+          setAddress(account.address);
+          setChainId(1);
+        } else {
+          setAddress(null);
+          setChainId(null);
+        }
+      });
+    } catch (error) {
+      console.log('AppKit subscription not available, using MetaMask fallback');
+    }
+
+    // MetaMask fallback listeners
+    const ethereum = (window as any).ethereum as EthereumProvider;
+    if (ethereum) {
       const handleAccountsChanged = (accounts: string[]) => {
         if (accounts.length === 0) {
           setAddress(null);
@@ -95,14 +140,19 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         setChainId(parseInt(chainId, 16));
       };
 
-      window.ethereum.on('accountsChanged', handleAccountsChanged);
-      window.ethereum.on('chainChanged', handleChainChanged);
+      ethereum.on('accountsChanged', handleAccountsChanged);
+      ethereum.on('chainChanged', handleChainChanged);
 
       return () => {
-        window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
-        window.ethereum.removeListener('chainChanged', handleChainChanged);
+        unsubscribeAppKit?.();
+        ethereum.removeListener('accountsChanged', handleAccountsChanged);
+        ethereum.removeListener('chainChanged', handleChainChanged);
       };
     }
+
+    return () => {
+      unsubscribeAppKit?.();
+    };
   }, []);
 
   const value = {

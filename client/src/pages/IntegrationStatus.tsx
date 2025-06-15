@@ -6,7 +6,7 @@ import { CheckCircle, AlertTriangle, ExternalLink, Shield, Users, BarChart3, Wal
 
 interface IntegrationStatus {
   name: string;
-  status: 'live' | 'demo' | 'offline';
+  status: 'live' | 'requires_api_key' | 'error';
   apiKey: string;
   message: string;
 }
@@ -20,7 +20,7 @@ export default function IntegrationStatus() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'live': return 'bg-green-100 text-green-800 border-green-200';
-      case 'demo': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'requires_api_key': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       case 'offline': return 'bg-red-100 text-red-800 border-red-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
@@ -29,7 +29,7 @@ export default function IntegrationStatus() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'live': return <CheckCircle className="w-4 h-4 text-green-600" />;
-      case 'demo': return <AlertTriangle className="w-4 h-4 text-yellow-600" />;
+      case 'requires_api_key': return <AlertTriangle className="w-4 h-4 text-yellow-600" />;
       case 'offline': return <AlertTriangle className="w-4 h-4 text-red-600" />;
       default: return <AlertTriangle className="w-4 h-4 text-gray-600" />;
     }
@@ -42,7 +42,7 @@ export default function IntegrationStatus() {
       description: 'Advanced IP verification and originality detection',
       icon: Shield,
       liveFeatures: ['Real-time IP verification', 'Originality scanning', 'Infringement detection'],
-      demoFeatures: ['Mock verification responses', 'Simulated originality checks'],
+      productionFeatures: ['Authenticated API access required for full functionality'],
       apiKeyRequired: 'YAKOA_API_KEY',
       docsUrl: 'https://docs.yakoa.io'
     },
@@ -52,7 +52,7 @@ export default function IntegrationStatus() {
       description: 'Enhanced user authentication and social reputation',
       icon: Users,
       liveFeatures: ['Live social verification', 'Real reputation scoring', 'OAuth integration'],
-      demoFeatures: ['Mock user profiles', 'Simulated verification'],
+      productionFeatures: ['Authenticated API access required for full functionality'],
       apiKeyRequired: 'TOMO_API_KEY',
       docsUrl: 'https://tomo.inc'
     },
@@ -62,7 +62,7 @@ export default function IntegrationStatus() {
       description: 'Comprehensive Web3 portfolio tracking',
       icon: BarChart3,
       liveFeatures: ['Live portfolio data', 'Real transaction history', 'NFT valuations'],
-      demoFeatures: ['Mock portfolio data', 'Simulated transactions'],
+      productionFeatures: ['Authenticated API access required for full functionality'],
       apiKeyRequired: 'ZAPPER_API_KEY',
       docsUrl: 'https://zapper.fi/docs'
     },
@@ -72,7 +72,7 @@ export default function IntegrationStatus() {
       description: 'Seamless Web3 wallet connectivity',
       icon: Wallet,
       liveFeatures: ['400+ wallet support', 'Live transactions', 'Cross-chain compatibility'],
-      demoFeatures: ['Mock wallet connections', 'Simulated transactions'],
+      productionFeatures: ['Authenticated API access required for full functionality'],
       apiKeyRequired: 'WALLETCONNECT_PROJECT_ID',
       docsUrl: 'https://walletconnect.com/docs'
     }
@@ -110,7 +110,7 @@ export default function IntegrationStatus() {
           
           <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">
             Real-time status of all platform integrations. Live APIs provide authentic data, 
-            while demo modes show integration capabilities with simulated responses.
+            All integrations require valid API keys for full functionality.
           </p>
         </div>
 
@@ -162,10 +162,10 @@ export default function IntegrationStatus() {
 
                   <div>
                     <h4 className="font-medium text-gray-900 mb-2">
-                      {isLive ? 'Live Features Active:' : 'Demo Features:'}
+                      {isLive ? 'Live Features Active:' : 'Production Requirements:'}
                     </h4>
                     <ul className="space-y-1">
-                      {(isLive ? integration.liveFeatures : integration.demoFeatures).map((feature, index) => (
+                      {(isLive ? integration.liveFeatures : integration.productionFeatures).map((feature, index) => (
                         <li key={index} className="flex items-center gap-2 text-sm text-gray-600">
                           <div className={`w-1.5 h-1.5 rounded-full ${isLive ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
                           {feature}
@@ -229,9 +229,9 @@ export default function IntegrationStatus() {
               </div>
               <div>
                 <div className="text-3xl font-bold text-yellow-600 mb-2">
-                  {integrationStatuses ? Object.values(integrationStatuses).filter((s: any) => s.status === 'demo').length : 0}
+                  {integrationStatuses ? Object.values(integrationStatuses).filter((s: any) => s.status === 'requires_api_key').length : 0}
                 </div>
-                <p className="text-gray-600">Demo Mode</p>
+                <p className="text-gray-600">Require API Keys</p>
               </div>
               <div>
                 <div className="text-3xl font-bold text-blue-600 mb-2">

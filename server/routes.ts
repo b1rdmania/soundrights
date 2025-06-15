@@ -65,160 +65,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Development endpoint for testing without auth - no file validation
-  const demoUpload = multer({ 
-    storage: multer.memoryStorage(),
-    limits: { fileSize: 100 * 1024 * 1024 }
-  });
-  
-  app.post("/api/tracks/demo", demoUpload.single('audio'), async (req: any, res) => {
-    try {
-      const userId = 'demo-user'; // Fixed demo user ID
-      
-      // Ensure demo user exists
-      try {
-        await storage.upsertUser({
-          id: userId,
-          email: 'demo@soundrights.com',
-          firstName: 'Demo',
-          lastName: 'User',
-          profileImageUrl: null,
-        });
-      } catch (userError) {
-        console.log('Demo user already exists or creation failed:', userError);
-      }
-      
-      const file = req.file;
-      
-      if (!file) {
-        return res.status(400).json({ message: "Audio file is required" });
-      }
-
-      // Validate track data
-      const trackData = insertTrackSchema.parse({
-        userId,
-        title: req.body.title,
-        artist: req.body.artist,
-        album: req.body.album,
-        genre: req.body.genre,
-        mood: req.body.mood,
-        tags: req.body.tags ? JSON.parse(req.body.tags) : [],
-        fileSize: file.size,
-        fileFormat: file.mimetype,
-        status: 'uploaded'
-      });
-
-      // Store file temporarily
-      trackData.audioUrl = `/uploads/${file.originalname}`;
-
-      // Analyze audio file for features and similarity detection
-      let audioFeatures: {
-        duration: number;
-        bpm: number;
-        key: string;
-        energy: number;
-        danceability: number;
-        valence: number;
-        acousticness: number;
-        instrumentalness: number;
-        fingerprint: string;
-      } | null = null;
-      let similarTracks: Array<{
-        trackId: string;
-        title: string;
-        artist: string;
-        similarity: number;
-        matchType: 'exact' | 'partial' | 'similar';
-      }> = [];
-      
-      try {
-        console.log('Analyzing audio file:', file.originalname);
-        audioFeatures = await audioAnalysis.analyzeAudioFile(file.buffer, file.originalname);
-        
-        // Get all existing tracks for similarity comparison
-        const existingTracks = await storage.getUserTracks(userId);
-        similarTracks = await audioAnalysis.findSimilarTracks(audioFeatures, existingTracks);
-        
-        // Update track data with analysis results
-        if (audioFeatures) {
-          trackData.duration = audioFeatures.duration;
-          trackData.bpm = audioFeatures.bpm;
-          trackData.key = audioFeatures.key;
-          trackData.status = similarTracks.length > 0 ? 'processing' : 'verified';
-        }
-      } catch (analysisError) {
-        console.warn('Audio analysis failed, proceeding without features:', analysisError);
-      }
-
-      const track = await storage.createTrack(trackData);
-      
-      // Register IP asset with Story Protocol if track is verified and has complete metadata
-      if (track.status === 'verified' && track.title && track.artist) {
-        try {
-          const ipAsset = await storyService.registerIPAsset({
-            name: track.title,
-            description: `Music track: ${track.title} by ${track.artist}${track.album ? ` from album ${track.album}` : ''}`,
-            mediaUrl: track.audioUrl || '',
-            attributes: {
-              title: track.title,
-              artist: track.artist,
-              genre: track.genre || 'Unknown',
-              duration: track.duration || 0,
-              bpm: track.bpm || 0,
-              key: track.key || 'Unknown',
-              uploadedAt: track.createdAt,
-              fingerprint: audioFeatures?.fingerprint || 'unknown'
-            },
-            userAddress: userId,
-          });
-
-          // Store IP asset in database
-          await storage.createIpAsset({
-            trackId: track.id,
-            userId: userId,
-            storyProtocolIpId: ipAsset.ipId || '',
-            tokenId: ipAsset.tokenId,
-            chainId: ipAsset.chainId,
-            txHash: ipAsset.txHash,
-            metadata: ipAsset.metadata,
-            storyProtocolUrl: ipAsset.storyProtocolUrl,
-            status: 'confirmed',
-          });
-
-          res.status(201).json({
-            ...track,
-            audioFeatures,
-            similarTracks: similarTracks || [],
-            ipRegistered: true,
-            storyProtocolUrl: ipAsset.storyProtocolUrl
-          });
-        } catch (ipError) {
-          console.error("Failed to register IP asset:", ipError);
-          res.status(201).json({
-            ...track,
-            audioFeatures,
-            similarTracks: similarTracks || [],
-            ipRegistered: false,
-            ipError: ipError instanceof Error ? ipError.message : 'Unknown error'
-          });
-        }
-      } else {
-        res.status(201).json({
-          ...track,
-          audioFeatures,
-          similarTracks: similarTracks || [],
-          ipRegistered: false,
-          reason: similarTracks.length > 0 ? 'Similar tracks detected' : 'Missing metadata'
-        });
-      }
-    } catch (error) {
-      console.error("Error creating track:", error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid track data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to create track" });
-    }
-  });
+  // ALL DEMO ENDPOINTS REMOVED - Authentication required for uploads
 
   // Track upload endpoint for the new MusicUpload component
   app.post("/api/tracks/upload", isAuthenticated, upload.single('audio'), async (req: any, res) => {
@@ -892,7 +739,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Integration status endpoint - shows live vs demo status
+  // Integration status endpoint - shows live production status
   app.get("/api/integration-status", async (req: any, res) => {
     try {
       const statuses = {
@@ -905,12 +752,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Transform to consistent format
       const response = {
         yakoa: {
-          status: statuses.yakoa.status === 'connected' ? 'live' : 'demo',
+          status: statuses.yakoa.status === 'connected' ? 'live' : 'requires_api_key',
           apiKey: statuses.yakoa.apiKey,
           message: statuses.yakoa.message
         },
         tomo: {
-          status: statuses.tomo.status === 'connected' ? 'live' : 'demo', 
+          status: statuses.tomo.status === 'connected' ? 'live' : 'requires_api_key', 
           apiKey: statuses.tomo.apiKey,
           message: statuses.tomo.message
         },
@@ -945,9 +792,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const ipAsset = await storyService.registerIPAsset({
         name,
         description,
-        mediaUrl: mediaUrl || "https://example.com/test.mp3",
+        mediaUrl: mediaUrl,
         attributes: attributes || {},
-        userAddress: "test_user_" + Date.now(),
+        userAddress: req.body.userAddress || req.user?.claims?.sub,
       });
 
       res.json({
@@ -1009,17 +856,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/yakoa/test", async (req: any, res) => {
     try {
       // Test actual IP verification with a real audio URL
-      const testData = {
+      const apiTestData = {
         media_url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
         metadata: {
           title: 'Test Audio Sample',
-          creator: 'SoundRights Demo',
+          creator: 'API Test User',
           description: 'Testing IP verification functionality',
           platform: 'SoundRights'
         }
       };
       
-      const registration = await yakoaService.registerToken(testData);
+      const registration = await yakoaService.registerToken(apiTestData);
       
       res.json({
         success: true,
@@ -1028,7 +875,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         details: {
           token_id: registration.token.id,
           status: registration.token.status,
-          media_url: testData.media_url,
+          media_url: apiTestData.media_url,
           verification_started: new Date().toISOString(),
           api_response: registration.message
         }
@@ -1048,7 +895,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Test real IP asset registration on Story Protocol testnet
       const testAsset = {
-        name: 'SoundRights Demo Track',
+        name: 'API Test Track',
         description: 'Demonstrating blockchain IP registration functionality',
         mediaUrl: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
         attributes: { creator: 'SoundRights Platform', type: 'audio' },
@@ -1066,7 +913,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           transaction_hash: registration.txHash,
           blockchain: 'Story Protocol Testnet',
           registered_at: new Date().toISOString(),
-          asset_title: testAsset.title,
+          asset_title: testAsset.name,
           registration_status: 'confirmed'
         }
       });
@@ -1209,7 +1056,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Zapper Analytics API routes (public for demo)
+  // Zapper Analytics API routes (production authenticated)
   app.get("/api/zapper/portfolio/:address", async (req: any, res) => {
     try {
       const { address } = req.params;
@@ -1283,10 +1130,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       
-      // For demo purposes, use a default address or get from user profile
-      const defaultAddress = "0x742d35Cc6634C0532925a3b8D07c68c2b6f5f9E8";
+      // Require actual wallet address from user
+      const walletAddress = req.query.address as string;
+      if (!walletAddress) {
+        return res.status(400).json({ 
+          error: 'Wallet address required',
+          message: 'Please provide a valid wallet address parameter'
+        });
+      }
       
-      const portfolio = await blockchainService.getWalletPortfolio(defaultAddress);
+      const portfolio = await blockchainService.getWalletPortfolio(walletAddress);
       
       res.json(portfolio);
     } catch (error) {

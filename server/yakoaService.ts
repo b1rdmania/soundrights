@@ -44,12 +44,14 @@ export interface YakoaRegistrationResponse {
 export class YakoaService {
   private readonly apiKey: string;
   private readonly baseUrl = 'https://docs-demo.ip-api-sandbox.yakoa.io/docs-demo';
-  private readonly demoMode: boolean;
 
   constructor() {
-    this.apiKey = 'MhBsxkU1z9fG6TofE59KqiiWV-YlYE8Q4awlLQehF3U';
-    this.demoMode = false;
-    console.log('Yakoa Service: Live API enabled with provided credentials');
+    this.apiKey = process.env.YAKOA_API_KEY || '';
+    if (!this.apiKey) {
+      console.log('Yakoa Service: YAKOA_API_KEY required for IP verification functionality');
+    } else {
+      console.log('Yakoa Service: Live API enabled with authenticated credentials');
+    }
   }
 
   private async makeRequest(endpoint: string, options: any = {}) {
@@ -61,102 +63,64 @@ export class YakoaService {
     const response = await fetch(url, {
       ...options,
       headers: {
-        'X-API-Key': this.apiKey,
-        'X-CHAIN': 'story-aeneid',
-        'Content-Type': 'application/json',
+        'accept': 'application/json',
+        'content-type': 'application/json',
+        'X-API-KEY': this.apiKey,
         ...options.headers,
       },
     });
 
     if (!response.ok) {
-      throw new Error(`Yakoa API error: ${response.status} ${response.statusText}`);
+      const errorText = await response.text();
+      console.error(`Yakoa API Error Details: ${response.status} ${response.statusText}`, errorText);
+      throw new Error(`Yakoa API error: ${response.status} ${response.statusText} - ${errorText}`);
     }
 
     return response.json();
   }
 
-  private getMockResponse(endpoint: string, options: any) {
-    // Demo mode responses for testing without API key
-    if (endpoint === '/tokens' && options.method === 'POST') {
-      const body = JSON.parse(options.body);
-      return {
-        token: {
-          id: `yakoa_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          status: 'complete',
-          media_url: body.media_url,
-          metadata: body.metadata,
-          infringements: {
-            total: 0,
-            high_confidence: 0,
-            results: []
-          },
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        },
-        message: 'Token registered successfully (demo mode)'
-      };
-    }
-
-    if (endpoint.startsWith('/tokens/')) {
-      const tokenId = endpoint.split('/')[2];
-      return {
-        id: tokenId,
-        status: 'complete',
-        media_url: 'https://example.com/audio.mp3',
-        metadata: {
-          title: 'Demo Track',
-          creator: 'Demo Creator'
-        },
-        infringements: {
-          total: 0,
-          high_confidence: 0,
-          results: []
-        },
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-    }
-
-    throw new Error('Unknown endpoint in demo mode');
-  }
+  // Removed getMockResponse - production-only error handling
 
   /**
    * Register a digital audio asset for IP authentication using Yakoa API
    */
   async registerToken(data: YakoaRegistrationRequest): Promise<YakoaRegistrationResponse> {
+    if (!this.apiKey) {
+      throw new Error('YAKOA_API_KEY required for IP verification. Please provide your Yakoa API key.');
+    }
+
     try {
-      // Format data according to Yakoa API specification
-      const tokenData = {
-        id: {
-          chain: "story-odyssey",
-          contract_address: "0x1234567890123456789012345678901234567890",
-          token_id: `${Date.now()}`
-        },
-        registration_tx: {
+      // Format according to Yakoa API requirements
+      const registrationData = {
+        id: `0x041b4f29183317eb2335f2a71ecf8d9d4d21f9a3:${Date.now()}`,
+        mint_tx: {
           hash: `0x${Math.random().toString(16).slice(2, 34).padStart(32, '0')}${Math.random().toString(16).slice(2, 34).padStart(32, '0')}`,
           block_number: Math.floor(Math.random() * 1000000),
           timestamp: new Date().toISOString(),
-          chain: "story-odyssey"
+          chain: "story-aeneid"
         },
-        creator_id: data.metadata.creator,
+        creator_id: `0x${'0'.repeat(40)}`, // Placeholder creator address
         metadata: {
           name: data.metadata.title,
           description: data.metadata.description || `Audio track: ${data.metadata.title} by ${data.metadata.creator}`,
-          platform: data.metadata.platform || "SoundRights"
+          attributes: {
+            platform: data.metadata.platform || "SoundRights",
+            type: "audio"
+          }
         },
         media: [{
           media_id: `media_${Date.now()}`,
           url: data.media_url,
           hash: null,
-          trust_reason: null
-        }],
-        authorizations: data.authorizations || [],
-        license_parents: []
+          trust_reason: {
+            type: "no_licenses"
+          }
+        }]
       };
 
       const response = await this.makeRequest('/token', {
         method: 'POST',
-        body: JSON.stringify(tokenData),
+        body: JSON.stringify(registrationData),
       });
 
       return {
@@ -173,6 +137,12 @@ export class YakoaService {
       };
     } catch (error) {
       console.error('Yakoa API registration failed:', error);
+      
+      // Authentication error - requires proper API key format
+      if (error instanceof Error && error.message.includes('Authentication')) {
+        throw new Error(`Yakoa API authentication failed. The API key format or endpoint configuration needs verification with the service provider. Error: ${error.message}`);
+      }
+      
       throw new Error(`Yakoa IP verification failed: ${error instanceof Error ? error.message : 'Unknown error'}. Check API configuration and network connectivity.`);
     }
   }
@@ -236,27 +206,17 @@ export class YakoaService {
    */
   async testConnection(): Promise<{ status: string; apiKey: string; message: string }> {
     try {
-      if (this.demoMode) {
+      if (!this.apiKey) {
         return {
-          status: 'demo',
-          apiKey: 'Demo Sandbox',
-          message: 'Yakoa Service: Using live demo sandbox - provide YAKOA_API_KEY for production features'
+          status: 'error',
+          apiKey: 'missing',
+          message: 'YAKOA_API_KEY required for IP verification functionality'
         };
       }
 
-      // Test API connection with a sample request
-      const testData: YakoaRegistrationRequest = {
-        media_url: 'https://example.com/test.mp3',
-        metadata: {
-          title: 'API Test',
-          creator: 'Test User',
-          description: 'Connection test'
-        }
-      };
-
-      await this.makeRequest('/tokens', {
-        method: 'POST',
-        body: JSON.stringify(testData)
+      // Test API connection with production credentials
+      await this.makeRequest('/health', {
+        method: 'GET'
       });
 
       return {
@@ -266,9 +226,9 @@ export class YakoaService {
       };
     } catch (error) {
       return {
-        status: 'demo',
-        apiKey: this.apiKey ? this.apiKey.slice(0, 8) + '...' : 'Demo Sandbox',
-        message: 'Yakoa Service: Using live demo sandbox - API connection not verified'
+        status: 'error',
+        apiKey: this.apiKey ? this.apiKey.slice(0, 8) + '...' : 'missing',
+        message: 'Yakoa API connection failed - verify API key and network access'
       };
     }
   }

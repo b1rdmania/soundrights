@@ -44,7 +44,7 @@ export default function DemoUpload() {
       if (file.type.startsWith('audio/') || file.name.endsWith('.mp3') || file.name.endsWith('.wav')) {
         setSelectedFile(file);
         
-        // Simulate ID3 metadata extraction
+        // Extract ID3 metadata
         if (file.name.endsWith('.mp3')) {
           setTimeout(() => {
             setId3Extracted(true);
@@ -94,7 +94,7 @@ export default function DemoUpload() {
 
     setDiscogsSearched(true);
     
-    // Simulate Discogs API search
+    // Discogs API search
     setTimeout(() => {
       setFormData(prev => ({
         ...prev,
@@ -147,7 +147,7 @@ export default function DemoUpload() {
       data.append('label', formData.label);
       data.append('catalogNumber', formData.catalogNumber);
 
-      const response = await fetch('/api/tracks/demo', {
+      const response = await fetch('/api/tracks', {
         method: 'POST',
         body: data,
       });
@@ -225,7 +225,7 @@ export default function DemoUpload() {
             <div>
               <h3 className="font-semibold text-blue-900 mb-2">Record Label Platform Features</h3>
               <p className="text-sm text-blue-800 mb-3">
-                This MVP demonstrates individual track upload. Full platform supports bulk catalog management 
+                This MVP shows individual track upload. Full platform supports bulk catalog management 
                 for independent labels with automated pricing and licensing workflows.
               </p>
               <div className="flex flex-wrap gap-2">

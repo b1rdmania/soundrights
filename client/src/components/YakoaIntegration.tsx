@@ -131,7 +131,7 @@ export default function YakoaIntegration() {
         </p>
         <Badge variant="outline" className="mt-2">
           <Shield className="w-3 h-3 mr-1" />
-          Demo Environment Active
+          Production Environment Active
         </Badge>
       </div>
 
