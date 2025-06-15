@@ -63,8 +63,7 @@ export class YakoaService {
     const response = await fetch(url, {
       ...options,
       headers: {
-        'X-API-Key': this.apiKey,
-        'X-CHAIN': 'story-aeneid',
+        'x-api-key': this.apiKey,
         'Content-Type': 'application/json',
         ...options.headers,
       },
