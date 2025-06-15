@@ -6,25 +6,11 @@ import { Toaster } from "react-hot-toast";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { ErrorBoundary } from 'react-error-boundary';
-import { WalletProvider } from "@/components/WalletAuth";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import Index from "./pages/Index";
-import Upload from "./pages/Upload";
-import Results from "./pages/Results";
-import About from "./pages/About";
-import WhitePaper from "./pages/WhitePaper";
-import Invest from "./pages/Invest";
-import Demo from "./pages/Demo";
-import LiveDemo from "./pages/LiveDemo";
-import Sponsors from "./pages/Sponsors";
-import Integrations from "./pages/Integrations";
-import Marketplace from "./pages/Marketplace";
-import Analytics from "./pages/Analytics";
-import Profile from "./pages/Profile";
-import Dashboard from "./pages/Dashboard";
-import Admin from "./pages/Admin";
-import NotFound from "./pages/NotFound";
+import { WalletProvider } from "@/components/SafeWalletAuth";
+import SafeNavbar from "@/components/SafeNavbar";
+import SafeFooter from "@/components/SafeFooter";
+// Temporarily using minimal imports to identify mounting issue
+import React from 'react';
 
 // Error boundary component
 const ErrorFallback = ({ error }: { error: Error }) => {
@@ -76,13 +62,13 @@ const App = () => {
             <div className="flex flex-col min-h-screen">
               <Toaster position="top-right" />
               <Sonner />
-              <Navbar />
+              <SafeNavbar />
               
               <main className="flex-grow">
                 <AppRouter />
               </main>
               
-              <Footer />
+              <SafeFooter />
             </div>
           </TooltipProvider>
         </ErrorBoundary>
