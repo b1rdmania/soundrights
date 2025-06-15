@@ -6,7 +6,7 @@ import fetch from 'node-fetch';
 // Story Protocol service for IP registration
 export class StoryProtocolService {
   private client: StoryClient | null = null;
-  private readonly rpcUrl = 'https://testnet.storyrpc.io';
+  private readonly rpcUrl = 'https://testnet.story.foundation';
   private readonly apiKey = 'MhBsxkU1z9fG6TofE59KqiiWV-YlYE8Q4awlLQehF3U';
   private readonly baseUrl = 'https://api.story.foundation';
 
