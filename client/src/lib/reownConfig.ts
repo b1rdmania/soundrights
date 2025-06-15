@@ -3,9 +3,7 @@ import { EthersAdapter } from '@reown/appkit-adapter-ethers'
 import { mainnet, arbitrum, sepolia } from '@reown/appkit/networks'
 
 // Get projectId from environment
-const projectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || '2f05a7cdc26a78753ab7a7e13d5f5d72'
-
-console.log('WalletConnect Project ID:', projectId ? 'Present' : 'Missing')
+const projectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || '1c6eba6fc7f6b210609dbd6cccef8199'
 
 // Create metadata object
 const metadata = {
@@ -15,31 +13,16 @@ const metadata = {
   icons: ['https://avatars.githubusercontent.com/u/179229932']
 }
 
-// Create the AppKit instance safely
-let appKit: any = null
-try {
-  appKit = createAppKit({
-    adapters: [new EthersAdapter()],
-    projectId,
-    networks: [mainnet, arbitrum, sepolia],
-    metadata,
-    features: {
-      analytics: true
-    }
-  })
-  console.log('WalletConnect AppKit initialized successfully')
-} catch (error) {
-  console.error('WalletConnect initialization failed:', error)
-  // Create a mock appKit to prevent app crashes
-  appKit = {
-    open: () => console.log('Wallet connection disabled'),
-    getAccount: () => ({ isConnected: false, address: null }),
-    disconnect: () => Promise.resolve(),
-    subscribeAccount: () => () => {}
+// Create the AppKit instance
+export const appKit = createAppKit({
+  adapters: [new EthersAdapter()],
+  projectId,
+  networks: [mainnet, arbitrum, sepolia],
+  metadata,
+  features: {
+    analytics: true
   }
-}
-
-export { appKit }
+})
 
 interface WalletConnectionResult {
   address: string;
@@ -73,10 +56,14 @@ export const connectWallet = async (): Promise<WalletConnectionResult> => {
       // Check immediately
       setTimeout(checkConnection, 100)
 
+      // Subscribe to account changes
+      const unsubscribe = appKit.subscribeAccount(checkConnection)
+
       // Set timeout for connection
       setTimeout(() => {
         if (!resolved) {
           resolved = true
+          unsubscribe?.()
           reject(new Error('Connection timeout'))
         }
       }, 30000)

@@ -31,7 +31,7 @@ const ContactForm = () => {
       return;
     }
     
-    // Handle form submission
+    // Simulate form submission
     setIsLoading(true);
     
     setTimeout(() => {

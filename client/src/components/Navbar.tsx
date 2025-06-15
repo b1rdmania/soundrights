@@ -26,9 +26,11 @@ const Navbar = () => {
   }, []);
   
   const navLinks = [
+    { path: '/', label: 'Home' },
     { path: '/dashboard', label: 'Dashboard' },
-    { path: '/live-demo', label: 'Demo' },
+    { path: '/live-demo', label: 'Live Demo' },
     { path: '/marketplace', label: 'Marketplace' },
+    { path: '/analytics', label: 'Analytics' },
     { path: '/integrations', label: 'Integrations' },
     { path: '/whitepaper', label: 'White Paper' },
     { path: '/about', label: 'About' },

@@ -10,7 +10,7 @@ export default function LiveDemo() {
         <div className="text-center space-y-6 mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-100 text-purple-800 text-sm font-medium">
             <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-            Live Production Environment
+            Live Demo Environment
           </div>
           
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900">
@@ -46,7 +46,7 @@ export default function LiveDemo() {
           </div>
         </div>
         
-        {/* Upload Component */}
+        {/* Demo Upload Component */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
           <EnhancedDemoUpload />
         </div>

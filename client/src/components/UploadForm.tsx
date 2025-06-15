@@ -107,7 +107,7 @@ const UploadForm: React.FC<UploadFormProps> = ({ onUpload, mode, isWalletConnect
     setIsLoading(true);
     
     if (mode === 'register') {
-      // AI analysis progression for registration
+      // Mock AI analysis progression for registration
       setAnalysisStage("Analyzing audio waveforms...");
       
       setTimeout(() => {
@@ -136,7 +136,7 @@ const UploadForm: React.FC<UploadFormProps> = ({ onUpload, mode, isWalletConnect
         }, 1000);
       }, 1000);
     } else {
-      // Verification process
+      // Mock verification process
       setAnalysisStage("Analyzing audio fingerprint...");
       
       setTimeout(() => {
@@ -149,7 +149,7 @@ const UploadForm: React.FC<UploadFormProps> = ({ onUpload, mode, isWalletConnect
             setIsLoading(false);
             setAnalysisStage(null);
             
-            // Upload complete
+            // Mock verification data
             onUpload({
               filename: file.name,
               timestamp: new Date().toISOString()
@@ -352,7 +352,7 @@ const UploadForm: React.FC<UploadFormProps> = ({ onUpload, mode, isWalletConnect
                         Commercial Use
                       </Label>
                       <p className="text-sm text-muted-foreground">
-                        Allow commercial usage with specified terms
+                        Allow commercial usage with specified terms (demo only)
                       </p>
                     </div>
                   </div>

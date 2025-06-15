@@ -96,10 +96,13 @@ export default function ZapperIntegration() {
 
     setLoading(true);
     try {
+      const demoTxHash = `0x${Math.random().toString(16).slice(2, 34).padStart(32, '0')}${Math.random().toString(16).slice(2, 34).padStart(32, '0')}`;
+      
       const response = await fetch('/api/zapper/track-registration', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          txHash: demoTxHash,
           userAddress: walletAddress
         })
       });
@@ -156,7 +159,7 @@ export default function ZapperIntegration() {
         </p>
         <Badge variant="outline" className="mt-2">
           <BarChart3 className="w-3 h-3 mr-1" />
-          Production Environment Active
+          Demo Environment Active
         </Badge>
       </div>
 
@@ -194,7 +197,7 @@ export default function ZapperIntegration() {
               onClick={() => setWalletAddress('0x742B24aB32B6f9b6E2170df9b21845a7Ad5B6fDa')}
               size="sm"
             >
-              Test Address
+              Demo Address
             </Button>
             <Button
               variant="outline"

@@ -115,7 +115,7 @@ export function DramaticUploadProcess({ file, onComplete, onReset }: DramaticUpl
       setCurrentStep(i);
       updateStepStatus(i, 'processing');
       
-      // Processing time with real API calls
+      // Simulate processing time with real API calls
       await new Promise(resolve => setTimeout(resolve, steps[i].duration));
       
       // Make actual API calls and get real results
@@ -165,10 +165,10 @@ export function DramaticUploadProcess({ file, onComplete, onReset }: DramaticUpl
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              mediaUrl: file?.name || 'audio-file',
+              mediaUrl: 'demo-upload',
               metadata: {
                 title: file?.name?.split('.')[0] || 'Unknown',
-                artist: 'Production User'
+                artist: 'Demo User'
               }
             })
           });

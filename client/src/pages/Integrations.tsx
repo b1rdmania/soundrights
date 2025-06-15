@@ -12,7 +12,6 @@ import toast from 'react-hot-toast';
 
 export default function Integrations() {
   const [testWalletAddress, setTestWalletAddress] = useState('0x742d35Cc6641C3aa5DdAabE8C68c08C5a5D4A58A');
-  const [testResults, setTestResults] = useState<any>({});
 
   const { data: integrationStatuses, isLoading, refetch } = useQuery({
     queryKey: ['/api/sponsors/status'],
@@ -255,14 +254,9 @@ export default function Integrations() {
                       className="w-full justify-start"
                     >
                       <Shield className="h-4 w-4 mr-2" />
-                      Test Real IP Verification
+                      Test Yakoa IP Verification
                       {yakoaTest.isPending && <RefreshCw className="h-4 w-4 ml-2 animate-spin" />}
                     </Button>
-                    {testResults.yakoa && (
-                      <div className="text-xs text-muted-foreground mt-1">
-                        Last test: {testResults.yakoa.success ? 'Success' : 'Failed'} - {testResults.yakoa.message}
-                      </div>
-                    )}
                     
                     <Button 
                       onClick={() => zapperTest.mutate()}

@@ -249,13 +249,13 @@ export default function WalletConnectIntegration() {
         </CardContent>
       </Card>
 
-      {/* Transaction Testing */}
+      {/* Transaction Demo */}
       {walletState?.connected && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Send className="h-5 w-5" />
-              Send Transaction Test
+              Send Transaction Demo
             </CardTitle>
             <CardDescription>
               Test transaction signing using WalletConnect protocol

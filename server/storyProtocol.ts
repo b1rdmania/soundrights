@@ -6,7 +6,7 @@ import fetch from 'node-fetch';
 // Story Protocol service for IP registration
 export class StoryProtocolService {
   private client: StoryClient | null = null;
-  private readonly rpcUrl = 'https://testnet.story.foundation';
+  private readonly rpcUrl = 'https://testnet.storyrpc.io';
   private readonly apiKey = 'MhBsxkU1z9fG6TofE59KqiiWV-YlYE8Q4awlLQehF3U';
   private readonly baseUrl = 'https://api.story.foundation';
 
@@ -118,7 +118,7 @@ export class StoryProtocolService {
           tokenId: apiResponse.tokenId?.toString() || Math.floor(Math.random() * 1000000).toString(),
           chainId: aeneid.id,
           txHash: apiResponse.txHash || `0x${Date.now().toString(16)}${Math.random().toString(16).substr(2, 40)}`,
-          nftContract: apiResponse.nftContract || '0x041b4f29183317eb2335f2a71ecf8d9d4d21f9a3',
+          nftContract: apiResponse.nftContract || '0x041B4F29183317Eb2335F2A71ecF8d9d4D21F9a3',
           metadata,
           storyProtocolUrl: `https://explorer.story.foundation/ip/${apiResponse.ipId}`,
           blockNumber: apiResponse.blockNumber || Math.floor(Math.random() * 1000000),
@@ -132,7 +132,7 @@ export class StoryProtocolService {
         // Fallback to SDK registration
         try {
           const ipRegistrationResponse = await this.client.ipAsset.register({
-            nftContract: '0x041b4f29183317eb2335f2a71ecf8d9d4d21f9a3' as `0x${string}`,
+            nftContract: '0x041B4F29183317Eb2335F2A71ecF8d9d4D21F9a3' as `0x${string}`,
             tokenId: BigInt(Math.floor(Math.random() * 1000000)),
             ipMetadata: {
               ipMetadataURI: data.mediaUrl,
@@ -149,7 +149,7 @@ export class StoryProtocolService {
             tokenId: ipRegistrationResponse.tokenId?.toString() || Math.floor(Math.random() * 1000000).toString(),
             chainId: aeneid.id,
             txHash: ipRegistrationResponse.txHash || `0x${Date.now().toString(16)}${Math.random().toString(16).substr(2, 40)}`,
-            nftContract: '0x041b4f29183317eb2335f2a71ecf8d9d4d21f9a3',
+            nftContract: '0x041B4F29183317Eb2335F2A71ecF8d9d4D21F9a3',
             metadata,
             storyProtocolUrl: `https://explorer.story.foundation/ip/${ipRegistrationResponse.ipId}`,
             blockNumber: Math.floor(Math.random() * 1000000),
@@ -174,7 +174,7 @@ export class StoryProtocolService {
     licensee: string;
   }) {
     try {
-      // Create license on Story Protocol
+      // Simulate license creation on Story Protocol
       const licenseId = `license_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const txHash = `0x${Math.random().toString(16).substr(2, 64)}`;
 
@@ -194,7 +194,7 @@ export class StoryProtocolService {
 
   async getIPAsset(ipId: string) {
     try {
-      // Retrieve IP asset from Story Protocol
+      // Simulate IP asset retrieval
       return {
         ipId,
         metadata: {
@@ -213,7 +213,7 @@ export class StoryProtocolService {
 
   async getLicenses(ipId: string) {
     try {
-      // Retrieve licenses from Story Protocol
+      // Simulate license retrieval
       return [
         {
           licenseId: `license_${Date.now()}`,

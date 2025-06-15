@@ -81,7 +81,7 @@ const WhitePaper = () => {
                   <div className={`mt-2 transition-all overflow-hidden ${selectedSection === 0 ? 'max-h-[1000px]' : 'max-h-0'}`}>
                     <div className="p-4 rounded-lg bg-gradient-to-br from-primary/5 to-transparent">
                       <p>
-                        SoundRights is a comprehensive Web3 platform designed specifically for independent record labels to manage music licensing and sync royalties. The platform provides blockchain-based IP registration through Story Protocol, enabling labels to establish verifiable ownership dates for future IP claims while offering dynamic licensing marketplace integration. All major integrations are verified operational with authentic API responses and zero dummy data, making this a production-ready deployment verified June 15, 2025.
+                        SoundRightsAI leverages Story Protocol to provide a robust infrastructure for on-chain sound intellectual property (IP) management. It enables the registration of audio assets as unique IP Assets on Story Protocol, enriched with AI-generated (Google Gemini) metadata. Creators attach granular, on-chain Programmable IP Licenses (PILs). A verification module utilizes audio fingerprinting (AcoustID) to identify registered assets and query their authoritative PILs directly from Story Protocol. The MVP, developed for the Surreal World Assets bounty, demonstrates this core loop on the Story Testnet.
                       </p>
                     </div>
                   </div>
@@ -98,14 +98,14 @@ const WhitePaper = () => {
                   <div className={`mt-2 transition-all overflow-hidden ${selectedSection === 1 ? 'max-h-[1000px]' : 'max-h-0'}`}>
                     <div className="p-4 rounded-lg bg-gradient-to-br from-primary/5 to-transparent">
                       <p>
-                        Independent record labels face critical challenges in music licensing and IP management:
+                        Existing sound IP licensing models lack programmatic control, transparent on-chain verification, and granular permissioning adaptable to Web3 and AI contexts. Challenges include:
                       </p>
                       <ul className="pl-6 list-disc space-y-2 mt-2">
-                        <li>No centralized platform for comprehensive licensing and sync royalty management</li>
-                        <li>Lack of timestamped IP ownership verification for future legal claims</li>
-                        <li>Complex manual processes for catalog licensing and pricing</li>
-                        <li>Fragmented marketplace connections for sync and advertising placements</li>
-                        <li>Technical barriers preventing Web3 adoption in traditional music markets</li>
+                        <li>Limited control beyond static license terms.</li>
+                        <li>Inefficient off-chain verification and enforcement.</li>
+                        <li>Friction in bespoke or micro-licensing transactions.</li>
+                        <li>Absence of standardized, machine-readable rights for derivative works or AI training.</li>
+                        <li>Centralized platform risks and lack of interoperability.</li>
                       </ul>
                     </div>
                   </div>
@@ -122,32 +122,8 @@ const WhitePaper = () => {
                   <div className={`mt-2 transition-all overflow-hidden ${selectedSection === 2 ? 'max-h-[2000px]' : 'max-h-0'}`}>
                     <div className="p-4 rounded-lg bg-gradient-to-br from-primary/5 to-transparent">
                       <p>
-                        SoundRights addresses these challenges through a comprehensive Web3 platform combining blockchain integration, live API services, and account abstraction to hide Web3 complexity from users.
+                        SoundRightsAI implements an on-chain IP management system using Story Protocol as its foundational layer.
                       </p>
-                      
-                      <h3 className="text-xl font-semibold mt-4 mb-2 flex items-center text-green-700">
-                        <Award className="h-4 w-4 mr-2" />
-                        Verified Live Integration Status - OPERATIONAL ✓
-                      </h3>
-                      <ul className="pl-6 list-disc space-y-2">
-                        <li><strong>Yakoa IP Authentication:</strong> Production token registration with authentic verification pipeline ($100\% functional)</li>
-                        <li><strong>Zapper Portfolio Analytics:</strong> Live blockchain data retrieval confirmed ($398.15 from test wallet)</li>
-                        <li><strong>Tomo Social Verification:</strong> Buildathon API validated for Surreal World Assets</li>
-                        <li><strong>WalletConnect Integration:</strong> Multi-wallet modal with proper disconnection handling</li>
-                        <li><strong>Story Protocol:</strong> Testnet blockchain registration with authenticated API access</li>
-                      </ul>
-                      
-                      <h3 className="text-xl font-semibold mt-4 mb-2 flex items-center">
-                        <Database className="h-4 w-4 mr-2" />
-                        Production-Ready Backend Infrastructure:
-                      </h3>
-                      <ul className="pl-6 list-disc space-y-2">
-                        <li><strong>Express.js with TypeScript:</strong> 11 authenticated API endpoints with robust error handling</li>
-                        <li><strong>PostgreSQL Database:</strong> Comprehensive schema (users, tracks, licenses, ip_assets, sessions)</li>
-                        <li><strong>Drizzle ORM:</strong> Type-safe database operations with automatic migrations</li>
-                        <li><strong>Replit Authentication:</strong> PostgreSQL session storage for production scaling</li>
-                        <li><strong>Real-time Blockchain Integration:</strong> Direct RPC endpoints with API fallbacks</li>
-                      </ul>
                       <h3 className="text-xl font-semibold mt-4 mb-2 flex items-center">
                         <Key className="h-4 w-4 mr-2" />
                         Creator Workflow (Registration & Licensing):
@@ -391,7 +367,7 @@ const WhitePaper = () => {
             <div className="mt-12 text-center">
               <div className="inline-flex items-center justify-center p-1 rounded-full bg-gradient-to-br from-primary to-primary/70">
                 <RouterLink
-                  href="/upload"
+                  href="/demo"
                   className="inline-flex items-center justify-center px-6 py-3 rounded-full text-base font-medium bg-white text-primary shadow hover:bg-primary/10 transition-colors"
                 >
                   Try SoundRightsAI Demo

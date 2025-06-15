@@ -82,7 +82,7 @@ export default function EnhancedIPVerification() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          mediaUrl: formData.mediaUrl,
+          mediaUrl: formData.mediaUrl || 'https://example.com/demo-audio.mp3',
           metadata: {
             title: formData.title,
             creator: formData.artist,
@@ -165,7 +165,7 @@ export default function EnhancedIPVerification() {
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 p-4 rounded-lg mb-4">
           <Badge variant="secondary" className="mb-2">
             <Music className="w-3 h-3 mr-1" />
-            Testnet Production Mode
+            Testnet Demo Mode
           </Badge>
           <h3 className="text-2xl font-bold mb-2">IP Verification System</h3>
           <p className="text-muted-foreground">
@@ -261,7 +261,7 @@ export default function EnhancedIPVerification() {
               variant="outline"
               onClick={() => {
                 setFormData({ 
-                  title: 'Original Production Track', 
+                  title: 'Original Demo Track', 
                   artist: 'Independent Artist',
                   description: 'Original composition for IP registration',
                   mediaUrl: ''
@@ -269,7 +269,7 @@ export default function EnhancedIPVerification() {
               }}
               size="sm"
             >
-              Test Data
+              Demo Data
             </Button>
           </div>
         </CardContent>

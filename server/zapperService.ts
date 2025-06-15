@@ -1,4 +1,4 @@
-import { blockchainService } from './blockchainService';
+import fetch from 'node-fetch';
 
 export interface ZapperToken {
   contract_address: string;
@@ -39,53 +39,208 @@ export class ZapperService {
 
   constructor() {
     this.apiKey = process.env.ZAPPER_API_KEY || '';
+    if (!this.apiKey) {
+      console.error('ZAPPER_API_KEY not configured - portfolio features will fail');
+    } else {
+      console.log('Zapper Service: Production API configured');
+    }
   }
 
   private async makeRequest(endpoint: string, options: any = {}) {
     if (!this.apiKey) {
-      throw new Error('Zapper API key required for portfolio data. Please configure ZAPPER_API_KEY.');
+      throw new Error('ZAPPER_API_KEY required for portfolio data. Please provide your Zapper API key.');
     }
 
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
+    const response = await fetch(this.baseUrl, {
       method: 'POST',
       headers: {
+        'x-zapper-api-key': this.apiKey,
         'Content-Type': 'application/json',
-        'Authorization': `Basic ${Buffer.from(this.apiKey + ':').toString('base64')}`,
         ...options.headers,
       },
-      body: JSON.stringify(options.body),
+      body: JSON.stringify(options.body || {}),
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.log('Zapper API Error Response:', errorText);
       throw new Error(`Zapper API error: ${response.status} ${response.statusText}`);
     }
 
     return response.json();
   }
 
+  private getMockResponse(endpoint: string, options: any) {
+    // Demo mode responses for testing without API key
+    if (endpoint.includes('/portfolio')) {
+      const address = endpoint.split('/')[2];
+      return {
+        address,
+        total_value: 15420.85,
+        tokens: [
+          {
+            contract_address: '0x1A2B3C4D5E6F7890123456789ABCDEF012345678',
+            token_id: '101',
+            name: 'Electric Dreams - Single',
+            description: 'Synthwave track registered as Story Protocol IP asset',
+            collection_name: 'SoundRights Music Catalog',
+            owner: address,
+            blockchain: 'ethereum',
+            estimated_value: 2450.30
+          },
+          {
+            contract_address: '0x2B3C4D5E6F7890123456789ABCDEF0123456789A',
+            token_id: '102',
+            name: 'Midnight Jazz - Album',
+            description: 'Full jazz album with 12 tracks, licensing rights included',
+            collection_name: 'SoundRights Music Catalog',
+            owner: address,
+            blockchain: 'ethereum',
+            estimated_value: 8970.25
+          },
+          {
+            contract_address: '0x3C4D5E6F7890123456789ABCDEF0123456789AB',
+            token_id: '103',
+            name: 'Acoustic Sessions - EP',
+            description: '4-track acoustic EP with sync licensing potential',
+            collection_name: 'SoundRights Music Catalog',
+            owner: address,
+            blockchain: 'ethereum',
+            estimated_value: 3200.15
+          },
+          {
+            contract_address: '0x4D5E6F7890123456789ABCDEF0123456789ABC',
+            token_id: '104',
+            name: 'Corporate Intro Theme',
+            description: 'Licensed background music for commercial use',
+            collection_name: 'SoundRights Music Catalog',
+            owner: address,
+            blockchain: 'ethereum',
+            estimated_value: 800.15
+          }
+        ],
+        transactions: [
+          {
+            hash: '0xabc123def456789012345678901234567890abcd',
+            from: '0x0000000000000000000000000000000000000000',
+            to: address,
+            value: '0',
+            gas_used: '180000',
+            gas_price: '25000000000',
+            timestamp: new Date(Date.now() - 86400000).toISOString(),
+            status: 'success' as const,
+            type: 'mint' as const
+          },
+          {
+            hash: '0xdef456789012345678901234567890abcdef123',
+            from: address,
+            to: '0x9876543210987654321098765432109876543210',
+            value: '1500000000000000000',
+            gas_used: '120000',
+            gas_price: '22000000000',
+            timestamp: new Date(Date.now() - 172800000).toISOString(),
+            status: 'success' as const,
+            type: 'sale' as const
+          },
+          {
+            hash: '0x123456789abcdef0123456789abcdef0123456789',
+            from: '0x0000000000000000000000000000000000000000',
+            to: address,
+            value: '0',
+            gas_used: '165000',
+            gas_price: '20000000000',
+            timestamp: new Date(Date.now() - 259200000).toISOString(),
+            status: 'success' as const,
+            type: 'mint' as const
+          }
+        ],
+        updated_at: new Date().toISOString()
+      };
+    }
+
+    if (endpoint.includes('/transactions')) {
+      return [
+        {
+          hash: '0xabc123def456789012345678901234567890abcd',
+          from: '0x0000000000000000000000000000000000000000',
+          to: '0x1234567890123456789012345678901234567890',
+          value: '0',
+          gas_used: '180000',
+          gas_price: '25000000000',
+          timestamp: new Date(Date.now() - 86400000).toISOString(),
+          status: 'success',
+          type: 'mint'
+        },
+        {
+          hash: '0xdef456789012345678901234567890abcdef123',
+          from: '0x1234567890123456789012345678901234567890',
+          to: '0x9876543210987654321098765432109876543210',
+          value: '1500000000000000000',
+          gas_used: '120000',
+          gas_price: '22000000000',
+          timestamp: new Date(Date.now() - 172800000).toISOString(),
+          status: 'success',
+          type: 'sale'
+        },
+        {
+          hash: '0x123456789abcdef0123456789abcdef0123456789',
+          from: '0x0000000000000000000000000000000000000000',
+          to: '0x1234567890123456789012345678901234567890',
+          value: '0',
+          gas_used: '165000',
+          gas_price: '20000000000',
+          timestamp: new Date(Date.now() - 259200000).toISOString(),
+          status: 'success',
+          type: 'mint'
+        },
+        {
+          hash: '0x789abcdef0123456789abcdef0123456789abcdef',
+          from: '0x1234567890123456789012345678901234567890',
+          to: '0x5678901234567890123456789012345678901234',
+          value: '750000000000000000',
+          gas_used: '110000',
+          gas_price: '21000000000',
+          timestamp: new Date(Date.now() - 345600000).toISOString(),
+          status: 'success',
+          type: 'transfer'
+        }
+      ];
+    }
+
+    throw new Error('Unknown endpoint in demo mode');
+  }
+
+  /**
+   * Get user's portfolio including IP assets and NFTs
+   */
   async getUserPortfolio(address: string): Promise<ZapperPortfolio> {
     try {
       const graphqlQuery = {
         query: `
-          query GetPortfolio($address: String!) {
-            portfolio(address: $address) {
+          query GetPortfolio($addresses: [Address!]!) {
+            portfolio(addresses: $addresses) {
               tokenBalances {
+                balance
+                balanceRaw
+                balanceUSD
                 token {
-                  address
-                  name
                   symbol
+                  name
+                  address
                   network
                 }
-                balanceUSD
               }
             }
           }
         `,
-        variables: { address }
+        variables: {
+          addresses: [address]
+        }
       };
 
       const response = await this.makeRequest('', { body: graphqlQuery });
       
+      // Transform GraphQL response to our portfolio format
       const tokenBalances = response.data?.portfolio?.tokenBalances || [];
       const tokens = tokenBalances.map((balance: any) => ({
         contract_address: balance.token?.address || 'unknown',
@@ -104,82 +259,112 @@ export class ZapperService {
         address,
         total_value: totalValue,
         tokens,
-        transactions: [],
+        transactions: [], // Will be populated separately
         updated_at: new Date().toISOString()
       };
     } catch (error) {
-      console.error('Zapper API failed, attempting blockchain fallback:', error);
-      return await blockchainService.getWalletPortfolio(address);
+      console.error('Failed to fetch portfolio from Zapper:', error);
+      // Return error response indicating API access issue
+      throw new Error(`Zapper API access requires updated credentials. Error: ${error.message}`);
     }
   }
 
+  /**
+   * Get transaction history for an address
+   */
   async getTransactionHistory(address: string, limit: number = 50): Promise<ZapperTransaction[]> {
     try {
       const response = await this.makeRequest(`/transactions/${address}?limit=${limit}`);
       
-      return response.map((tx: any) => ({
+      // Transform Zapper transaction data to our format
+      return response.data?.map((tx: any) => ({
         hash: tx.hash,
         from: tx.from,
         to: tx.to,
-        value: tx.value,
-        gas_used: tx.gasUsed,
-        gas_price: tx.gasPrice,
-        timestamp: tx.timestamp,
-        status: tx.status,
-        type: this.determineTransactionType(tx, address)
-      }));
+        value: tx.value || '0',
+        gas_used: tx.gasUsed || '0',
+        gas_price: tx.gasPrice || '0',
+        timestamp: tx.timeStamp ? new Date(parseInt(tx.timeStamp) * 1000).toISOString() : new Date().toISOString(),
+        status: tx.isError === '0' ? 'success' : 'failed',
+        type: this.determineTransactionType(tx)
+      })) || [];
     } catch (error) {
-      console.error('Failed to fetch transaction history:', error);
-      throw new Error(`Transaction history unavailable: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('Failed to fetch transactions from Zapper:', error);
+      throw new Error('Failed to retrieve transaction history');
     }
   }
 
-  private determineTransactionType(tx: any, address: string): 'mint' | 'transfer' | 'sale' {
+  private determineTransactionType(tx: any): 'mint' | 'transfer' | 'sale' {
     if (tx.from === '0x0000000000000000000000000000000000000000') return 'mint';
-    if (tx.value && parseFloat(tx.value) > 0) return 'sale';
+    if (tx.value && parseInt(tx.value) > 0) return 'sale';
     return 'transfer';
   }
 
+  /**
+   * Get NFT collection data
+   */
   async getNFTCollection(contractAddress: string): Promise<any> {
     try {
-      const response = await this.makeRequest(`/collections/${contractAddress}`);
-      return response.data;
+      const response = await this.makeRequest(`/nft-collections/${contractAddress}`);
+      return response;
     } catch (error) {
-      console.error('Failed to fetch NFT collection:', error);
-      throw new Error(`NFT collection data unavailable: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('Failed to fetch NFT collection from Zapper:', error);
+      throw new Error('Failed to retrieve collection data');
     }
   }
 
+  /**
+   * Track Story Protocol IP asset registration
+   */
   async trackIPAssetRegistration(txHash: string, userAddress: string): Promise<{
     success: boolean;
     asset_details?: any;
     transaction?: ZapperTransaction;
   }> {
     try {
-      const portfolio = await this.getUserPortfolio(userAddress);
-      const transaction = portfolio.transactions.find(tx => tx.hash === txHash);
-      
-      if (!transaction) {
-        throw new Error(`Transaction ${txHash} not found for address ${userAddress}`);
+      // In demo mode, return mock tracking data
+      if (this.demoMode) {
+        return {
+          success: true,
+          asset_details: {
+            ip_id: `ip_${Date.now()}`,
+            registered_at: new Date().toISOString(),
+            owner: userAddress,
+            blockchain: 'ethereum'
+          },
+          transaction: {
+            hash: txHash,
+            from: '0x0000000000000000000000000000000000000000',
+            to: userAddress,
+            value: '0',
+            gas_used: '180000',
+            gas_price: '25000000000',
+            timestamp: new Date().toISOString(),
+            status: 'success',
+            type: 'mint'
+          }
+        };
       }
 
+      // Get transaction details from Zapper
+      const response = await this.makeRequest(`/transaction/${txHash}`);
+      
       return {
-        success: true,
-        asset_details: {
-          contract_address: transaction.to,
-          token_id: 'pending',
-          registration_tx: txHash,
-          owner: userAddress,
-          status: 'registered'
-        },
-        transaction
+        success: response.status === 'success',
+        asset_details: response.decoded_logs?.find((log: any) => 
+          log.event_name === 'IPRegistered' || log.event_name === 'Transfer'
+        ),
+        transaction: response
       };
     } catch (error) {
       console.error('Failed to track IP asset registration:', error);
-      throw new Error(`IP asset tracking failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      return { success: false };
     }
   }
 
+  /**
+   * Get analytics for Story Protocol assets owned by user
+   */
   async getIPAssetAnalytics(address: string): Promise<{
     total_assets: number;
     total_value: number;
@@ -189,23 +374,25 @@ export class ZapperService {
     try {
       const portfolio = await this.getUserPortfolio(address);
       
-      const ipAssets = portfolio.tokens.filter((token: any) => 
-        token.collection_name.includes('IP') || 
-        token.description?.includes('license') ||
-        token.name.includes('Rights')
+      // Filter for Story Protocol related assets
+      const ipAssets = portfolio.tokens.filter(token => 
+        token.collection_name?.includes('SoundRights') ||
+        token.collection_name?.includes('Music') ||
+        token.description?.includes('Story Protocol') ||
+        token.description?.includes('IP asset')
       );
 
-      const recentTransactions = portfolio.transactions.filter((tx: any) => 
-        new Date(tx.timestamp) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+      const recentTransactions = portfolio.transactions.filter(tx => 
+        new Date(tx.timestamp) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // Last 30 days
       );
 
       return {
         total_assets: ipAssets.length,
-        total_value: ipAssets.reduce((sum: number, asset: any) => sum + (asset.estimated_value || 0), 0),
-        recent_registrations: recentTransactions.filter((tx: any) => tx.type === 'mint').length,
+        total_value: ipAssets.reduce((sum, asset) => sum + (asset.estimated_value || 0), 0),
+        recent_registrations: recentTransactions.filter(tx => tx.type === 'mint').length,
         license_revenue: recentTransactions
-          .filter((tx: any) => tx.type === 'sale')
-          .reduce((sum: number, tx: any) => sum + parseFloat(tx.value || '0'), 0)
+          .filter(tx => tx.type === 'sale')
+          .reduce((sum, tx) => sum + parseFloat(tx.value), 0)
       };
     } catch (error) {
       console.error('Failed to get IP asset analytics:', error);
@@ -218,32 +405,40 @@ export class ZapperService {
     }
   }
 
+  /**
+   * Test API connection and get service status
+   */
   async testConnection(): Promise<{ status: string; apiKey: string; message: string }> {
-    try {
-      if (!this.apiKey) {
-        return {
-          status: 'error',
-          apiKey: 'missing',
-          message: 'ZAPPER_API_KEY environment variable not configured'
-        };
-      }
+    if (this.demoMode) {
+      return {
+        status: 'demo',
+        apiKey: 'Demo Analytics',
+        message: 'Zapper Analytics: Using comprehensive demo data for portfolio visualization'
+      };
+    }
 
+    try {
+      // Test API connection with a simple GraphQL query
       const testQuery = {
-        query: `query { portfolio(address: "0x0000000000000000000000000000000000000000") { tokenBalances { token { name } } } }`
+        query: `
+          query TestConnection {
+            __typename
+          }
+        `
       };
 
-      await this.makeRequest('', { body: testQuery });
-      
+      const response = await this.makeRequest('', { body: testQuery });
       return {
-        status: 'connected',
-        apiKey: this.apiKey.substring(0, 8) + '...',
-        message: 'Zapper API connection successful'
+        status: 'live',
+        apiKey: this.apiKey.slice(0, 8) + '...' + this.apiKey.slice(-8),
+        message: 'Zapper API connected - live portfolio data available'
       };
     } catch (error) {
+      console.error('Zapper API test failed:', error);
       return {
         status: 'error',
-        apiKey: this.apiKey ? 'present' : 'missing',
-        message: `Zapper API connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+        apiKey: 'Connection Failed',
+        message: `Zapper API error: ${error instanceof Error ? error.message : 'Unknown error'}`
       };
     }
   }
