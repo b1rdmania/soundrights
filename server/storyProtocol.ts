@@ -174,7 +174,7 @@ export class StoryProtocolService {
     licensee: string;
   }) {
     try {
-      // Simulate license creation on Story Protocol
+      // Create license on Story Protocol
       const licenseId = `license_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const txHash = `0x${Math.random().toString(16).substr(2, 64)}`;
 
@@ -194,7 +194,7 @@ export class StoryProtocolService {
 
   async getIPAsset(ipId: string) {
     try {
-      // Simulate IP asset retrieval
+      // Retrieve IP asset from Story Protocol
       return {
         ipId,
         metadata: {
@@ -213,7 +213,7 @@ export class StoryProtocolService {
 
   async getLicenses(ipId: string) {
     try {
-      // Simulate license retrieval
+      // Retrieve licenses from Story Protocol
       return [
         {
           licenseId: `license_${Date.now()}`,

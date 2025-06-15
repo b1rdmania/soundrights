@@ -860,7 +860,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         media_url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
         metadata: {
           title: 'Test Audio Sample',
-          creator: 'SoundRights Demo',
+          creator: 'API Test User',
           description: 'Testing IP verification functionality',
           platform: 'SoundRights'
         }
@@ -895,7 +895,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Test real IP asset registration on Story Protocol testnet
       const testAsset = {
-        name: 'SoundRights Demo Track',
+        name: 'API Test Track',
         description: 'Demonstrating blockchain IP registration functionality',
         mediaUrl: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
         attributes: { creator: 'SoundRights Platform', type: 'audio' },
