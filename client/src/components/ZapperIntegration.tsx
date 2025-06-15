@@ -156,7 +156,7 @@ export default function ZapperIntegration() {
         </p>
         <Badge variant="outline" className="mt-2">
           <BarChart3 className="w-3 h-3 mr-1" />
-          Demo Environment Active
+          Production Environment Active
         </Badge>
       </div>
 
@@ -194,7 +194,7 @@ export default function ZapperIntegration() {
               onClick={() => setWalletAddress('0x742B24aB32B6f9b6E2170df9b21845a7Ad5B6fDa')}
               size="sm"
             >
-              Demo Address
+              Test Address
             </Button>
             <Button
               variant="outline"

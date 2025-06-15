@@ -856,7 +856,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/yakoa/test", async (req: any, res) => {
     try {
       // Test actual IP verification with a real audio URL
-      const testData = {
+      const apiTestData = {
         media_url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
         metadata: {
           title: 'Test Audio Sample',
@@ -866,7 +866,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       };
       
-      const registration = await yakoaService.registerToken(testData);
+      const registration = await yakoaService.registerToken(apiTestData);
       
       res.json({
         success: true,
@@ -875,7 +875,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         details: {
           token_id: registration.token.id,
           status: registration.token.status,
-          media_url: testData.media_url,
+          media_url: apiTestData.media_url,
           verification_started: new Date().toISOString(),
           api_response: registration.message
         }

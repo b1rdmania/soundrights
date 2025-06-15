@@ -165,7 +165,7 @@ export default function EnhancedIPVerification() {
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 p-4 rounded-lg mb-4">
           <Badge variant="secondary" className="mb-2">
             <Music className="w-3 h-3 mr-1" />
-            Testnet Demo Mode
+            Testnet Production Mode
           </Badge>
           <h3 className="text-2xl font-bold mb-2">IP Verification System</h3>
           <p className="text-muted-foreground">
@@ -261,7 +261,7 @@ export default function EnhancedIPVerification() {
               variant="outline"
               onClick={() => {
                 setFormData({ 
-                  title: 'Original Demo Track', 
+                  title: 'Original Production Track', 
                   artist: 'Independent Artist',
                   description: 'Original composition for IP registration',
                   mediaUrl: ''
