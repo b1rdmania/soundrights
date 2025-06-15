@@ -3,7 +3,11 @@ import { EthersAdapter } from '@reown/appkit-adapter-ethers'
 import { mainnet, arbitrum, sepolia } from '@reown/appkit/networks'
 
 // Get projectId from environment
-const projectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || '1c6eba6fc7f6b210609dbd6cccef8199'
+const projectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID
+
+if (!projectId) {
+  throw new Error('VITE_WALLETCONNECT_PROJECT_ID environment variable is required')
+}
 
 // Create metadata object
 const metadata = {
@@ -57,13 +61,15 @@ export const connectWallet = async (): Promise<WalletConnectionResult> => {
       setTimeout(checkConnection, 100)
 
       // Subscribe to account changes
-      const unsubscribe = appKit.subscribeAccount(checkConnection)
+      const unsubscribe = appKit.subscribeAccount?.(checkConnection)
 
       // Set timeout for connection
       setTimeout(() => {
         if (!resolved) {
           resolved = true
-          unsubscribe?.()
+          if (unsubscribe && typeof unsubscribe === 'function') {
+            unsubscribe()
+          }
           reject(new Error('Connection timeout'))
         }
       }, 30000)
