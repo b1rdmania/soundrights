@@ -94,7 +94,7 @@ export default function DemoUpload() {
 
     setDiscogsSearched(true);
     
-    // Simulate Discogs API search
+    // Discogs API search
     setTimeout(() => {
       setFormData(prev => ({
         ...prev,

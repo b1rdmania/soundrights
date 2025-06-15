@@ -367,7 +367,7 @@ const WhitePaper = () => {
             <div className="mt-12 text-center">
               <div className="inline-flex items-center justify-center p-1 rounded-full bg-gradient-to-br from-primary to-primary/70">
                 <RouterLink
-                  href="/demo"
+                  href="/upload"
                   className="inline-flex items-center justify-center px-6 py-3 rounded-full text-base font-medium bg-white text-primary shadow hover:bg-primary/10 transition-colors"
                 >
                   Try SoundRightsAI Demo
