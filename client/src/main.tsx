@@ -1,5 +1,5 @@
 import { createRoot } from 'react-dom/client'
-import App from './App.tsx'
+import TestApp from './TestApp.tsx'
 import './index.css'
 
 // Add global styles for static musical notes

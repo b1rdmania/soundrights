@@ -81,29 +81,43 @@ function AppRouter() {
 }
 
 const App = () => {
-  return (
-    <WalletProvider>
-      <QueryClientProvider client={queryClient}>
-        <ErrorBoundary FallbackComponent={ErrorFallback}>
+  try {
+    return (
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
+        <QueryClientProvider client={queryClient}>
           <TooltipProvider>
-            <MobileDetector>
-              <div className="flex flex-col min-h-screen">
-                <Toaster position="top-right" />
-                <Sonner />
-                <Navbar />
-                
-                <main className="flex-grow">
-                  <AppRouter />
-                </main>
-                
-                <Footer />
-              </div>
-            </MobileDetector>
+            <div className="flex flex-col min-h-screen">
+              <Toaster position="top-right" />
+              <Sonner />
+              <Navbar />
+              
+              <main className="flex-grow">
+                <AppRouter />
+              </main>
+              
+              <Footer />
+            </div>
           </TooltipProvider>
-        </ErrorBoundary>
-      </QueryClientProvider>
-    </WalletProvider>
-  );
+        </QueryClientProvider>
+      </ErrorBoundary>
+    );
+  } catch (error) {
+    console.error('App rendering error:', error);
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center p-8">
+          <h2 className="text-2xl font-bold text-red-600 mb-4">Application Error</h2>
+          <p className="text-gray-600 mb-4">Failed to load the application</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark"
+          >
+            Reload Page
+          </button>
+        </div>
+      </div>
+    );
+  }
 };
 
 export default App;
