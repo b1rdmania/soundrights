@@ -2,6 +2,7 @@ import { queryClient } from "@/lib/queryClient";
 import { Switch, Route } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import ProductionHome from "./pages/ProductionHome";
+import SimpleNavbar from "./components/SimpleNavbar";
 
 function AppRouter() {
   return (
@@ -22,7 +23,10 @@ function AppRouter() {
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <AppRouter />
+      <div className="min-h-screen">
+        <SimpleNavbar />
+        <AppRouter />
+      </div>
     </QueryClientProvider>
   );
 };
