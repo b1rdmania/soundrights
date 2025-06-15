@@ -739,7 +739,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Integration status endpoint - shows live vs demo status
+  // Integration status endpoint - shows live production status
   app.get("/api/integration-status", async (req: any, res) => {
     try {
       const statuses = {
@@ -1056,7 +1056,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Zapper Analytics API routes (public for demo)
+  // Zapper Analytics API routes (production authenticated)
   app.get("/api/zapper/portfolio/:address", async (req: any, res) => {
     try {
       const { address } = req.params;

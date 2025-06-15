@@ -203,7 +203,7 @@ export class YakoaService {
         };
       }
 
-      // Test API connection without registering dummy content
+      // Test API connection with production credentials
       await this.makeRequest('/health', {
         method: 'GET'
       });
