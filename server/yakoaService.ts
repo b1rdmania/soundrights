@@ -43,7 +43,7 @@ export interface YakoaRegistrationResponse {
 
 export class YakoaService {
   private readonly apiKey: string;
-  private readonly baseUrl = 'https://docs-demo.ip-api-sandbox.yakoa.io/docs-demo';
+  private readonly baseUrl = 'https://api.yakoa.io';
 
   constructor() {
     this.apiKey = process.env.YAKOA_API_KEY || '';
@@ -71,7 +71,9 @@ export class YakoaService {
     });
 
     if (!response.ok) {
-      throw new Error(`Yakoa API error: ${response.status} ${response.statusText}`);
+      const errorText = await response.text();
+      console.error(`Yakoa API Error Details: ${response.status} ${response.statusText}`, errorText);
+      throw new Error(`Yakoa API error: ${response.status} ${response.statusText} - ${errorText}`);
     }
 
     return response.json();
@@ -84,38 +86,41 @@ export class YakoaService {
    */
   async registerToken(data: YakoaRegistrationRequest): Promise<YakoaRegistrationResponse> {
     try {
-      // Format data according to Yakoa API specification
-      const tokenData = {
+      // Format according to Yakoa API documentation
+      const registrationData = {
         id: {
-          chain: "story-odyssey",
-          contract_address: "0x1234567890123456789012345678901234567890",
+          chain: "story-aeneid",
+          contract_address: "0x041b4f29183317eb2335f2a71ecf8d9d4d21f9a3",
           token_id: `${Date.now()}`
         },
         registration_tx: {
           hash: `0x${Math.random().toString(16).slice(2, 34).padStart(32, '0')}${Math.random().toString(16).slice(2, 34).padStart(32, '0')}`,
           block_number: Math.floor(Math.random() * 1000000),
           timestamp: new Date().toISOString(),
-          chain: "story-odyssey"
+          chain: "story-aeneid"
         },
         creator_id: data.metadata.creator,
         metadata: {
           name: data.metadata.title,
           description: data.metadata.description || `Audio track: ${data.metadata.title} by ${data.metadata.creator}`,
-          platform: data.metadata.platform || "SoundRights"
+          attributes: {
+            platform: data.metadata.platform || "SoundRights",
+            type: "audio"
+          }
         },
         media: [{
           media_id: `media_${Date.now()}`,
           url: data.media_url,
           hash: null,
-          trust_reason: null
+          trust_reason: "platform_upload"
         }],
         authorizations: data.authorizations || [],
         license_parents: []
       };
 
-      const response = await this.makeRequest('/token', {
+      const response = await this.makeRequest('/register-token', {
         method: 'POST',
-        body: JSON.stringify(tokenData),
+        body: JSON.stringify(registrationData),
       });
 
       return {
