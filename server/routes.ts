@@ -794,7 +794,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description,
         mediaUrl: mediaUrl,
         attributes: attributes || {},
-        userAddress: "test_user_" + Date.now(),
+        userAddress: req.body.userAddress || req.user?.claims?.sub,
       });
 
       res.json({
@@ -1130,10 +1130,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       
-      // Use authenticated user's wallet address or require API key
-      const defaultAddress = "0x742d35Cc6634C0532925a3b8D07c68c2b6f5f9E8";
+      // Require actual wallet address from user
+      const walletAddress = req.query.address as string;
+      if (!walletAddress) {
+        return res.status(400).json({ 
+          error: 'Wallet address required',
+          message: 'Please provide a valid wallet address parameter'
+        });
+      }
       
-      const portfolio = await blockchainService.getWalletPortfolio(defaultAddress);
+      const portfolio = await blockchainService.getWalletPortfolio(walletAddress);
       
       res.json(portfolio);
     } catch (error) {
