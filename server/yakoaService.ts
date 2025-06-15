@@ -43,7 +43,7 @@ export interface YakoaRegistrationResponse {
 
 export class YakoaService {
   private readonly apiKey: string;
-  private readonly baseUrl = 'https://api.yakoa.io';
+  private readonly baseUrl = 'https://docs-demo.ip-api-sandbox.yakoa.io/docs-demo';
 
   constructor() {
     this.apiKey = process.env.YAKOA_API_KEY || '';
@@ -63,8 +63,10 @@ export class YakoaService {
     const response = await fetch(url, {
       ...options,
       headers: {
-        'x-api-key': this.apiKey,
+        'X-API-Key': this.apiKey,
         'Content-Type': 'application/json',
+        'X-Subdomain': 'docs-demo',
+        'X-Network': 'docs-demo',
         ...options.headers,
       },
     });
