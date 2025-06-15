@@ -1,5 +1,5 @@
 import { createRoot } from 'react-dom/client'
-import SimpleApp from './SimpleApp.tsx'
+import App from './App.tsx'
 import './index.css'
 
 // Add global styles for static musical notes
@@ -13,5 +13,5 @@ style.textContent = `
 document.head.appendChild(style);
 
 createRoot(document.getElementById("root")!).render(
-  <SimpleApp />
+  <App />
 );

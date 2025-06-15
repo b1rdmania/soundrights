@@ -1,0 +1,165 @@
+Certainly! Here’s a detailed, step-by-step debug and triage report for your technical team, focused on why the React frontend isn’t loading and what to check/fix immediately. This is structured for rapid diagnosis and action.
+
+---
+
+# SoundRights Hackathon Emergency Debug Report
+
+## 1. **Critical Errors Observed**
+
+### a. Backend Startup Errors
+```
+Error: DATABASE_URL must be set. Did you forget to provision a database?
+Error: Environment variable REPLIT_DOMAINS not provided
+```
+- **Impact:** The backend server is crashing on startup. If the backend is down, the frontend cannot fetch data or may not load at all if served through the backend.
+
+---
+
+## 2. **Immediate Checklist for Technical Team**
+
+### a. **Environment Variables**
+- **Required for Backend to Start:**
+  - `DATABASE_URL` (PostgreSQL connection string)
+  - `SESSION_SECRET` (any random string for session encryption)
+  - `REPLIT_DOMAINS` (should be your domain, e.g., `localhost:3000` for local dev)
+- **How to Set:**
+  - Create a `.env` file in the project root with:
+    ```
+    DATABASE_URL=postgresql://andy@localhost:5432/soundrights_dev
+    SESSION_SECRET=test-secret
+    REPLIT_DOMAINS=localhost:3000
+    ```
+  - Or, set these in your deployment environment (Vercel, Netlify, etc.).
+
+### b. **Database**
+- **Check if PostgreSQL is running.**
+- **Check if the database exists:**
+  ```
+  createdb soundrights_dev
+  ```
+- **If schema changes were made, run:**
+  ```
+  npm run db:push
+  ```
+
+### c. **Backend Startup**
+- **Start the backend:**
+  ```
+  npm run dev
+  ```
+- **If you see errors about missing env vars, the backend will not start.**
+- **If you see errors about the database, check your connection string and DB status.**
+
+### d. **Frontend Build & Serve**
+- **If using Vite/React separately:**
+  ```
+  cd client
+  npm install
+  npm run dev
+  ```
+- **If serving frontend through Express, the backend must be running for the React app to load.**
+
+### e. **Frontend Build Errors**
+- **Run:**
+  ```
+  npm run build
+  ```
+  - Look for any errors or warnings in the output.
+- **If the build fails, the frontend will not load.**
+
+### f. **Browser Debugging**
+- **Open the browser’s developer tools:**
+  - **Console tab:** Look for JavaScript errors.
+  - **Network tab:** Look for failed requests (404, 500, CORS errors).
+- **Common issues:**
+  - 404s for static files (frontend not built or not served)
+  - CORS errors (API not reachable)
+  - JavaScript errors (missing dependencies, build issues)
+
+---
+
+## 3. **Step-by-Step Debugging Flow**
+
+### 1. **Check Environment Variables**
+   - Ensure `.env` exists and is loaded.
+   - If using a cloud provider, set env vars in the dashboard.
+
+### 2. **Start Backend**
+   - Run:
+     ```
+     npm run db:push
+     npm run dev
+     ```
+   - If errors persist, the `.env` is not being loaded or is missing values.
+
+### 3. **Start Frontend**
+   - If using Vite/React separately:
+     ```
+     cd client
+     npm install
+     npm run dev
+     ```
+   - If errors occur, check the terminal and browser console for details.
+
+### 4. **Check Browser Console**
+   - Blank page? Open dev tools, check Console and Network tabs.
+   - Look for:
+     - Red errors (JS exceptions)
+     - Failed network requests (API/server not running)
+     - CORS issues
+
+### 5. **Fallback: Serve Static Build**
+   - If backend is down but you need to demo the UI:
+     ```
+     cd client
+     npm run build
+     npx serve dist
+     ```
+   - This will serve the static frontend (no API functionality, but UI will load).
+
+---
+
+## 4. **Common Failure Scenarios & Fixes**
+
+| Symptom                | Likely Cause                        | Fix                                      |
+|------------------------|-------------------------------------|------------------------------------------|
+| Backend won’t start    | Missing env vars or DB down         | Set `.env`, start DB, check connection   |
+| Frontend blank page    | Backend down, build error, or CORS  | Start backend, check build, fix CORS     |
+| API 404/500 errors     | Backend not running or crashing     | Start backend, check logs                |
+| CORS errors            | Wrong API URL or CORS config        | Fix API URL, update CORS settings        |
+| Static files 404       | Frontend not built or not served    | Run `npm run build`, serve `dist`        |
+
+---
+
+## 5. **What to Do Right Now**
+
+1. **Set all required environment variables.**
+2. **Start PostgreSQL and ensure the database exists.**
+3. **Run `npm run db:push` to apply schema.**
+4. **Start the backend (`npm run dev`).**
+5. **Start the frontend (`npm run dev` in `client/`).**
+6. **Check browser console and network for errors.**
+7. **If stuck, serve the static frontend for demo purposes.**
+
+---
+
+## 6. **If Still Not Working**
+
+- Paste the output of:
+  - `npm run dev` (backend)
+  - `npm run dev` (frontend, if separate)
+  - Any errors from the browser console
+
+---
+
+## 7. **Summary for Technical Team**
+
+- **Backend must be running for the frontend to load and function.**
+- **Missing environment variables or a down database will crash the backend.**
+- **Frontend build errors or missing static files will cause a blank page.**
+- **Browser console and network tabs are your best friends for rapid debugging.**
+- **For hackathon demo, serving the static frontend is a last-resort fallback.**
+
+---
+
+**Please follow this checklist step by step. If you encounter a specific error, paste it here for targeted help. Good luck at the hackathon!**
