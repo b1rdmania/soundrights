@@ -118,7 +118,7 @@ export class StoryProtocolService {
           tokenId: apiResponse.tokenId?.toString() || Math.floor(Math.random() * 1000000).toString(),
           chainId: aeneid.id,
           txHash: apiResponse.txHash || `0x${Date.now().toString(16)}${Math.random().toString(16).substr(2, 40)}`,
-          nftContract: apiResponse.nftContract || '0x041B4F29183317Eb2335F2A71ecF8d9d4D21F9a3',
+          nftContract: apiResponse.nftContract || '0x041b4f29183317eb2335f2a71ecf8d9d4d21f9a3',
           metadata,
           storyProtocolUrl: `https://explorer.story.foundation/ip/${apiResponse.ipId}`,
           blockNumber: apiResponse.blockNumber || Math.floor(Math.random() * 1000000),
@@ -132,7 +132,7 @@ export class StoryProtocolService {
         // Fallback to SDK registration
         try {
           const ipRegistrationResponse = await this.client.ipAsset.register({
-            nftContract: '0x041B4F29183317Eb2335F2A71ecF8d9d4D21F9a3' as `0x${string}`,
+            nftContract: '0x041b4f29183317eb2335f2a71ecf8d9d4d21f9a3' as `0x${string}`,
             tokenId: BigInt(Math.floor(Math.random() * 1000000)),
             ipMetadata: {
               ipMetadataURI: data.mediaUrl,
