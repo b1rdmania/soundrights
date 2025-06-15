@@ -75,50 +75,7 @@ export class YakoaService {
     return response.json();
   }
 
-  private getMockResponse(endpoint: string, options: any) {
-    // Demo mode responses for testing without API key
-    if (endpoint === '/tokens' && options.method === 'POST') {
-      const body = JSON.parse(options.body);
-      return {
-        token: {
-          id: `yakoa_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          status: 'complete',
-          media_url: body.media_url,
-          metadata: body.metadata,
-          infringements: {
-            total: 0,
-            high_confidence: 0,
-            results: []
-          },
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        },
-        message: 'Token registered successfully (demo mode)'
-      };
-    }
-
-    if (endpoint.startsWith('/tokens/')) {
-      const tokenId = endpoint.split('/')[2];
-      return {
-        id: tokenId,
-        status: 'complete',
-        media_url: 'https://example.com/audio.mp3',
-        metadata: {
-          title: 'Demo Track',
-          creator: 'Demo Creator'
-        },
-        infringements: {
-          total: 0,
-          high_confidence: 0,
-          results: []
-        },
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-    }
-
-    throw new Error('Unknown endpoint in demo mode');
-  }
+  // Removed getMockResponse - production-only error handling
 
   /**
    * Register a digital audio asset for IP authentication using Yakoa API

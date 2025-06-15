@@ -62,50 +62,7 @@ export class TomoService {
     return response.json();
   }
 
-  private getMockResponse(endpoint: string, options: any) {
-    // Demo mode responses for testing without API key
-    if (endpoint === '/auth/social' && options.method === 'POST') {
-      return {
-        access_token: `tomo_demo_${Date.now()}`,
-        refresh_token: `refresh_demo_${Date.now()}`,
-        user: {
-          id: `tomo_user_${Math.random().toString(36).substr(2, 9)}`,
-          email: 'demo@example.com',
-          wallet_address: '0x1234567890123456789012345678901234567890',
-          social_profiles: {
-            twitter: '@demouser'
-          },
-          verified: true,
-          created_at: new Date().toISOString()
-        },
-        expires_in: 3600
-      };
-    }
-
-    if (endpoint.startsWith('/users/')) {
-      const userId = endpoint.split('/')[2];
-      return {
-        id: userId,
-        email: 'demo@example.com',
-        wallet_address: '0x1234567890123456789012345678901234567890',
-        verified: true,
-        created_at: new Date().toISOString()
-      };
-    }
-
-    if (endpoint.startsWith('/wallets/')) {
-      return [
-        {
-          address: '0x1234567890123456789012345678901234567890',
-          chain: 'ethereum',
-          balance: '1.5',
-          verified: true
-        }
-      ];
-    }
-
-    throw new Error('Unknown endpoint in demo mode');
-  }
+  // Removed getMockResponse - production-only error handling
 
   /**
    * Test API connection and get service status
