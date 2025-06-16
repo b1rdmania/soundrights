@@ -108,9 +108,9 @@ export default function Integrations() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-4">API Integrations & System Status</h1>
+        <h1 className="text-4xl font-bold mb-4">API Integrations</h1>
         <p className="text-xl text-gray-600 mb-6">
-          Production API integrations with authentic data sources only. No dummy data is returned from any service.
+          Production API integrations powering SoundRights platform functionality.
         </p>
         
         <div className="flex items-center gap-4 mb-6">
@@ -221,71 +221,7 @@ export default function Integrations() {
           })}
         </div>
 
-        {/* System-wide Status */}
-        <Card>
-          <CardHeader>
-            <CardTitle>System-wide Integration Status</CardTitle>
-            <CardDescription>Real-time monitoring of all API connections and service health</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {integrationStatuses?.integrations && (
-              <div className="space-y-4">
-                {Object.entries((integrationStatuses as any).integrations).map(([key, service]: [string, any]) => (
-                  <div key={key} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-3 h-3 rounded-full ${
-                        service.status === 'live' ? 'bg-green-500' : 
-                        service.status.includes('requires') ? 'bg-red-500' : 
-                        service.status.includes('error') ? 'bg-red-500' : 'bg-yellow-500'
-                      }`} />
-                      <div>
-                        <h3 className="font-medium capitalize">{key.replace('_', ' ')}</h3>
-                        <p className="text-sm text-gray-500">{service.message}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      {service.status === 'live' && (
-                        <Badge variant="default" className="bg-green-500">
-                          <CheckCircle className="w-3 h-3 mr-1" />
-                          Live Data
-                        </Badge>
-                      )}
-                      {service.status.includes('requires') && (
-                        <Badge variant="destructive">
-                          <AlertTriangle className="w-3 h-3 mr-1" />
-                          Needs API Key
-                        </Badge>
-                      )}
-                      {service.status.includes('error') && (
-                        <Badge variant="destructive">
-                          <XCircle className="w-3 h-3 mr-1" />
-                          Connection Failed
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-            
-            <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-              <div className="flex items-center space-x-2 mb-2">
-                {(integrationStatuses as any)?.production_ready ? (
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                ) : (
-                  <AlertTriangle className="w-5 h-5 text-yellow-500" />
-                )}
-                <h3 className="font-medium">Production Readiness Assessment</h3>
-              </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                {(integrationStatuses as any)?.requires_configuration ? 
-                  `Missing configuration: ${(integrationStatuses as any).requires_configuration.join(', ')}` :
-                  'All critical integrations are configured and operational with authentic data sources.'
-                }
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+
 
         {/* Integration Workflow */}
         <Card>
