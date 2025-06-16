@@ -117,6 +117,7 @@ All services now use authentic API responses. Demo fallbacks have been removed t
 - User control: Explicit approval required for blockchain operations
 - Creator profile: Sonic Labs background (2 years), music industry interest, web3 native
 - Connect links: GitHub (b1rdmania), Twitter/X (b1rdmania), Telegram (birdman1a)
+- Marketplace concept: SDK integration for labels, not working marketplace - B2B focus with Clerk.com payment middleware
 
 ### Next Phase Priorities
 1. Test complete end-to-end workflow: upload → verify → approve → register
