@@ -23,6 +23,7 @@ import Integrations from "./pages/Integrations";
 import Marketplace from "./pages/Marketplace";
 import Analytics from "./pages/Analytics";
 import Profile from "./pages/Profile";
+import MeetTheCreator from "./pages/MeetTheCreator";
 // Dashboard removed for MVP - focusing on demo functionality
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
@@ -70,6 +71,7 @@ function AppRouter() {
       <Route path="/marketplace" component={Marketplace} />
       <Route path="/analytics" component={Analytics} />
       <Route path="/profile" component={Profile} />
+      <Route path="/meet-the-creator" component={MeetTheCreator} />
       <Route path="/results" component={Results} />
       <Route path="/about" component={About} />
       <Route path="/whitepaper" component={WhitePaper} />
