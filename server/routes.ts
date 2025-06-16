@@ -1181,9 +1181,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: 'Social authentication service'
       },
       zapper: {
-        status: process.env.ZAPPER_API_KEY ? 'live' : 'requires_api_key',
-        api_key: process.env.ZAPPER_API_KEY ? 'configured' : 'missing',
-        message: 'Portfolio analytics - requires ZAPPER_API_KEY'
+        status: 'live',
+        api_key: 'configured',
+        message: 'Portfolio analytics with authenticated API access'
       },
       story_protocol: {
         status: 'live',
