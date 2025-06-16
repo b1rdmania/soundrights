@@ -181,21 +181,12 @@ export default function EnhancedDemoUpload() {
 
   // Show upload form initially
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 p-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-4">
-            SoundRights Upload
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Experience comprehensive IP verification using 5 cutting-edge sponsor technologies in real-time
-          </p>
-        </div>
-
-        {/* Sponsor Showcase */}
+    <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8">
+      <div className="max-w-3xl mx-auto">
+        {/* Sponsor Technologies */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4 text-center">Powered by Leading Web3 Technologies</h2>
-          <div className="flex flex-wrap justify-center gap-4">
+          <h3 className="text-lg font-semibold mb-4 text-center">Powered by Leading Web3 Technologies</h3>
+          <div className="flex flex-wrap justify-center gap-3">
             <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 px-4 py-2">
               Yakoa IP Authentication
             </Badge>
