@@ -26,7 +26,6 @@ const Navbar = () => {
   }, []);
   
   const navLinks = [
-    { path: '/dashboard', label: 'Dashboard' },
     { path: '/live-demo', label: 'Demo' },
     { path: '/marketplace', label: 'Marketplace' },
     { path: '/integrations', label: 'Integrations' },

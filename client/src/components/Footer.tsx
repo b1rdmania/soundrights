@@ -74,10 +74,10 @@ const Footer = () => {
                   </span>
                 </Link>
                 
-                <Link href="/dashboard" className="block text-muted-foreground hover:text-primary transition-colors group">
+                <Link href="/live-demo" className="block text-muted-foreground hover:text-primary transition-colors group">
                   <span className="flex items-center gap-2">
-                    <span className="scale-0 group-hover:scale-100 transition-transform">📊</span>
-                    <span className="relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-current after:transition-all after:duration-300 group-hover:after:w-full">Dashboard</span>
+                    <span className="scale-0 group-hover:scale-100 transition-transform">🚀</span>
+                    <span className="relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-current after:transition-all after:duration-300 group-hover:after:w-full">Live Demo</span>
                   </span>
                 </Link>
               </div>

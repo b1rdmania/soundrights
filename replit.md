@@ -81,7 +81,7 @@ SoundRights is a comprehensive web3 music licensing platform serving independent
 - Real-time wallet connectivity with portfolio visualization
 - User approval workflow for blockchain registration
 - Enhanced integrations page with live API testing console
-- Dashboard removed from MVP to focus on demo functionality
+- Dashboard completely removed from MVP (component deleted, navigation cleaned up)
 
 **Backend (Express + Node.js)**
 - PostgreSQL database with Drizzle ORM
