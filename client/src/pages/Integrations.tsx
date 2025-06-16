@@ -1,64 +1,49 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { ExternalLink, CheckCircle, Shield, Users, BarChart3, Wallet, AlertTriangle, Key, Play, RefreshCw } from 'lucide-react';
-import { apiRequest } from '@/lib/queryClient';
-import { useState } from 'react';
-import toast from 'react-hot-toast';
+import { ExternalLink, CheckCircle, Shield, Users, BarChart3, Wallet, AlertTriangle, RefreshCw, XCircle, Clock } from 'lucide-react';
 
 export default function Integrations() {
-  const [testWalletAddress, setTestWalletAddress] = useState('0x742d35Cc6641C3aa5DdAabE8C68c08C5a5D4A58A');
-  const [testResults, setTestResults] = useState<any>({});
-
   const { data: integrationStatuses, isLoading, refetch } = useQuery({
     queryKey: ['/api/sponsors/status'],
     refetchInterval: 30000,
   });
 
-  // Test API integrations
-  const yakoaTest = useMutation({
-    mutationFn: async () => await apiRequest('/api/yakoa/test', { method: 'POST' }),
-    onSuccess: (data) => {
-      toast.success(`Real IP verification test completed - Token ${data.details?.token_id || 'created'} on Yakoa platform`);
-      setTestResults(prev => ({ ...prev, yakoa: data }));
-    },
-    onError: (error) => toast.error(`Real IP verification failed: ${error.message}`)
-  });
-
-  const zapperTest = useMutation({
-    mutationFn: async () => await apiRequest(`/api/zapper/test`),
-    onSuccess: (data) => {
-      toast.success(`Real wallet portfolio retrieved - ${data.details?.token_count || 0} tokens found worth $${data.details?.total_value || 0}`);
-      setTestResults(prev => ({ ...prev, zapper: data }));
-    },
-    onError: (error) => toast.error(`Real portfolio test failed: ${error.message}`)
-  });
-
-  const storyTest = useMutation({
-    mutationFn: async () => await apiRequest('/api/story/test', { method: 'POST' }),
-    onSuccess: (data) => {
-      toast.success(`Real blockchain IP registration completed - Asset ${data.details?.ip_asset_id || 'registered'} on Story Protocol`);
-      setTestResults(prev => ({ ...prev, story: data }));
-    },
-    onError: (error) => toast.error(`Real blockchain test failed: ${error.message}`)
-  });
-
-  const getStatusBadge = (serviceKey: string) => {
-    if (!integrationStatuses?.integrations) return <Badge variant="secondary">Loading...</Badge>;
+  const getStatusInfo = (serviceKey: string) => {
+    if (!integrationStatuses?.integrations) {
+      return { badge: <Badge variant="secondary">Loading...</Badge>, dataSource: 'loading' };
+    }
     
     const service = (integrationStatuses.integrations as any)[serviceKey];
-    if (!service) return <Badge variant="destructive">Unknown</Badge>;
+    if (!service) {
+      return { badge: <Badge variant="destructive">Unknown</Badge>, dataSource: 'error' };
+    }
     
     if (service.status === 'live') {
-      return <Badge variant="default" className="bg-green-500">Live</Badge>;
+      return { 
+        badge: <Badge variant="default" className="bg-green-500">Live Data</Badge>, 
+        dataSource: 'authentic',
+        details: service.message 
+      };
     } else if (service.status.includes('requires')) {
-      return <Badge variant="destructive">Needs API Key</Badge>;
+      return { 
+        badge: <Badge variant="destructive">Needs API Key</Badge>, 
+        dataSource: 'missing_credentials',
+        details: service.message 
+      };
+    } else if (service.status.includes('error') || service.status.includes('failed')) {
+      return { 
+        badge: <Badge variant="destructive">Connection Failed</Badge>, 
+        dataSource: 'error',
+        details: service.message 
+      };
     } else {
-      return <Badge variant="secondary">{service.status}</Badge>;
+      return { 
+        badge: <Badge variant="secondary">{service.status}</Badge>, 
+        dataSource: 'unknown',
+        details: service.message 
+      };
     }
   };
 
@@ -68,69 +53,64 @@ export default function Integrations() {
       name: 'Yakoa IP Authentication',
       description: 'Advanced IP verification and originality detection for music content',
       icon: Shield,
-      features: ['100% confidence verification', 'Real-time authenticity checks', 'Comprehensive infringement detection'],
-      apiEndpoint: '/api/yakoa/test',
+      features: ['Authentic IP verification', 'Real-time originality checks', 'Comprehensive infringement detection'],
       docsUrl: 'https://docs.yakoa.io',
       color: 'blue',
-      details: 'Live API integration using provided credentials for production IP verification.',
-      testFunction: yakoaTest
+      purpose: 'Verifies music authenticity and detects potential copyright infringement during upload process.',
+      dataPolicy: 'Only returns authentic verification results from Yakoa API. No dummy confidence scores.'
     },
     {
       id: 'tomo',
-      name: 'Tomo Social Verification',
+      name: 'Tomo Social Verification', 
       description: 'Enhanced user authentication and social reputation scoring',
       icon: Users,
       features: ['Multi-platform social verification', 'Reputation scoring', 'Identity authentication'],
-      apiEndpoint: '/api/tomo/test',
       docsUrl: 'https://tomo.inc',
       color: 'green',
-      details: 'Live OAuth integration with buildathon credentials for social authentication.',
-      testFunction: null
+      purpose: 'Enables social login and wallet verification for enhanced user authentication.',
+      dataPolicy: 'Connects to real social accounts only. No fake user profiles or demo authentication.'
     },
     {
       id: 'zapper',
       name: 'Zapper Portfolio Analytics',
       description: 'Comprehensive Web3 portfolio tracking and NFT analytics',
       icon: BarChart3,
-      features: ['Portfolio tracking', 'Transaction history', 'NFT valuation'],
-      apiEndpoint: '/api/zapper/test',
+      features: ['Real portfolio tracking', 'Transaction history', 'NFT valuation'],
       docsUrl: 'https://zapper.fi',
       color: 'purple',
-      details: 'Requires ZAPPER_API_KEY for live portfolio data. Falls back to blockchain RPC.',
-      testFunction: zapperTest
+      purpose: 'Displays authentic wallet portfolio data for user verification and analytics.',
+      dataPolicy: 'Shows real wallet balances and transactions. Falls back to direct blockchain calls if API unavailable.'
     },
     {
       id: 'story_protocol',
       name: 'Story Protocol Blockchain',
-      description: 'IP asset registration and licensing on blockchain',
+      description: 'IP asset registration and licensing on blockchain (Testnet)',
       icon: Wallet,
-      features: ['IP asset minting', 'Licensing automation', 'Revenue tracking'],
-      apiEndpoint: '/api/story/test',
+      features: ['IP asset registration', 'Licensing automation', 'Revenue tracking'],
       docsUrl: 'https://docs.story.foundation',
       color: 'orange',
-      details: 'Live testnet integration for blockchain IP registration.',
-      testFunction: storyTest
+      purpose: 'Registers music IP assets on Story Protocol testnet blockchain for verifiable ownership.',
+      dataPolicy: 'Currently experiencing connectivity issues with testnet RPC. Registration may fail until resolved.'
     },
     {
       id: 'walletconnect',
       name: 'WalletConnect Integration',
-      description: 'Seamless Web3 wallet connectivity supporting 400+ wallets',
+      description: 'Web3 wallet connectivity supporting 400+ wallets',
       icon: Wallet,
       features: ['400+ wallet support', 'Cross-chain compatibility', 'Secure transactions'],
-      apiEndpoint: '/api/walletconnect/status',
       docsUrl: 'https://walletconnect.com',
       color: 'indigo',
-      details: 'Live wallet connectivity with buildathon project ID.',
-      testFunction: null
+      purpose: 'Enables users to connect their Web3 wallets for blockchain interactions.',
+      dataPolicy: 'Only connects to real user wallets. No simulated wallet connections.'
     }
   ];
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-4">Live API Integrations</h1>
+        <h1 className="text-4xl font-bold mb-4">API Integrations & System Status</h1>
         <p className="text-xl text-gray-600 mb-6">
-          Real-time demonstrations of our production integrations with blockchain and Web3 services.
+          Production API integrations with authentic data sources only. No dummy data is returned from any service.
         </p>
         
         <div className="flex items-center gap-4 mb-6">
@@ -145,7 +125,7 @@ export default function Integrations() {
           
           {integrationStatuses && (
             <div className="flex items-center gap-2">
-              {integrationStatuses.production_ready ? (
+              {(integrationStatuses as any).production_ready ? (
                 <Badge variant="default" className="bg-green-500">
                   <CheckCircle className="h-3 w-3 mr-1" />
                   Production Ready
@@ -159,210 +139,198 @@ export default function Integrations() {
             </div>
           )}
         </div>
+
+        {/* Data Integrity Notice */}
+        <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-8">
+          <div className="flex items-start gap-3">
+            <Shield className="w-5 h-5 text-blue-600 mt-1" />
+            <div>
+              <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">Authentic Data Only</h3>
+              <p className="text-sm text-blue-800 dark:text-blue-200">
+                All integrations return authentic data from production APIs. Services display clear error messages when credentials are missing or connections fail. 
+                No mock, dummy, or placeholder data is used anywhere in the platform.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="overview">Integration Overview</TabsTrigger>
-          <TabsTrigger value="testing">Live API Testing</TabsTrigger>
-          <TabsTrigger value="status">System Status</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {integrations.map((integration) => {
-              const Icon = integration.icon;
-              return (
-                <Card key={integration.id} className="relative">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <Icon className={`h-6 w-6 text-${integration.color}-500`} />
-                      {getStatusBadge(integration.id)}
-                    </div>
-                    <CardTitle className="text-lg">{integration.name}</CardTitle>
-                    <CardDescription>{integration.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
+      <div className="space-y-8">
+        {/* Integration Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {integrations.map((integration) => {
+            const Icon = integration.icon;
+            const statusInfo = getStatusInfo(integration.id);
+            
+            return (
+              <Card key={integration.id} className="relative">
+                <CardHeader className="pb-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-lg bg-${integration.color}-100 dark:bg-${integration.color}-900/30`}>
+                        <Icon className={`h-5 w-5 text-${integration.color}-600 dark:text-${integration.color}-400`} />
+                      </div>
                       <div>
-                        <h4 className="font-medium text-sm mb-2">Key Features:</h4>
-                        <ul className="text-sm text-gray-600 space-y-1">
-                          {integration.features.map((feature, idx) => (
-                            <li key={idx} className="flex items-center">
-                              <CheckCircle className="h-3 w-3 mr-2 text-green-500" />
-                              {feature}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                      
-                      <div className="pt-2 border-t">
-                        <p className="text-xs text-gray-500 mb-3">{integration.details}</p>
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline" asChild>
-                            <a href={integration.docsUrl} target="_blank" rel="noopener noreferrer">
-                              <ExternalLink className="h-3 w-3 mr-1" />
-                              Docs
-                            </a>
-                          </Button>
-                          {integration.testFunction && (
-                            <Button 
-                              size="sm" 
-                              onClick={() => integration.testFunction?.mutate()}
-                              disabled={integration.testFunction?.isPending}
-                            >
-                              <Play className="h-3 w-3 mr-1" />
-                              Test API
-                            </Button>
-                          )}
-                        </div>
+                        <CardTitle className="text-lg">{integration.name}</CardTitle>
+                        <CardDescription className="mt-1">{integration.description}</CardDescription>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="testing" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Live API Testing Console</CardTitle>
-              <CardDescription>
-                Test real API integrations with live data. All tests use production endpoints.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
+                    {statusInfo.badge}
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Purpose */}
                   <div>
-                    <Label htmlFor="wallet-address">Test Wallet Address</Label>
-                    <Input
-                      id="wallet-address"
-                      value={testWalletAddress}
-                      onChange={(e) => setTestWalletAddress(e.target.value)}
-                      placeholder="0x..."
-                    />
+                    <h4 className="font-medium text-sm mb-2 text-gray-900 dark:text-gray-100">Purpose:</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{integration.purpose}</p>
+                  </div>
+
+                  {/* Data Policy */}
+                  <div>
+                    <h4 className="font-medium text-sm mb-2 text-gray-900 dark:text-gray-100">Data Policy:</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{integration.dataPolicy}</p>
+                  </div>
+
+                  {/* Current Status Details */}
+                  {statusInfo.details && (
+                    <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                      <h4 className="font-medium text-sm mb-1 text-gray-900 dark:text-gray-100">Current Status:</h4>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">{statusInfo.details}</p>
+                    </div>
+                  )}
+                  
+                  {/* Key Features */}
+                  <div>
+                    <h4 className="font-medium text-sm mb-2 text-gray-900 dark:text-gray-100">Key Features:</h4>
+                    <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                      {integration.features.map((feature, idx) => (
+                        <li key={idx} className="flex items-center">
+                          {statusInfo.dataSource === 'authentic' ? (
+                            <CheckCircle className="h-3 w-3 mr-2 text-green-500" />
+                          ) : statusInfo.dataSource === 'error' ? (
+                            <XCircle className="h-3 w-3 mr-2 text-red-500" />
+                          ) : (
+                            <Clock className="h-3 w-3 mr-2 text-gray-400" />
+                          )}
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                   
-                  <div className="space-y-3">
-                    <h3 className="font-medium">API Tests</h3>
-                    
-                    <Button 
-                      onClick={() => yakoaTest.mutate()}
-                      disabled={yakoaTest.isPending}
-                      className="w-full justify-start"
-                    >
-                      <Shield className="h-4 w-4 mr-2" />
-                      Test Real IP Verification
-                      {yakoaTest.isPending && <RefreshCw className="h-4 w-4 ml-2 animate-spin" />}
-                    </Button>
-                    {testResults.yakoa && (
-                      <div className="text-xs text-muted-foreground mt-1">
-                        Last test: {testResults.yakoa.success ? 'Success' : 'Failed'} - {testResults.yakoa.message}
-                      </div>
-                    )}
-                    
-                    <Button 
-                      onClick={() => zapperTest.mutate()}
-                      disabled={zapperTest.isPending}
-                      className="w-full justify-start"
-                    >
-                      <BarChart3 className="h-4 w-4 mr-2" />
-                      Test Zapper Portfolio Analytics
-                      {zapperTest.isPending && <RefreshCw className="h-4 w-4 ml-2 animate-spin" />}
-                    </Button>
-                    
-                    <Button 
-                      onClick={() => storyTest.mutate()}
-                      disabled={storyTest.isPending}
-                      className="w-full justify-start"
-                    >
-                      <Wallet className="h-4 w-4 mr-2" />
-                      Test Story Protocol
-                      {storyTest.isPending && <RefreshCw className="h-4 w-4 ml-2 animate-spin" />}
+                  {/* Actions */}
+                  <div className="pt-2 border-t">
+                    <Button size="sm" variant="outline" asChild>
+                      <a href={integration.docsUrl} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="h-3 w-3 mr-1" />
+                        View Documentation
+                      </a>
                     </Button>
                   </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <h3 className="font-medium">Integration Workflow</h3>
-                  <div className="space-y-2 text-sm">
-                    <div className="p-3 bg-blue-50 rounded">
-                      <strong>1. Upload Audio</strong> → Yakoa IP verification
-                    </div>
-                    <div className="p-3 bg-green-50 rounded">
-                      <strong>2. Connect Wallet</strong> → Portfolio analysis via Zapper
-                    </div>
-                    <div className="p-3 bg-orange-50 rounded">
-                      <strong>3. Register IP</strong> → Story Protocol blockchain
-                    </div>
-                    <div className="p-3 bg-purple-50 rounded">
-                      <strong>4. Social Verify</strong> → Tomo authentication
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
 
-        <TabsContent value="status" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>System Integration Status</CardTitle>
-              <CardDescription>
-                Real-time status of all production integrations and API connections.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {integrationStatuses ? (
-                <div className="space-y-4">
-                  {Object.entries((integrationStatuses.integrations as any) || {}).map(([key, service]: [string, any]) => (
-                    <div key={key} className="flex items-center justify-between p-4 border rounded-lg">
+        {/* System-wide Status */}
+        <Card>
+          <CardHeader>
+            <CardTitle>System-wide Integration Status</CardTitle>
+            <CardDescription>Real-time monitoring of all API connections and service health</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {integrationStatuses?.integrations && (
+              <div className="space-y-4">
+                {Object.entries((integrationStatuses as any).integrations).map(([key, service]: [string, any]) => (
+                  <div key={key} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-3 h-3 rounded-full ${
+                        service.status === 'live' ? 'bg-green-500' : 
+                        service.status.includes('requires') ? 'bg-red-500' : 
+                        service.status.includes('error') ? 'bg-red-500' : 'bg-yellow-500'
+                      }`} />
                       <div>
                         <h3 className="font-medium capitalize">{key.replace('_', ' ')}</h3>
-                        <p className="text-sm text-gray-600">{service.message}</p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {service.api_key && (
-                          <Badge variant="outline">
-                            <Key className="h-3 w-3 mr-1" />
-                            {service.api_key}
-                          </Badge>
-                        )}
-                        {getStatusBadge(key)}
+                        <p className="text-sm text-gray-500">{service.message}</p>
                       </div>
                     </div>
-                  ))}
-                  
-                  <div className="pt-4 border-t">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium">Overall Status</span>
-                      {integrationStatuses.production_ready ? (
-                        <Badge variant="default" className="bg-green-500">Production Ready</Badge>
-                      ) : (
-                        <Badge variant="destructive">Needs Configuration</Badge>
+                    <div className="flex items-center space-x-2">
+                      {service.status === 'live' && (
+                        <Badge variant="default" className="bg-green-500">
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                          Live Data
+                        </Badge>
+                      )}
+                      {service.status.includes('requires') && (
+                        <Badge variant="destructive">
+                          <AlertTriangle className="w-3 h-3 mr-1" />
+                          Needs API Key
+                        </Badge>
+                      )}
+                      {service.status.includes('error') && (
+                        <Badge variant="destructive">
+                          <XCircle className="w-3 h-3 mr-1" />
+                          Connection Failed
+                        </Badge>
                       )}
                     </div>
-                    {integrationStatuses.requires_configuration?.length > 0 && (
-                      <p className="text-sm text-gray-600 mt-2">
-                        Missing: {integrationStatuses.requires_configuration.join(', ')}
-                      </p>
-                    )}
                   </div>
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4 text-gray-400" />
-                  <p className="text-gray-500">Loading integration status...</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                ))}
+              </div>
+            )}
+            
+            <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <div className="flex items-center space-x-2 mb-2">
+                {(integrationStatuses as any)?.production_ready ? (
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                ) : (
+                  <AlertTriangle className="w-5 h-5 text-yellow-500" />
+                )}
+                <h3 className="font-medium">Production Readiness Assessment</h3>
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {(integrationStatuses as any)?.requires_configuration ? 
+                  `Missing configuration: ${(integrationStatuses as any).requires_configuration.join(', ')}` :
+                  'All critical integrations are configured and operational with authentic data sources.'
+                }
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Integration Workflow */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Platform Integration Workflow</CardTitle>
+            <CardDescription>How services work together in the SoundRights platform</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg text-center">
+                <Shield className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                <h4 className="font-medium text-sm mb-1">1. Upload & Verify</h4>
+                <p className="text-xs text-gray-600 dark:text-gray-400">Yakoa IP authentication</p>
+              </div>
+              <div className="p-4 bg-purple-50 dark:bg-purple-950/30 rounded-lg text-center">
+                <Wallet className="w-8 h-8 text-purple-600 mx-auto mb-2" />
+                <h4 className="font-medium text-sm mb-1">2. Connect Wallet</h4>
+                <p className="text-xs text-gray-600 dark:text-gray-400">WalletConnect integration</p>
+              </div>
+              <div className="p-4 bg-green-50 dark:bg-green-950/30 rounded-lg text-center">
+                <BarChart3 className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                <h4 className="font-medium text-sm mb-1">3. Portfolio Analysis</h4>
+                <p className="text-xs text-gray-600 dark:text-gray-400">Zapper analytics</p>
+              </div>
+              <div className="p-4 bg-orange-50 dark:bg-orange-950/30 rounded-lg text-center">
+                <Wallet className="w-8 h-8 text-orange-600 mx-auto mb-2" />
+                <h4 className="font-medium text-sm mb-1">4. Register IP</h4>
+                <p className="text-xs text-gray-600 dark:text-gray-400">Story Protocol blockchain</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
