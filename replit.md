@@ -115,6 +115,8 @@ All services now use authentic API responses. Demo fallbacks have been removed t
 - Mobile experience: Beta warning with responsive fallback
 - Data integrity: Only authentic data sources, no mock/placeholder data
 - User control: Explicit approval required for blockchain operations
+- Creator profile: Sonic Labs background (2 years), music industry interest, web3 native
+- Connect links: GitHub (b1rdmania), Twitter/X (b1rdmania), Telegram (birdman1a)
 
 ### Next Phase Priorities
 1. Test complete end-to-end workflow: upload → verify → approve → register

@@ -20,17 +20,13 @@ const About = () => {
               
               <h2 className="text-2xl font-semibold mb-3">Meet the Creator</h2>
               <p className="text-muted-foreground mb-8">
-                I'm a software developer, musician, and web3 enthusiast passionate about the intersection of music technology 
-                and decentralized systems. SoundRights was born from a desire to explore how blockchain and programmable IP 
-                can solve real-world challenges for audio creators. With a background in React development and AI exploration, 
-                I'm excited to build tools that put power back into the hands of artists. This MVP for SoundRights is my 
-                submission to the Surreal World Assets bounty, leveraging the innovative Story Protocol.
+                I'm a web3 native, having worked at Sonic Labs for 2 years, but with a music industry background and interested about the intersection of music technology and decentralized systems. SoundRights was born from a desire to explore how blockchain and programmable IP can solve real-world challenges for audio creators. With a background in React development and AI exploration, I'm excited to build tools that put power back into the hands of artists. This MVP for SoundRights is my submission to the Surreal World Assets bounty, leveraging the innovative Story Protocol.
               </p>
               
               <h2 className="text-2xl font-semibold mb-3">Connect</h2>
               <div className="flex flex-wrap gap-4 mb-8">
                 <a 
-                  href="https://github.com/yourusername" 
+                  href="https://github.com/b1rdmania" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="inline-flex items-center px-4 py-2 rounded-md bg-secondary hover:bg-secondary/80 transition-colors"
@@ -38,15 +34,7 @@ const About = () => {
                   GitHub
                 </a>
                 <a 
-                  href="https://linkedin.com/in/yourusername" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center px-4 py-2 rounded-md bg-secondary hover:bg-secondary/80 transition-colors"
-                >
-                  LinkedIn
-                </a>
-                <a 
-                  href="https://twitter.com/yourusername" 
+                  href="https://twitter.com/b1rdmania" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="inline-flex items-center px-4 py-2 rounded-md bg-secondary hover:bg-secondary/80 transition-colors"
@@ -54,10 +42,12 @@ const About = () => {
                   Twitter/X
                 </a>
                 <a 
-                  href="mailto:your-email@example.com" 
+                  href="https://t.me/birdman1a" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
                   className="inline-flex items-center px-4 py-2 rounded-md bg-secondary hover:bg-secondary/80 transition-colors"
                 >
-                  Email
+                  Telegram
                 </a>
               </div>
               
