@@ -1,6 +1,7 @@
 import React from 'react';
 import { Music, Shield, Zap, Users, BarChart3, Wallet } from 'lucide-react';
 import LiveAPIDemo from '@/components/LiveAPIDemo';
+import EnhancedDemoUpload from '@/components/EnhancedDemoUpload';
 
 export default function LiveDemo() {
   return (
@@ -10,23 +11,27 @@ export default function LiveDemo() {
         <div className="text-center space-y-6 mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 text-green-800 text-sm font-medium">
             <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-            Live API Integration Testing
+            Live Platform Testing
           </div>
           
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900">
             <span className="block">SoundRights Live Demo</span>
             <span className="block text-purple-600 text-3xl sm:text-4xl md:text-5xl font-semibold mt-2">
-              Real API Integration Testing
+              Upload & Verify Music Rights
             </span>
           </h1>
           
           <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">
-            Test our live API integrations with real data from Yakoa, Zapper, Tomo, and WalletConnect. 
-            Story Protocol registration available as optional final step.
+            Upload your music, verify authenticity through our APIs, and optionally register IP rights on blockchain. 
+            Full end-to-end workflow with real integrations.
           </p>
           
           {/* Feature badges */}
           <div className="flex flex-wrap justify-center gap-3 pt-4">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-sm border border-gray-200">
+              <Music className="w-4 h-4 text-green-600" />
+              <span className="text-sm font-medium text-gray-700">Music Upload</span>
+            </div>
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-sm border border-gray-200">
               <Shield className="w-4 h-4 text-blue-600" />
               <span className="text-sm font-medium text-gray-700">Yakoa IP Verification</span>
@@ -43,15 +48,20 @@ export default function LiveDemo() {
               <Wallet className="w-4 h-4 text-orange-600" />
               <span className="text-sm font-medium text-gray-700">Wallet Integration</span>
             </div>
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-sm border border-gray-200">
-              <Music className="w-4 h-4 text-red-600" />
-              <span className="text-sm font-medium text-gray-700">Story Protocol (Optional)</span>
-            </div>
           </div>
         </div>
         
+        {/* Music Upload Demo */}
+        <div className="mb-16">
+          <EnhancedDemoUpload />
+        </div>
+        
         {/* Live API Demo Component */}
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-6">
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-6 mb-16">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Live API Integration Testing</h2>
+            <p className="text-gray-600">Test individual API services with real data from our integrated providers.</p>
+          </div>
           <LiveAPIDemo />
         </div>
         
