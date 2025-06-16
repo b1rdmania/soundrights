@@ -40,8 +40,7 @@ const HeroSection = () => {
             </h1>
             
             <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed px-4 sm:px-0">
-              Register music IP as NFTs, verify originality with AI, and license directly to buyers. 
-              Built for independent labels who need secure, transparent rights management.
+              Transforming the $42 billion music rights industry for independent labels. Establish timestamped IP ownership, manage sync royalties, and access dynamic licensing marketplaces through Web3 infrastructure.
             </p>
           </div>
           

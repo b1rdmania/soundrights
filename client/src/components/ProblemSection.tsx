@@ -4,20 +4,20 @@ import React from 'react';
 const ProblemSection = () => {
   const problems = [
     {
-      title: "Rights Fragmentation",
-      description: "Music IP scattered across platforms with no unified ownership proof."
+      title: "No Timestamped Ownership",
+      description: "Independent labels can't prove IP creation dates for future legal claims."
     },
     {
-      title: "Licensing Bottlenecks", 
-      description: "Sync deals take months through intermediaries charging 30-50% fees."
+      title: "Fragmented Licensing", 
+      description: "Sync and advertising deals scattered across platforms with manual processes."
     },
     {
-      title: "Originality Disputes",
-      description: "No reliable way to prove creation date or verify authenticity."
+      title: "Complex Royalty Management",
+      description: "No centralized system for managing catalog licensing and revenue tracking."
     },
     {
-      title: "Revenue Leakage",
-      description: "Complex royalty chains where creators lose track of their earnings."
+      title: "Web3 Technical Barriers",
+      description: "Traditional labels locked out of blockchain benefits due to complexity."
     }
   ];
 
@@ -25,9 +25,9 @@ const ProblemSection = () => {
     <section className="py-16 bg-accent/30">
       <div className="container px-4 md:px-6">
         <div className="max-w-3xl mx-auto text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">The Problem: Lost Control, Unclear Rights</h2>
+          <h2 className="text-3xl font-bold mb-4">The $42B Music Rights Challenge</h2>
           <p className="text-lg text-muted-foreground">
-            Independent labels face billion-dollar inefficiencies in music rights management:
+            Independent labels control 43% of global music market but lack tools for efficient rights management:
           </p>
         </div>
 

@@ -4,16 +4,16 @@ import React from 'react';
 const SolutionSection = () => {
   const solutions = [
     {
-      title: "Blockchain IP Registry",
-      description: "Register music as NFTs with immutable ownership proof and creation timestamps."
+      title: "Timestamped IP Ownership",
+      description: "Establish verifiable creation dates for future legal claims through blockchain registration."
     },
     {
-      title: "AI-Powered Verification",
-      description: "Instant originality scanning prevents copyright disputes before they start."
+      title: "Sync Royalty Management",
+      description: "Centralized platform for managing catalog licensing with automated revenue tracking."
     },
     {
-      title: "Direct Licensing Market",
-      description: "Connect with sync buyers instantly. No middlemen, no delays, maximum revenue."
+      title: "SDK Integration Tools",
+      description: "Labels integrate SoundRights into existing websites for seamless payment processing."
     }
   ];
 
@@ -21,9 +21,9 @@ const SolutionSection = () => {
     <section className="py-12 sm:py-16">
       <div className="container px-4 md:px-6">
         <div className="max-w-3xl mx-auto text-center mb-8 sm:mb-12">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">SoundRights: Own Your Music, Control Your Future</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">SoundRights: Label Infrastructure for Web3</h2>
           <p className="text-base sm:text-lg text-muted-foreground">
-            The first blockchain-native music licensing platform built for independent labels:
+            Comprehensive platform enabling independent labels to manage catalogs with blockchain-verified ownership:
           </p>
         </div>
 
