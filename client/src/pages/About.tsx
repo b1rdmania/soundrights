@@ -3,6 +3,7 @@ import React from 'react';
 import { Github, Twitter, MessageCircle, Code, Music, Zap } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+// Force rebuild for deployment sync
 
 const About = () => {
   return (
