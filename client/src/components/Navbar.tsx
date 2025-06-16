@@ -30,7 +30,6 @@ const Navbar = () => {
     { path: '/marketplace', label: 'Marketplace' },
     { path: '/integrations', label: 'Integrations' },
     { path: '/whitepaper', label: 'White Paper' },
-    { path: '/meet-the-creator', label: 'Creator' },
     { path: '/about', label: 'About' },
   ];
 
