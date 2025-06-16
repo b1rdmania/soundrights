@@ -138,8 +138,13 @@ All services now use authentic API responses. Demo fallbacks have been removed t
 
 ### Technical Debt
 - Some TypeScript errors in routes.ts require schema updates
-- Story Protocol SDK methods need final API alignment
+- Story Protocol testnet RPC connectivity intermittent (confirmed June 16, 2025)
 - Database schema could use additional fields for Yakoa confidence scores
+
+### Story Protocol Status (Updated June 16, 2025)
+**Issue Confirmed**: Testnet RPC endpoint `https://testnet.story.foundation` returns "fetch failed" errors
+**Current Position**: Positioned as optional final step after main API verification workflow
+**Impact**: Does not affect core platform functionality since positioned separately from upload flow
 
 ## Environment Variables Required
 - `DATABASE_URL` (PostgreSQL connection)

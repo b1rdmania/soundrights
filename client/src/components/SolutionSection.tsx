@@ -42,35 +42,36 @@ const SolutionSection = () => {
           ))}
         </div>
         
-        {/* Simple flow diagram */}
+        {/* SDK Integration Flow */}
         <div className="mt-10 sm:mt-16 max-w-4xl mx-auto px-4">
-          <div className="bg-secondary/30 p-4 sm:p-6 rounded-lg">
+          <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-4 sm:p-6 rounded-lg border border-purple-200">
+            <h3 className="text-center text-lg font-semibold mb-6 text-gray-800">SDK Integration Workflow</h3>
             <div className="flex flex-col md:flex-row items-center justify-between gap-6 sm:gap-4 text-center">
               <div className="flex-1">
-                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-2 sm:mb-3">
-                  <span className="font-semibold">1</span>
+                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg bg-blue-100 flex items-center justify-center mx-auto mb-2 sm:mb-3">
+                  <span className="text-blue-600 font-semibold">📁</span>
                 </div>
-                <p className="font-medium text-sm sm:text-base">Creator uploads</p>
+                <p className="font-medium text-sm sm:text-base text-gray-700">Label Catalog Upload</p>
               </div>
               
-              <div className="hidden md:block text-primary">→</div>
-              <div className="md:hidden text-primary">↓</div>
+              <div className="hidden md:block text-purple-500 text-2xl">⟶</div>
+              <div className="md:hidden text-purple-500 text-2xl">⬇</div>
               
               <div className="flex-1">
-                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-2 sm:mb-3">
-                  <span className="font-semibold">2</span>
+                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg bg-purple-100 flex items-center justify-center mx-auto mb-2 sm:mb-3">
+                  <span className="text-purple-600 font-semibold">⚡</span>
                 </div>
-                <p className="font-medium text-sm sm:text-base">Defines License on Story</p>
+                <p className="font-medium text-sm sm:text-base text-gray-700">SDK Embed on Website</p>
               </div>
               
-              <div className="hidden md:block text-primary">→</div>
-              <div className="md:hidden text-primary">↓</div>
+              <div className="hidden md:block text-purple-500 text-2xl">⟶</div>
+              <div className="md:hidden text-purple-500 text-2xl">⬇</div>
               
               <div className="flex-1">
-                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-2 sm:mb-3">
-                  <span className="font-semibold">3</span>
+                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg bg-green-100 flex items-center justify-center mx-auto mb-2 sm:mb-3">
+                  <span className="text-green-600 font-semibold">💰</span>
                 </div>
-                <p className="font-medium text-sm sm:text-base">User Verifies on Story</p>
+                <p className="font-medium text-sm sm:text-base text-gray-700">Automated Licensing Revenue</p>
               </div>
             </div>
           </div>
