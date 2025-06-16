@@ -3,7 +3,8 @@ import React from 'react';
 import { Github, Twitter, MessageCircle, Code, Music, Zap } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-// Force rebuild for deployment sync
+import profileImage from '@assets/CleanShot 2025-06-16 at 12.43.19@2x_1750074212115.png';
+import contributionsImage from '@assets/CleanShot 2025-06-16 at 12.43.08@2x_1750074214348.png';
 
 const About = () => {
   return (
@@ -11,209 +12,156 @@ const About = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         
         <div className="text-center mb-12">
-          <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">About SoundRights</h1>
+          <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">About Me</h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Transforming music licensing through blockchain technology for independent labels
+            Web3 developer with music industry background building the future of IP rights
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 mb-12">
+        <div className="max-w-3xl mx-auto">
           
           {/* Creator Profile */}
-          <Card>
+          <Card className="mb-8">
             <CardHeader>
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center border-2 border-purple-200">
-                  <span className="text-2xl">🐦</span>
-                </div>
+              <div className="flex items-center gap-6 mb-6">
+                <img 
+                  src={profileImage} 
+                  alt="b1rdmania profile"
+                  className="w-24 h-24 rounded-full object-cover border-4 border-purple-200"
+                />
                 <div>
-                  <CardTitle className="text-xl">b1rdmania</CardTitle>
-                  <p className="text-purple-600 font-medium">Creator & Developer</p>
+                  <CardTitle className="text-2xl mb-2">b1rdmania</CardTitle>
+                  <p className="text-purple-600 font-medium text-lg">Creator & Web3 Developer</p>
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+                      <Music className="w-3 h-3 mr-1" />
+                      Music Industry
+                    </Badge>
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                      <Code className="w-3 h-3 mr-1" />
+                      Web3 Developer
+                    </Badge>
+                    <Badge variant="secondary" className="bg-green-100 text-green-800">
+                      <Zap className="w-3 h-3 mr-1" />
+                      Sonic Labs
+                    </Badge>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="flex flex-wrap gap-2 mb-4">
-                <Badge variant="secondary" className="bg-purple-100 text-purple-800">
-                  <Music className="w-3 h-3 mr-1" />
-                  Music Industry
-                </Badge>
-                <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                  <Code className="w-3 h-3 mr-1" />
-                  Web3 Developer
-                </Badge>
-                <Badge variant="secondary" className="bg-green-100 text-green-800">
-                  <Zap className="w-3 h-3 mr-1" />
-                  Sonic Labs
-                </Badge>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-gray-700">
+            <CardContent className="space-y-6">
+              <p className="text-gray-700 text-lg leading-relaxed">
                 Web3 native with 2+ years at Sonic Labs building blockchain infrastructure. 
-                SoundRights addresses real problems in the $42 billion music rights market, 
-                providing independent labels with tools for IP registration, licensing automation, 
-                and seamless website integration.
+                I'm passionate about the intersection of music technology and decentralized systems. 
+                SoundRights was born from my desire to solve real-world challenges for audio creators 
+                in the $42 billion music rights market.
               </p>
               
               <div className="pt-4 border-t">
-                <h4 className="font-semibold text-gray-900 mb-3">Development Activity</h4>
-                <div className="text-center mb-3">
-                  <div className="text-2xl font-bold text-green-600">938</div>
-                  <div className="text-sm text-gray-600">contributions in the last year</div>
-                </div>
-                
-                {/* GitHub-style contribution grid */}
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <div className="grid grid-cols-12 gap-1 mb-2">
-                    {Array.from({ length: 84 }, (_, i) => (
-                      <div
-                        key={i}
-                        className={`w-2 h-2 rounded-sm ${
-                          i % 4 === 0 ? 'bg-green-600' : 
-                          i % 3 === 0 ? 'bg-green-400' : 
-                          i % 2 === 0 ? 'bg-green-200' : 
-                          'bg-gray-200'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <div className="flex justify-between text-xs text-gray-500">
-                    <span>Jan</span>
-                    <span>Jun</span>
-                    <span>Dec</span>
-                  </div>
+                <h4 className="font-semibold text-gray-900 mb-4 text-lg">GitHub Development Activity</h4>
+                <div className="bg-white p-4 rounded-lg border border-gray-200">
+                  <img 
+                    src={contributionsImage} 
+                    alt="GitHub contributions showing 938 contributions in the last year"
+                    className="w-full rounded-lg"
+                  />
                 </div>
               </div>
 
-              <div className="flex gap-3 pt-4">
-                <a 
-                  href="https://github.com/b1rdmania" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition-colors"
-                >
-                  <Github className="w-4 h-4" />
-                  GitHub
-                </a>
-                <a 
-                  href="https://twitter.com/b1rdmania" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition-colors"
-                >
-                  <Twitter className="w-4 h-4" />
-                  Twitter/X
-                </a>
-                <a 
-                  href="https://t.me/birdman1a" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition-colors"
-                >
-                  <MessageCircle className="w-4 h-4" />
-                  Telegram
-                </a>
+              <div className="pt-4 border-t">
+                <h4 className="font-semibold text-gray-900 mb-4 text-lg">Connect With Me</h4>
+                <div className="flex gap-4">
+                  <a 
+                    href="https://github.com/b1rdmania" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-4 py-3 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition-colors font-medium"
+                  >
+                    <Github className="w-5 h-5" />
+                    GitHub
+                  </a>
+                  <a 
+                    href="https://twitter.com/b1rdmania" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-4 py-3 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition-colors font-medium"
+                  >
+                    <Twitter className="w-5 h-5" />
+                    Twitter/X
+                  </a>
+                  <a 
+                    href="https://t.me/birdman1a" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-4 py-3 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition-colors font-medium"
+                  >
+                    <MessageCircle className="w-5 h-5" />
+                    Telegram
+                  </a>
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Platform Mission */}
-          <Card>
+          {/* SoundRights Project */}
+          <Card className="mb-8">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Music className="w-5 h-5 text-purple-600" />
-                Platform Mission
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <Music className="w-6 h-6 text-purple-600" />
+                SoundRights Project
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-gray-700">
-                SoundRights transforms music licensing through blockchain technology, enabling labels 
-                to register IP ownership, automate licensing workflows, and connect directly with 
-                sync buyers through SDK integration tools.
+              <p className="text-gray-700 leading-relaxed">
+                My submission to the Surreal World Assets bounty, SoundRights transforms music licensing 
+                through blockchain technology. It enables independent labels to register IP ownership, 
+                automate licensing workflows, and connect directly with sync buyers through SDK integration tools.
               </p>
               
               <div>
-                <h4 className="font-semibold text-gray-900 mb-2">Key Innovations</h4>
-                <ul className="space-y-1 text-sm text-gray-600">
-                  <li>• Account abstraction hiding web3 complexity</li>
-                  <li>• Real-time IP verification via Yakoa API</li>
-                  <li>• SDK integration for existing label websites</li>
-                  <li>• Story Protocol blockchain registration</li>
-                  <li>• Automated licensing and revenue tracking</li>
+                <h4 className="font-semibold text-gray-900 mb-3">Technical Innovations</h4>
+                <ul className="space-y-2 text-gray-600">
+                  <li className="flex items-start gap-2">
+                    <span className="text-purple-600 mt-1">•</span>
+                    Account abstraction hiding web3 complexity from end users
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-purple-600 mt-1">•</span>
+                    Real-time IP verification through Yakoa API integration
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-purple-600 mt-1">•</span>
+                    SDK tools for labels to embed licensing on their websites
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-purple-600 mt-1">•</span>
+                    Story Protocol blockchain registration for verifiable ownership
+                  </li>
                 </ul>
               </div>
 
-              <div>
-                <h4 className="font-semibold text-gray-900 mb-2">Technical Background</h4>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-gray-900 mb-2">Tech Stack</h4>
                 <p className="text-sm text-gray-600">
-                  Built with TypeScript, React, PostgreSQL, and blockchain infrastructure. 
-                  Integrates with Yakoa, Zapper, Tomo, and Story Protocol APIs for 
-                  authentic data and real-time verification.
-                </p>
-              </div>
-
-              <div>
-                <h4 className="font-semibold text-gray-900 mb-2">Market Impact</h4>
-                <p className="text-sm text-gray-600">
-                  Addresses the $42 billion music rights market by providing independent 
-                  labels with enterprise-grade tools previously only available to major labels.
+                  TypeScript, React, PostgreSQL, Express.js, Story Protocol, Yakoa API, 
+                  Zapper API, Tomo API, WalletConnect, Drizzle ORM
                 </p>
               </div>
             </CardContent>
           </Card>
+
+          {/* Acknowledgements */}
+          <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+            <CardContent className="p-6 text-center">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Acknowledgements</h3>
+              <p className="text-gray-700">
+                Built for the Surreal World Assets bounty, leveraging Story Protocol's innovative 
+                programmable IP infrastructure. Special thanks to the Story Protocol team and 
+                buildathon organizers for providing the opportunity to solve real music industry challenges.
+              </p>
+            </CardContent>
+          </Card>
         </div>
-
-        {/* Platform Overview */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Platform Overview</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="text-center">
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <Music className="w-6 h-6 text-blue-600" />
-                </div>
-                <h3 className="font-semibold mb-2">IP Registration</h3>
-                <p className="text-sm text-gray-600">
-                  Timestamped blockchain registration for verifiable IP ownership through Story Protocol
-                </p>
-              </div>
-              
-              <div className="text-center">
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <Zap className="w-6 h-6 text-purple-600" />
-                </div>
-                <h3 className="font-semibold mb-2">SDK Integration</h3>
-                <p className="text-sm text-gray-600">
-                  Labels embed licensing capabilities into existing websites for seamless payments
-                </p>
-              </div>
-              
-              <div className="text-center">
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <Code className="w-6 h-6 text-green-600" />
-                </div>
-                <h3 className="font-semibold mb-2">Automated Licensing</h3>
-                <p className="text-sm text-gray-600">
-                  Dynamic pricing and automated revenue tracking for sync licensing deals
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Acknowledgements */}
-        <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
-          <CardContent className="p-6 text-center">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Acknowledgements</h3>
-            <p className="text-gray-700">
-              Built for the Surreal World Assets bounty, leveraging Story Protocol's innovative 
-              programmable IP infrastructure. Special thanks to the Story Protocol team and 
-              buildathon organizers for providing the opportunity to solve real music industry challenges.
-            </p>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
