@@ -140,19 +140,7 @@ export default function Integrations() {
           )}
         </div>
 
-        {/* Data Integrity Notice */}
-        <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-8">
-          <div className="flex items-start gap-3">
-            <Shield className="w-5 h-5 text-blue-600 mt-1" />
-            <div>
-              <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">Authentic Data Only</h3>
-              <p className="text-sm text-blue-800 dark:text-blue-200">
-                All integrations return authentic data from production APIs. Services display clear error messages when credentials are missing or connections fail. 
-                No mock, dummy, or placeholder data is used anywhere in the platform.
-              </p>
-            </div>
-          </div>
-        </div>
+
       </div>
 
       <div className="space-y-8">
