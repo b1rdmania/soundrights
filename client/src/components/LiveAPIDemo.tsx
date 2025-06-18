@@ -124,9 +124,17 @@ export default function LiveAPIDemo() {
     }
   });
 
-  // Story Protocol Registration (optional final step)
+  // Story Protocol Registration Test
   const storyTest = useMutation({
-    mutationFn: async () => await apiRequest('/api/story/test', { method: 'POST' }),
+    mutationFn: async () => await apiRequest('/api/story/test-register', { 
+      method: 'POST',
+      body: JSON.stringify({
+        name: "Test Music Track",
+        description: "Testing Story Protocol blockchain registration",
+        mediaUrl: "https://example.com/test-track.mp3",
+        attributes: { genre: "Electronic", testMode: true }
+      })
+    }),
     onSuccess: (data) => {
       setResults(prev => ({
         ...prev,
@@ -138,8 +146,8 @@ export default function LiveAPIDemo() {
         }
       }));
       toast({
-        title: "Blockchain Registration Complete",
-        description: `IP Asset ${data.details?.ip_asset_id} registered`,
+        title: "Blockchain Registration Test Complete",
+        description: data.success ? "Test registration successful" : "Registration test failed",
       });
     },
     onError: (error) => {
@@ -147,6 +155,38 @@ export default function LiveAPIDemo() {
         ...prev,
         story: {
           service: 'Story Protocol Blockchain',
+          status: 'error',
+          error: error.message,
+          timestamp: new Date().toLocaleTimeString()
+        }
+      }));
+      toast({
+        title: "Blockchain Registration Failed",
+        description: "Check console for detailed error logs",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Story Protocol Status Check
+  const storyStatusTest = useMutation({
+    mutationFn: async () => await apiRequest('/api/story/status'),
+    onSuccess: (data) => {
+      setResults(prev => ({
+        ...prev,
+        storyStatus: {
+          service: 'Story Protocol Status',
+          status: 'success',
+          data,
+          timestamp: new Date().toLocaleTimeString()
+        }
+      }));
+    },
+    onError: (error) => {
+      setResults(prev => ({
+        ...prev,
+        storyStatus: {
+          service: 'Story Protocol Status',
           status: 'error',
           error: error.message,
           timestamp: new Date().toLocaleTimeString()
@@ -389,47 +429,147 @@ export default function LiveAPIDemo() {
         })}
       </div>
 
-      {/* Story Protocol Registration - Optional Final Step */}
-      {showStoryRegistration && (
-        <Card className="border-purple-200 bg-purple-50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-purple-800">
-              <Wallet className="w-5 h-5" />
-              Optional: Blockchain IP Registration
-            </CardTitle>
-            <p className="text-sm text-purple-700">
-              Register your verified IP as an asset on Story Protocol blockchain
-            </p>
-          </CardHeader>
-          <CardContent>
-            {results.story ? (
-              <div>
-                {results.story.status === 'success' && formatResultData(results.story)}
-                {results.story.status === 'error' && (
-                  <div className="text-red-600 text-sm">
-                    Blockchain registration failed: {results.story.error}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <Button 
-                onClick={() => storyTest.mutate()}
-                disabled={storyTest.isPending}
-                className="bg-purple-600 hover:bg-purple-700"
-              >
-                {storyTest.isPending ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                    Registering on Blockchain...
-                  </>
-                ) : (
-                  'Register IP Asset on Story Protocol'
-                )}
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-      )}
+      {/* Story Protocol Testing Section */}
+      <div className="mt-8 space-y-4">
+        <h3 className="text-lg font-semibold text-gray-900">Story Protocol Blockchain Testing</h3>
+        <p className="text-sm text-gray-600">
+          Test blockchain registration functionality and diagnose connectivity issues
+        </p>
+        
+        <div className="grid md:grid-cols-2 gap-4">
+          {/* Status Check */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-sm">
+                <Shield className="w-4 h-4" />
+                Connection Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {results.storyStatus ? (
+                <div>
+                  {results.storyStatus.status === 'success' && results.storyStatus.data && (
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span>Service:</span>
+                        <Badge variant="outline">{results.storyStatus.data.status}</Badge>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>API Key:</span>
+                        <Badge variant={results.storyStatus.data.apiKey === 'configured' ? 'default' : 'destructive'}>
+                          {results.storyStatus.data.apiKey}
+                        </Badge>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Private Key:</span>
+                        <Badge variant={results.storyStatus.data.privateKey === 'configured' ? 'default' : 'destructive'}>
+                          {results.storyStatus.data.privateKey}
+                        </Badge>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>API Connection:</span>
+                        <Badge variant={results.storyStatus.data.connectivity?.api === 'connected' ? 'default' : 'destructive'}>
+                          {results.storyStatus.data.connectivity?.api || 'unknown'}
+                        </Badge>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>RPC Connection:</span>
+                        <Badge variant={results.storyStatus.data.connectivity?.rpc === 'connected' ? 'default' : 'destructive'}>
+                          {results.storyStatus.data.connectivity?.rpc || 'unknown'}
+                        </Badge>
+                      </div>
+                    </div>
+                  )}
+                  {results.storyStatus.status === 'error' && (
+                    <div className="text-red-600 text-sm">
+                      Error: {results.storyStatus.error}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Button 
+                  onClick={() => storyStatusTest.mutate()}
+                  disabled={storyStatusTest.isPending}
+                  variant="outline"
+                  size="sm"
+                >
+                  {storyStatusTest.isPending ? (
+                    <>
+                      <RefreshCw className="w-3 h-3 mr-2 animate-spin" />
+                      Checking...
+                    </>
+                  ) : (
+                    'Check Status'
+                  )}
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Registration Test */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-sm">
+                <Music className="w-4 h-4" />
+                Blockchain Registration Test
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {results.story ? (
+                <div>
+                  {results.story.status === 'success' && results.story.data && (
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span>Test Status:</span>
+                        <Badge variant="default">Success</Badge>
+                      </div>
+                      {results.story.data.data?.ipId && (
+                        <div className="flex justify-between">
+                          <span>IP Asset ID:</span>
+                          <code className="text-xs bg-gray-100 px-1 rounded">
+                            {results.story.data.data.ipId.slice(0, 8)}...
+                          </code>
+                        </div>
+                      )}
+                      {results.story.data.data?.txHash && (
+                        <div className="flex justify-between">
+                          <span>Transaction:</span>
+                          <code className="text-xs bg-gray-100 px-1 rounded">
+                            {results.story.data.data.txHash.slice(0, 8)}...
+                          </code>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {results.story.status === 'error' && (
+                    <div className="text-red-600 text-sm space-y-1">
+                      <div>Registration failed:</div>
+                      <div className="font-mono text-xs bg-red-50 p-2 rounded">
+                        {results.story.error}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Button 
+                  onClick={() => storyTest.mutate()}
+                  disabled={storyTest.isPending}
+                  size="sm"
+                >
+                  {storyTest.isPending ? (
+                    <>
+                      <RefreshCw className="w-3 h-3 mr-2 animate-spin" />
+                      Testing...
+                    </>
+                  ) : (
+                    'Test Registration'
+                  )}
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }

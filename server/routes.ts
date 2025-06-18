@@ -681,6 +681,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Story Protocol diagnostics and testing endpoint
+  app.post("/api/story/test-register", async (req, res) => {
+    try {
+      console.log("Story Protocol test registration initiated");
+      
+      const testData = {
+        name: req.body.name || "Test Music Track",
+        description: req.body.description || "A test music track for Story Protocol registration",
+        mediaUrl: req.body.mediaUrl || "https://example.com/test-track.mp3",
+        attributes: req.body.attributes || { 
+          genre: "Electronic", 
+          duration: "3:45",
+          testMode: true 
+        },
+        userAddress: req.body.userAddress || "0x1234567890123456789012345678901234567890",
+      };
+
+      console.log("Test registration data:", testData);
+
+      const result = await storyService.registerIPAsset(testData);
+      
+      console.log("Story Protocol test registration successful:", result);
+      
+      res.json({
+        success: true,
+        message: "Test registration completed successfully",
+        data: result,
+        testMode: true
+      });
+    } catch (error) {
+      console.error("Story Protocol test registration failed:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Test registration failed",
+        error: error instanceof Error ? error.message : "Unknown error",
+        stack: error instanceof Error ? error.stack : null,
+        testMode: true
+      });
+    }
+  });
+
+  // Story Protocol status and connectivity check
+  app.get("/api/story/status", async (req, res) => {
+    try {
+      console.log("Checking Story Protocol service status");
+      
+      // Test basic API connectivity
+      const apiTest = await fetch('https://api.story.foundation/health', {
+        headers: {
+          'X-API-Key': process.env.STORY_API_KEY || 'MhBsxkU1z9fG6TofE59KqiiWV-YlYE8Q4awlLQehF3U',
+          'X-CHAIN': 'story-aeneid'
+        }
+      }).catch(err => null);
+
+      // Test RPC connectivity
+      const rpcTest = await fetch('https://testnet.story.foundation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          method: 'eth_blockNumber',
+          params: [],
+          id: 1
+        })
+      }).catch(err => null);
+
+      res.json({
+        service: "Story Protocol Integration",
+        status: "configured",
+        apiKey: process.env.STORY_API_KEY ? "configured" : "missing",
+        privateKey: process.env.STORY_PRIVATE_KEY ? "configured" : "missing", 
+        rpcEndpoint: "https://testnet.story.foundation",
+        apiEndpoint: "https://api.story.foundation",
+        chainId: "story-aeneid",
+        connectivity: {
+          api: apiTest ? (apiTest.ok ? "connected" : "error") : "failed",
+          rpc: rpcTest ? (rpcTest.ok ? "connected" : "error") : "failed"
+        },
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("Story Protocol status check failed:", error);
+      res.status(500).json({ 
+        service: "Story Protocol Integration",
+        status: "error",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
   // Wallet connection endpoint
   app.post("/api/wallet/connect", async (req: any, res) => {
     try {
